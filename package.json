@@ -23,7 +23,9 @@
     "patch": "patch-package",
     "postinstall": "jetify && if which pod >/dev/null; then (cd ios; pod install); fi",
     "hack:types-react-native": "rimraf node_modules/@types/react-native/node_modules/@types",
-    "prepare": "npm-run-all patch hack:*"
+    "prepare": "npm-run-all patch hack:*",
+    "build": "rm -rf dist/ && webpack --mode=production --config webpack.config.js",
+    "web": "webpack serve --mode=development --config webpack.config.js"
   },
   "dependencies": {
     "@apollo/client": "^3.4.16",
@@ -67,7 +69,7 @@
     "react": "17.0.2",
     "react-apollo-network-status": "^5.1.0",
     "react-content-loader": "^6.0.3",
-    "react-dom": "^17.0.1",
+    "react-dom": "^17.0.2",
     "react-native": "0.66.3",
     "react-native-camera": "^4.2.1",
     "react-native-device-info": "^8.4.8",
@@ -102,6 +104,7 @@
     "react-native-vector-icons": "^9.0.0",
     "react-native-version-number": "^0.3.6",
     "react-native-walkthrough-tooltip": "^1.2.0",
+    "react-native-web": "^0.17.5",
     "react-native-youtube": "^2.0.0",
     "subscriptions-transport-ws": "^0.11.0",
     "url": "^0.11.0",
@@ -117,6 +120,7 @@
     "@storybook/addon-ondevice-knobs": "^5.3.25",
     "@storybook/react-native": "^5.3.17",
     "@storybook/react-native-server": "^5.3.17",
+    "@svgr/webpack": "^6.1.1",
     "@testing-library/jest-native": "^4.0.2",
     "@testing-library/react-native": "^8.0.0",
     "@types/detox": "^17.14.3",
@@ -140,6 +144,7 @@
     "babel-core": "7.0.0-bridge.0",
     "babel-jest": "^27.3.1",
     "babel-loader": "^8.2.3",
+    "babel-plugin-react-native-web": "^0.17.5",
     "csv-parse": "^5.0.3",
     "detox": "^19.0.0",
     "eslint": "^8.2.0",
@@ -147,6 +152,7 @@
     "eslint-plugin-react": "^7.27.1",
     "eslint-plugin-react-hooks": "^4.3.0",
     "eslint-plugin-react-native": "^3.11.0",
+    "html-webpack-plugin": "^5.5.0",
     "jest": "^27.3.1",
     "jest-circus": "^27.3.1",
     "jetifier": "^2.0.0",
@@ -166,7 +172,11 @@
     "rimraf": "3.0.2",
     "solidarity": "^3.0.0",
     "ts-jest": "^27.0.7",
-    "typescript": "^4.5.2"
+    "typescript": "^4.5.2",
+    "url-loader": "^4.1.1",
+    "webpack": "^5.64.4",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.6.0"
   },
   "peerDependencies": {
     "solidarity": "^2.3.1"
