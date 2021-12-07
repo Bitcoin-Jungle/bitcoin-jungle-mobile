@@ -1,5 +1,5 @@
 import { ApolloClient, gql } from "@apollo/client"
-import messaging from "@react-native-firebase/messaging"
+import messaging from "firebase/messaging"
 
 export const requestPermission = async (client: ApolloClient<unknown>): Promise<void> => {
   const authorizationStatus = await messaging().requestPermission()

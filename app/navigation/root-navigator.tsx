@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 import { useApolloClient, useQuery } from "@apollo/client"
 import PushNotificationIOS from "@react-native-community/push-notification-ios"
-import messaging from "@react-native-firebase/messaging"
+import messaging from "firebase/messaging"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { CardStyleInterpolators, createStackNavigator } from "@react-navigation/stack"
 import i18n from "i18n-js"
@@ -12,7 +12,7 @@ import { AppState } from "react-native"
 import EStyleSheet from "react-native-extended-stylesheet"
 import * as RNLocalize from "react-native-localize"
 import Icon from "react-native-vector-icons/Ionicons"
-import analytics from "@react-native-firebase/analytics"
+import analytics from "firebase/analytics"
 
 import { MAIN_QUERY } from "../graphql/query"
 import { translate } from "../i18n"

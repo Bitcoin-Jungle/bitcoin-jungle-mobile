@@ -23,14 +23,20 @@ const compileNodeModules = [
   "react-native-root-siblings",
   "react-native-version-number",
   "@react-native-community/push-notification-ios",
-  "react-native-fingerprint-scanner",
   'react-native-camera',
-  "@react-native-firebase/app",
-  '@react-native-firebase/analytics',
-  '@react-native-firebase/crashlytics',
-  '@react-native-firebase/messaging',
   '@storybook/react-native',
+  '@storybook/addon-actions',
+  '@storybook/addon-knobs',
+  '@storybook/addon-ondevice-actions',
+  '@storybook/addon-ondevice-knobs',
+  '@storybook/react-native',
+  '@storybook/react-native-server',
   'react-native-animatable',
+  '@react-navigation/stack',
+  '@react-navigation/native',
+  'react-native-modal-selector',
+  'react-native-swipe-gestures',
+  'react-native-modal-datetime-picker'
 ].map((moduleName) => path.resolve(appDirectory, `node_modules/${moduleName}`))
 
 const babelLoaderConfiguration = {
@@ -83,8 +89,8 @@ module.exports = {
   resolve: {
     extensions: [".web.tsx", ".web.ts", ".tsx", ".ts", ".web.js", ".js"],
     alias: {
-      "react-native$": "react-native-web",
-    },
+      'react-native$': 'react-native-web'
+  },
     fallback: { "stream": require.resolve("stream-browserify") }
   },
   module: {

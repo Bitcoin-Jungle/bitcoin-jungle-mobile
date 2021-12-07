@@ -1,6 +1,6 @@
 import { ApolloClient, gql, makeVar } from "@apollo/client"
 import indexOf from "lodash.indexof"
-import analytics from "@react-native-firebase/analytics"
+import analytics from "firebase/analytics"
 
 import type { INetwork } from "../types/network"
 import { loadString } from "../utils/storage"

@@ -21,8 +21,11 @@
     "resolveJsonModule": true,
     "baseUrl": "./",
     "paths": {
-      "@app/*": ["app/*"]
-    }
+      "@app/*": ["app/*"],
+      "@types/react-native-web": ["../node_modules/@types/react-native"],
+      "react-native": ["../node_modules/react-native-modules"]
+    },
+   
   },
   "exclude": ["node_modules"],
   "include": ["app", "test", "storybook", "utils/declaration.d.ts"]

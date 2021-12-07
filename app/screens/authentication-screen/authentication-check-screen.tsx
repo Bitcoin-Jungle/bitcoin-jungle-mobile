@@ -1,13 +1,13 @@
 import * as React from "react"
 import { useEffect } from "react"
-import { Image } from "react-native"
+import { Image,Platform } from "react-native"
 import EStyleSheet from "react-native-extended-stylesheet"
 import { useApolloClient } from "@apollo/client"
 
 import { Screen } from "../../components/screen"
 import { palette } from "../../theme/palette"
 import KeyStoreWrapper from "../../utils/storage/secureStorage"
-import BiometricWrapper from "../../utils/biometricAuthentication"
+// import BiometricWrapper from "../../utils/biometricAuthentication"
 import type { ScreenType } from "../../types/jsx"
 import { AuthenticationScreenPurpose, PinScreenPurpose } from "../../utils/enum"
 import { showModalClipboardIfValidPayment } from "../../utils/clipboard"
@@ -42,21 +42,15 @@ export const AuthenticationCheckScreen: ScreenType = ({ navigation }: Props) => 
   useEffect(() => {
     ;(async () => {
       const isPinEnabled = await KeyStoreWrapper.getIsPinEnabled()
-
-      if (
-        (await BiometricWrapper.isSensorAvailable()) &&
-        (await KeyStoreWrapper.getIsBiometricsEnabled())
-      ) {
-        navigation.replace("authentication", {
-          screenPurpose: AuthenticationScreenPurpose.Authenticate,
-          isPinEnabled,
-        })
-      } else if (isPinEnabled) {
-        navigation.replace("pin", { screenPurpose: PinScreenPurpose.AuthenticatePin })
-      } else {
-        navigation.replace("Primary")
-        hasToken && showModalClipboardIfValidPayment({ client, network: tokenNetwork })
-      }
+if (Platform.OS != 'web') {
+  if (isPinEnabled) {
+    navigation.replace("pin", { screenPurpose: PinScreenPurpose.AuthenticatePin })
+  } else {
+    navigation.replace("Primary")
+    hasToken && showModalClipboardIfValidPayment({ client, network: tokenNetwork })
+  }
+}
+  
     })()
   }, [client, hasToken, navigation, tokenNetwork])
 

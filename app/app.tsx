@@ -15,8 +15,7 @@ import { getMainDefinition } from "@apollo/client/utilities"
 import { setContext } from "@apollo/client/link/context"
 import { RetryLink } from "@apollo/client/link/retry"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import analytics from "@react-native-firebase/analytics"
-import "@react-native-firebase/crashlytics"
+import analytics from "firebase/analytics"
 import {
   NavigationContainer,
   NavigationState,

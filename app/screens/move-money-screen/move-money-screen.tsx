@@ -1,5 +1,5 @@
 import { ApolloError, useQuery } from "@apollo/client"
-import messaging from "@react-native-firebase/messaging"
+import messaging from "firebase/messaging"
 import * as React from "react"
 import { useEffect, useState } from "react"
 import {

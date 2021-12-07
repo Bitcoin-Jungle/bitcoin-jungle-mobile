@@ -1,6 +1,6 @@
 import * as React from "react"
 import { RouteProp, useFocusEffect } from "@react-navigation/native"
-import { Alert, Image, View } from "react-native"
+import { Alert, Image, View,Platform } from "react-native"
 import { Button } from "react-native-elements"
 import EStyleSheet from "react-native-extended-stylesheet"
 import { useApolloClient } from "@apollo/client"
@@ -10,7 +10,7 @@ import { color } from "../../theme"
 import { palette } from "../../theme/palette"
 import { translate } from "../../i18n"
 import KeyStoreWrapper from "../../utils/storage/secureStorage"
-import BiometricWrapper from "../../utils/biometricAuthentication"
+// import BiometricWrapper from "../../utils/biometricAuthentication"
 import type { ScreenType } from "../../types/jsx"
 import { AuthenticationScreenPurpose, PinScreenPurpose } from "../../utils/enum"
 import { showModalClipboardIfValidPayment } from "../../utils/clipboard"
@@ -91,11 +91,7 @@ export const AuthenticationScreen: ScreenType = ({ route, navigation }: Props) =
       description = translate("AuthenticationScreen.setUpAuthenticationDescription")
     }
     // Presents the OS specific authentication prompt
-    BiometricWrapper.authenticate(
-      description,
-      handleAuthenticationSuccess,
-      handleAuthenticationFailure,
-    )
+
   }
 
   const handleAuthenticationSuccess = async () => {

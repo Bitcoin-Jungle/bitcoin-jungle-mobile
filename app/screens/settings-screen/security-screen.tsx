@@ -1,7 +1,7 @@
 import * as React from "react"
 import { useState } from "react"
 import { RouteProp, useFocusEffect } from "@react-navigation/native"
-import { Text, View } from "react-native"
+import { Platform, Text, View } from "react-native"
 import { StackNavigationProp } from "@react-navigation/stack"
 import { Button, Switch } from "react-native-elements"
 import EStyleSheet from "react-native-extended-stylesheet"
@@ -9,7 +9,7 @@ import EStyleSheet from "react-native-extended-stylesheet"
 import { Screen } from "../../components/screen"
 import { palette } from "../../theme/palette"
 import { translate } from "../../i18n"
-import BiometricWrapper from "../../utils/biometricAuthentication"
+// import BiometricWrapper from "../../utils/biometricAuthentication"
 import { toastShow } from "../../utils/toast"
 import type { ScreenType } from "../../types/jsx"
 import type { RootStackParamList } from "../../navigation/stack-param-lists"
@@ -110,16 +110,7 @@ export const SecurityScreen: ScreenType = ({ route, navigation }: Props) => {
   const onBiometricsValueChanged = async (value) => {
     if (value) {
       try {
-        if (await BiometricWrapper.isSensorAvailable()) {
-          // Presents the OS specific authentication prompt
-          BiometricWrapper.authenticate(
-            translate("AuthenticationScreen.setUpAuthenticationDescription"),
-            handleAuthenticationSuccess,
-            handleAuthenticationFailure,
-          )
-        } else {
-          toastShow(translate("SecurityScreen.biometryNotAvailable"))
-        }
+        toastShow(translate("SecurityScreen.biometryNotAvailable"))
       } catch {
         toastShow(translate("SecurityScreen.biometryNotEnrolled"))
       }

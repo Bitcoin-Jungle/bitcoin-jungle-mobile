@@ -15,7 +15,7 @@ import { Button, Input } from "react-native-elements"
 import { FetchResult, gql, useApolloClient, useMutation } from "@apollo/client"
 import EStyleSheet from "react-native-extended-stylesheet"
 import PhoneInput from "react-native-phone-input"
-import analytics from "@react-native-firebase/analytics"
+import analytics from "firebase/analytics"
 import { StackNavigationProp } from "@react-navigation/stack"
 import { RouteProp } from "@react-navigation/native"
 
@@ -27,7 +27,7 @@ import { palette } from "../../theme/palette"
 import useToken from "../../utils/use-token"
 import { toastShow } from "../../utils/toast"
 import { addDeviceToken } from "../../utils/notifications"
-import BiometricWrapper from "../../utils/biometricAuthentication"
+// import BiometricWrapper from "../../utils/biometricAuthentication"
 import type { ScreenType } from "../../types/jsx"
 import { AuthenticationScreenPurpose } from "../../utils/enum"
 import BadgerPhone from "./badger-phone-01.svg"
@@ -312,18 +312,12 @@ export const WelcomePhoneValidationScreenDataInjected: ScreenType = ({
         await addDeviceToken(client)
         requestPermission(client)
         
-        if (await BiometricWrapper.isSensorAvailable()) {
-          navigation.replace("authentication", {
-            screenPurpose: AuthenticationScreenPurpose.TurnOnAuthentication,
-          })
-        } else {
-          navigation.navigate("Primary", {
-            screen: "MoveMoney",
-            params: {
-              screen: "moveMoney",
-            },
-          })
-        }
+        navigation.navigate("Primary", {
+          screen: "MoveMoney",
+          params: {
+            screen: "moveMoney",
+          },
+        })
       }
     },
   })

@@ -35,10 +35,6 @@
     "@react-native-community/masked-view": "^0.1.7",
     "@react-native-community/push-notification-ios": "^1.8.0",
     "@react-native-community/toolbar-android": "^0.2.1",
-    "@react-native-firebase/analytics": "^13.0.1",
-    "@react-native-firebase/app": "^13.0.1",
-    "@react-native-firebase/crashlytics": "^13.0.1",
-    "@react-native-firebase/messaging": "^13.0.1",
     "@react-native-picker/picker": "^2.2.1",
     "@react-navigation/bottom-tabs": "^6.0.9",
     "@react-navigation/native": "^6.0.6",
@@ -49,6 +45,7 @@
     "bolt11": "nicolasburtey/bolt11",
     "buffer": "^6.0.3",
     "currency.js": "^2.0.2",
+    "firebase": "^9.6.0",
     "graphql": "^16.0.1",
     "i18n-js": "^3.5.1",
     "intl": "^1.2.5",
@@ -181,5 +178,17 @@
   },
   "peerDependencies": {
     "solidarity": "^2.3.1"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }
