@@ -15,12 +15,23 @@ This repository is the Bitcoin Beach Wallet mobile application. The goal is to m
 If you wish to contribute see [CONTRIBUTING.MD](./CONTRIBUTING.MD)
 
 ## Start
-
 Prerequisite -- [Set up React Native](https://reactnative.dev/docs/environment-setup) by following the instructions in the **React Native CLI Quickstart** tab
 
-Clone into the project
+Clone into the project and open it in your text editor / IDE.
+
+Add the following key values to `android/grade.properties`
+MYAPP_UPLOAD_STORE_PASSWORD=YOUR_PASSWORD_HERE
+MYAPP_UPLOAD_KEY_PASSWORD=YOUR_PASSWORD_HERE
 
 cd into the directory
+
+if you are running on MacOS, you will need to:
+- `brew tap homebrew/cask-versions`
+- `brew install --cask temurin11`
+- import the bitcoin jungle project into android studio using gradle
+- under Preferences > Build Tools, Execution, Deployment > Build Tools > Gradle;
+  - Set Gradle JDK to the temurin version 11
+
 
 type `yarn install`
 

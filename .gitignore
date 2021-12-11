@@ -30,6 +30,9 @@ build/
 local.properties
 *.iml
 *.hprof
+gradle/
+gradlew
+gradlew.bat
 
 # node.js
 #
