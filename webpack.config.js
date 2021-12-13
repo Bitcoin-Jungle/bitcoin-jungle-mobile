@@ -44,7 +44,10 @@ const babelLoaderConfiguration = {
   // Add every directory that needs to be compiled by Babel during the build.
   include: [
     path.resolve(__dirname, "index.web.js"), // Entry to your application
-    path.resolve(__dirname, "./app.tsx"), // Change this to your main App file
+    path.resolve(__dirname, './app/app.web.tsx'), // Change this to your main App file
+    path.resolve(__dirname, "./storybook/views/story-screen.tsx"), // Change this to your main App file
+    path.resolve(__dirname, "./storybook/views/story.tsx"), // Change this to your main App file
+    path.resolve(__dirname, "./storybook/views/use-case.tsx"), // Change this to your main App file
     path.resolve(__dirname, "app"),
     ...compileNodeModules,
   ],
@@ -52,7 +55,7 @@ const babelLoaderConfiguration = {
     loader: "babel-loader",
     options: {
       cacheDirectory: true,
-      presets,
+      presets: ['module:metro-react-native-babel-preset'],
       plugins: ["react-native-web"],
     },
   },
@@ -82,9 +85,8 @@ module.exports = {
     app: path.join(__dirname, "index.web.js"),
   },
   output: {
-    path: path.resolve(appDirectory, "dist"),
-    publicPath: "/",
-    filename: "rnw_blogpost.bundle.js",
+    filename: 'bundle.web.js',
+    path: path.resolve(appDirectory, 'dist')
   },
   resolve: {
     extensions: [".web.tsx", ".web.ts", ".tsx", ".ts", ".web.js", ".js"],

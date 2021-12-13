@@ -9,7 +9,7 @@
 // It's easier just to leave it here.
 
 import { AppRegistry } from "react-native"
-import { App } from "./app/app.tsx"
+import App from "./app/app.web"
 
 /**
  * This needs to match what's found in your app_delegate.m and MainActivity.java.
@@ -30,6 +30,8 @@ if (__DEV__ && SHOW_STORYBOOK) {
 }
 
 AppRegistry.registerComponent(APP_NAME, () => RootComponent)
-AppRegistry.runApplication("App", {
-  rootTag: document.getElementById("root")
+
+AppRegistry.runApplication(APP_NAME, {
+  initialProps: {},
+  rootTag: document.getElementById('app-root'),
 });

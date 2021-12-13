@@ -12,7 +12,6 @@ import { AppState } from "react-native"
 import EStyleSheet from "react-native-extended-stylesheet"
 import * as RNLocalize from "react-native-localize"
 import Icon from "react-native-vector-icons/Ionicons"
-import analytics from "firebase/analytics"
 
 import { MAIN_QUERY } from "../graphql/query"
 import { translate } from "../i18n"
@@ -59,8 +58,10 @@ import {
   RootStackParamList,
 } from "./stack-param-lists"
 import type { NavigatorType } from "../types/jsx"
+import { getAnalytics, setUserProperties } from "firebase/analytics";
 
 import PushNotification from "react-native-push-notification"
+const analytics = getAnalytics();
 
 // Must be outside of any component LifeCycle (such as `componentDidMount`).
 PushNotification.configure({
@@ -201,14 +202,14 @@ export const RootStack: NavigatorType = () => {
 
   // TODO: check whether react-native-push-notification can give a FCM token
   // for iOS, which would remove the need for firebase.messaging() dependancy
-  useEffect(() => {
-    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
-      console.log("onMessage")
-      showNotification(remoteMessage)
-    })
+  // useEffect(() => {
+  //   const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+  //     console.log("onMessage")
+  //     showNotification(remoteMessage)
+  //   })
 
-    return unsubscribe
-  }, [])
+  //   return unsubscribe
+  // }, [])
 
   // useEffect(() => {
   // const isDeviceRegisteredForRemoteMessages = messaging().isDeviceRegisteredForRemoteMessages
@@ -217,42 +218,42 @@ export const RootStack: NavigatorType = () => {
   // Alert.alert(`isAutoInitEnabled: ${isAutoInitEnabled ? true:false}`) // true
   // }, []);
 
-  useEffect(() => {
-    messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-      console.log("background arrived from setBackgroundMessageHandler")
-      showNotification(remoteMessage)
-    })
-  }, [])
+  // useEffect(() => {
+  //   messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+  //     console.log("background arrived from setBackgroundMessageHandler")
+  //     showNotification(remoteMessage)
+  //   })
+  // }, [])
 
-  useEffect(() => {
-    // onNotificationOpenedApp: When the application is running, but in the background.
-    messaging().onNotificationOpenedApp((_remoteMessage) => {
-      // console.log(
-      //   'Notification caused app to open from background state:',
-      //   remoteMessage.notification,
-      // );
-      // navigation.navigate(remoteMessage.data.type);
-    })
+  // useEffect(() => {
+  //   // onNotificationOpenedApp: When the application is running, but in the background.
+  //   messaging().onNotificationOpenedApp((_remoteMessage) => {
+  //     // console.log(
+  //     //   'Notification caused app to open from background state:',
+  //     //   remoteMessage.notification,
+  //     // );
+  //     // navigation.navigate(remoteMessage.data.type);
+  //   })
 
-    // getInitialNotification: When the application is opened from a quit state.
-    messaging()
-      .getInitialNotification()
-      .then((_remoteMessage) => {
-        // if (remoteMessage) {
-        //   console.log(
-        //     'Notification caused app to open from quit state:',
-        //     remoteMessage.notification,
-        //   );
-        //   setInitialRoute(remoteMessage.data.type); // e.g. "Settings"
-        // }
-        // setLoading(false);
-      })
-  }, [])
+  //   // getInitialNotification: When the application is opened from a quit state.
+  //   messaging()
+  //     .getInitialNotification()
+  //     .then((_remoteMessage) => {
+  //       // if (remoteMessage) {
+  //       //   console.log(
+  //       //     'Notification caused app to open from quit state:',
+  //       //     remoteMessage.notification,
+  //       //   );
+  //       //   setInitialRoute(remoteMessage.data.type); // e.g. "Settings"
+  //       // }
+  //       // setLoading(false);
+  //     })
+  // }, [])
 
-  useEffect(
-    () => messaging().onTokenRefresh((token) => token && addDeviceToken(client)),
-    [client],
-  )
+  // useEffect(
+  //   () => messaging().onTokenRefresh((token) => token && addDeviceToken(client)),
+  //   [client],
+  // )
 
   return (
     <RootNavigator.Navigator
@@ -485,7 +486,7 @@ export const PrimaryNavigator: NavigatorType = () => {
 
   React.useEffect(() => {
     if (tokenNetwork) {
-      analytics().setUserProperties({ network: tokenNetwork })
+      setUserProperties(analytics, { network: tokenNetwork });
     }
   }, [tokenNetwork])
 

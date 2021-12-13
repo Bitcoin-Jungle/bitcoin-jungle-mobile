@@ -3440,6 +3440,11 @@
     react-native-modal-selector "^2.0.2"
     tinycolor2 "^1.4.1"
 
+"@storybook/addon-react-native-web@^0.0.14":
+  version "0.0.14"
+  resolved "https://registry.yarnpkg.com/@storybook/addon-react-native-web/-/addon-react-native-web-0.0.14.tgz#2abd8ac45c06338cc87e9c04ca8a7850b4736576"
+  integrity sha512-7kUI4uquIRQW4DRlrhB5QXPnJxzhTSqm38j4Q525gu1UfpxmBVpC+fQ8UjzxiRF6lcoMgaxjZFZzAO4N0dKjGw==
+
 "@storybook/addons@5.3.21":
   version "5.3.21"
   resolved "https://registry.npmjs.org/@storybook/addons/-/addons-5.3.21.tgz"

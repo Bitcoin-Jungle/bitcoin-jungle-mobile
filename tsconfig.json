@@ -19,12 +19,17 @@
     "esModuleInterop": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "baseUrl": "./",
+    // "baseUrl": "./",
+    // "paths": {
+    //   "@app/*": ["app/*"],
+    //   "@types/react-native-web": ["../node_modules/@types/react-native"],
+    //   "react-native": ["../node_modules/react-native-modules"]
+    // },
+    "baseUrl": "./", // Required with the use of paths. May differ depending on project structure.
     "paths": {
-      "@app/*": ["app/*"],
-      "@types/react-native-web": ["../node_modules/@types/react-native"],
-      "react-native": ["../node_modules/react-native-modules"]
+      "@types/react-native-web": ["./node_modules/@types/react-native"]
     },
+
    
   },
   "exclude": ["node_modules"],

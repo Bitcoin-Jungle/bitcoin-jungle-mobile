@@ -15,7 +15,6 @@ import { Button, Input } from "react-native-elements"
 import { FetchResult, gql, useApolloClient, useMutation } from "@apollo/client"
 import EStyleSheet from "react-native-extended-stylesheet"
 import PhoneInput from "react-native-phone-input"
-import analytics from "firebase/analytics"
 import { StackNavigationProp } from "@react-navigation/stack"
 import { RouteProp } from "@react-navigation/native"
 
@@ -36,6 +35,8 @@ import { parseTimer } from "../../utils/timer"
 import { useGeetestCaptcha } from "../../hooks"
 import { networkVar } from "../../graphql/client-only-query"
 import { requestPermission } from "../../utils/notifications"
+import { getAnalytics, setUserProperties } from "firebase/analytics";
+const analytics = getAnalytics();
 
 const REQUEST_AUTH_CODE = gql`
   mutation captchaRequestAuthCode($input: CaptchaRequestAuthCodeInput!) {
@@ -378,7 +379,7 @@ export const WelcomePhoneValidationScreen: ScreenType = ({
       const token = data?.userLogin?.authToken
 
       if (token) {
-        analytics().logLogin({ method: "phone" })
+        // analytics().logLogin({ method: "phone" })
         saveToken(token)
       } else {
         toastShow(translate("WelcomePhoneValidationScreen.errorLoggingIn"))

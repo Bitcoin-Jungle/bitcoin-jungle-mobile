@@ -1,12 +1,13 @@
 import { ApolloClient, gql, makeVar } from "@apollo/client"
 import indexOf from "lodash.indexof"
-import analytics from "firebase/analytics"
 
 import type { INetwork } from "../types/network"
 import { loadString } from "../utils/storage"
 import { decodeToken, TOKEN_KEY } from "../utils/use-token"
+import { getAnalytics, logEvent } from "firebase/analytics";
 
 export const authTokenVar = makeVar<TokenPayload | null>(null)
+const analytics = getAnalytics();
 
 export const loadAuthToken = async (): Promise<void> => {
   let uid: string
@@ -16,7 +17,7 @@ export const loadAuthToken = async (): Promise<void> => {
   if (token) {
     ;({ uid, network } = decodeToken(token))
     authTokenVar({ token, uid, network })
-    analytics().setUserId(uid)
+    // analytics().setUserId(uid)
   }
 }
 

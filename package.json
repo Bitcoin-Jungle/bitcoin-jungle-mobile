@@ -25,7 +25,8 @@
     "hack:types-react-native": "rimraf node_modules/@types/react-native/node_modules/@types",
     "prepare": "npm-run-all patch hack:*",
     "build": "rm -rf dist/ && webpack --mode=production --config webpack.config.js",
-    "web": "webpack serve --mode=development --config webpack.config.js"
+    "web": "webpack serve --mode=development --config webpack.config.js",
+    "dev":"./node_modules/.bin/webpack-dev-server -d --config ./web/webpack.config.js"
   },
   "dependencies": {
     "@apollo/client": "^3.4.16",
@@ -115,6 +116,7 @@
     "@storybook/addon-knobs": "^6.1.9",
     "@storybook/addon-ondevice-actions": "^5.3.18",
     "@storybook/addon-ondevice-knobs": "^5.3.25",
+    "@storybook/addon-react-native-web": "^0.0.14",
     "@storybook/react-native": "^5.3.17",
     "@storybook/react-native-server": "^5.3.17",
     "@svgr/webpack": "^6.1.1",
