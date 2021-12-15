@@ -56,12 +56,6 @@ const styles = EStyleSheet.create({
     borderWidth: 2,
   },
 
-  buttonStyleTime: {
-    backgroundColor: palette.white,
-    borderRadius: "38rem",
-    width: "50rem",
-  },
-
   cover: { height: "100%", width: "100%" },
 
   divider: { flex: 1 },
@@ -90,17 +84,11 @@ const styles = EStyleSheet.create({
     marginTop: "24rem",
   },
 
-  menuIcon: {
-    color: palette.darkGrey,
-  },
-
   modal: { marginBottom: 0, marginHorizontal: 0 },
 
   screenStyle: {
     backgroundColor: palette.lighterGrey,
   },
-
-  separator: { marginTop: 32 },
 
   text: {
     color: palette.darkGrey,
@@ -335,23 +323,9 @@ export const MoveMoneyScreen: ScreenType = ({
         </View>
       </Modal>
       <View style={styles.header}>
-        <Button
-          buttonStyle={styles.buttonStyleTime}
-          containerStyle={styles.separator}
-          onPress={() =>
-            navigation.navigate("priceDetail", {
-              account: AccountType.Bitcoin,
-            })
-          }
-          icon={<Icon name="ios-trending-up-outline" size={32} style={styles.menuIcon} />}
-        />
+
         <BalanceHeader loading={loading} style={styles.balanceHeader} />
-        <Button
-          buttonStyle={styles.buttonStyleTime}
-          containerStyle={styles.separator}
-          onPress={() => navigation.navigate("settings")}
-          icon={<Icon name="ios-settings-outline" size={32} style={styles.menuIcon} />}
-        />
+
       </View>
 
       <FlatList

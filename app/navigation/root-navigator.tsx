@@ -13,6 +13,7 @@ import EStyleSheet from "react-native-extended-stylesheet"
 import * as RNLocalize from "react-native-localize"
 import Icon from "react-native-vector-icons/Ionicons"
 import analytics from "@react-native-firebase/analytics"
+import { Button } from "react-native-elements"
 
 import { MAIN_QUERY } from "../graphql/query"
 import { translate } from "../i18n"
@@ -118,6 +119,14 @@ const styles = EStyleSheet.create({
     height: "10%",
     // height: '60rem'
     // height: 100
+  },
+  buttonStyleTime: {
+    backgroundColor: palette.white,
+    borderRadius: "38rem",
+    width: "50rem",
+  },
+  menuIcon: {
+    color: palette.darkGrey,
   },
 })
 
@@ -441,10 +450,34 @@ export const MoveMoneyNavigator: NavigatorType = () => (
       name="moveMoney"
       component={MoveMoneyScreenDataInjected}
       // options={{ title: translate("MoveMoneyScreen.title") }}
-      options={{
-        headerShown: false,
-        title: translate("MoveMoneyScreen.title"),
-      }}
+      options={({ navigation }) => {
+        return {
+          headerShown: true,
+          title: "", //translate("MoveMoneyScreen.title"),
+          headerLeft: (() => (
+            <Button
+              buttonStyle={styles.buttonStyleTime}
+              onPress={() =>
+                navigation.navigate("priceDetail", {
+                  account: AccountType.Bitcoin,
+                })
+              }
+              icon={<Icon name="ios-trending-up-outline" size={28} style={styles.menuIcon} />}
+            />
+          )
+          ),
+          headerRight: (() => (
+            <Button
+              buttonStyle={styles.buttonStyleTime}
+              onPress={() => navigation.navigate("settings")}
+              icon={<Icon name="ios-settings-outline" size={28} style={styles.menuIcon} />}
+            />
+          )
+          )
+
+        }
+      }
+      }
     />
   </StackMoveMoney.Navigator>
 )
