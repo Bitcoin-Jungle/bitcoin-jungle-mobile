@@ -20,7 +20,8 @@ import { formatUsdAmount } from "../../hooks"
 import Icon from "react-native-vector-icons/Ionicons"
 import { BLOCKCHAIN_EXPLORER_URL } from "../../constants/support"
 
-const viewInExplorer = (hash: string): Object => Linking.openURL(BLOCKCHAIN_EXPLORER_URL + hash)
+const viewInExplorer = (hash: string): Promise<Linking> =>
+  Linking.openURL(BLOCKCHAIN_EXPLORER_URL + hash)
 
 const styles = EStyleSheet.create({
   amount: {
@@ -77,15 +78,22 @@ const styles = EStyleSheet.create({
   },
 })
 
-const Row = ({ entry, value, type }: { entry: string; value: string, type?: SettlementViaType }) => (
+const Row = ({
+  entry,
+  value,
+  type,
+}: {
+  entry: string
+  value: string
+  type?: SettlementViaType
+}) => (
   <TouchableWithoutFeedback onPress={() => viewInExplorer(value)}>
     <View style={styles.description}>
       <Text style={styles.entry}>
-        {entry}
-        {" "}
-        {type === 'SettlementViaOnChain' &&
+        {entry + " "}
+        {type === "SettlementViaOnChain" && (
           <Icon name="open-outline" size={18} color={palette.darkGrey} />
-        }
+        )}
       </Text>
       <Text selectable style={styles.value}>
         {value}
@@ -135,11 +143,7 @@ export const TransactionDetailScreen: ScreenType = ({ route, navigation }: Props
   const { base, offset } = settlementPrice
   const usdPerSat = base / 10 ** offset / 100
 
-  const feeEntry = `${settlementFee} sats (${formatUsdAmount(
-    settlementFee * usdPerSat,
-  )})`
-
-
+  const feeEntry = `${settlementFee} sats (${formatUsdAmount(settlementFee * usdPerSat)})`
 
   const dateDisplay = moment.unix(createdAt).toDate().toLocaleString("en-US", {
     weekday: "short",
@@ -191,7 +195,11 @@ export const TransactionDetailScreen: ScreenType = ({ route, navigation }: Props
           <Row entry="Hash" value={initiationVia.paymentHash} />
         )}
         {settlementVia.__typename === "SettlementViaOnChain" && (
-          <Row entry="Hash" value={settlementVia.transactionHash} type={settlementVia.__typename} />
+          <Row
+            entry="Hash"
+            value={settlementVia.transactionHash}
+            type={settlementVia.__typename}
+          />
         )}
         {id && <Row entry="id" value={id} />}
       </View>
