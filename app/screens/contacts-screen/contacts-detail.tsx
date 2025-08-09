@@ -1,9 +1,9 @@
 import { useMutation, gql } from "@apollo/client"
 import * as React from "react"
 import { View } from "react-native"
-import { Input, Text } from "react-native-elements"
+import { Input, Text, Icon } from "react-native-elements"
 import EStyleSheet from "react-native-extended-stylesheet"
-import Icon from "react-native-vector-icons/Ionicons"
+// import Icon from "react-native-vector-icons/Ionicons"
 import { CloseCross } from "../../components/close-cross"
 import { IconTransaction } from "../../components/icon-transactions"
 import { LargeButton } from "../../components/large-button"
@@ -16,6 +16,7 @@ import { RouteProp } from "@react-navigation/native"
 import type { ScreenType } from "../../types/jsx"
 import { ContactTransactionsDataInjected } from "./contact-transactions"
 import useMainQuery from "@app/hooks/use-main-query"
+import { SafeAreaView } from "react-native-safe-area-context"
 
 const styles = EStyleSheet.create({
   actionsContainer: { paddingBottom: 18 },
@@ -107,52 +108,55 @@ export const ContactsDetailScreenJSX: ScreenType = ({
   }
 
   return (
-    <Screen style={styles.screen} unsafe>
-      <View style={[styles.amountView, { backgroundColor: palette.green }]}>
-        <Icon
-          name="ios-person-outline"
-          size={86}
-          color={palette.white}
-          style={styles.icon}
-        />
-        <View style={styles.inputContainer}>
-          <Input
-            style={styles.amount}
-            inputStyle={styles.inputStyle}
-            inputContainerStyle={{ borderColor: palette.green }}
-            onChangeText={setContactName}
-            onSubmitEditing={updateName}
-            onBlur={updateName}
-            returnKeyType="done"
-          >
-            {contact.alias}
-          </Input>
+    <SafeAreaView style={{ flex: 1, backgroundColor: palette.white }}>
+      <Screen style={styles.screen} unsafe>
+        <View style={[styles.amountView, { backgroundColor: palette.green }]}>
+          <Icon
+            name="person-outline"
+            size={86}
+            color={palette.white}
+            style={styles.icon}
+            type="ionicon"
+          />
+          <View style={styles.inputContainer}>
+            <Input
+              style={styles.amount}
+              inputStyle={styles.inputStyle}
+              inputContainerStyle={{ borderColor: palette.green }}
+              onChangeText={setContactName}
+              onSubmitEditing={updateName}
+              onBlur={updateName}
+              returnKeyType="done"
+            >
+              {contact.alias}
+            </Input>
+          </View>
+          <Text style={styles.amountSecondary}>{`${translate("common.username")}: ${
+            contact.username
+          }`}</Text>
         </View>
-        <Text style={styles.amountSecondary}>{`${translate("common.username")}: ${
-          contact.username
-        }`}</Text>
-      </View>
-      <View style={styles.transactionsView}>
-        <Text style={styles.screenTitle}>
-          {translate("ContactDetailsScreen.title", {
-            input: contact.alias,
-          })}
-        </Text>
-        <ContactTransactionsDataInjected
-          navigation={navigation}
-          contactUsername={contact.username}
-        />
-      </View>
-      <View style={styles.actionsContainer}>
-        <LargeButton
-          title={translate("MoveMoneyScreen.send")}
-          icon={<IconTransaction isReceive={false} size={32} />}
-          onPress={() =>
-            navigation.navigate("sendBitcoin", { username: contact.username })
-          }
-        />
-      </View>
-      <CloseCross color={palette.white} onPress={navigation.goBack} />
-    </Screen>
+        <View style={styles.transactionsView}>
+          <Text style={styles.screenTitle}>
+            {translate("ContactDetailsScreen.title", {
+              input: contact.alias,
+            })}
+          </Text>
+          <ContactTransactionsDataInjected
+            navigation={navigation}
+            contactUsername={contact.username}
+          />
+        </View>
+        <View style={styles.actionsContainer}>
+          <LargeButton
+            title={translate("MoveMoneyScreen.send")}
+            icon={<IconTransaction isReceive={false} size={32} />}
+            onPress={() =>
+              navigation.navigate("sendBitcoin", { username: contact.username })
+            }
+          />
+        </View>
+        <CloseCross color={palette.white} onPress={navigation.goBack} />
+      </Screen>
+    </SafeAreaView>
   )
 }

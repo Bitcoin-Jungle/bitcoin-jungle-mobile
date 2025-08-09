@@ -3,7 +3,8 @@ import * as React from "react"
 import { Keyboard, Text, TextInput, View } from "react-native"
 import EStyleSheet from "react-native-extended-stylesheet"
 import { TouchableOpacity } from "react-native-gesture-handler"
-import Icon from "react-native-vector-icons/Ionicons"
+import { Icon } from 'react-native-elements'
+// import Icon from "react-native-vector-icons/Ionicons"
 import { palette } from "../../theme/palette"
 import type { ComponentType } from "../../types/jsx"
 import { currencyToText, textToCurrency } from "../../utils/currencyConversion"
@@ -198,7 +199,7 @@ export const InputPayment: ComponentType = ({
           selection={{ start: displayValue.length, end: displayValue.length }}
         />
         <TouchableOpacity onPress={toggleCurrency}>
-          <Icon name="ios-swap-vertical" size={32} style={styles.icon} />
+          <Icon name="swap-vert" size={32} style={styles.icon} />
         </TouchableOpacity>
       </View>
     </View>

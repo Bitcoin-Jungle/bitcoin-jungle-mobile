@@ -9,11 +9,12 @@ import {
   SearchBarAndroidProps,
   SearchBarDefaultProps,
   SearchBarIosProps,
+  Icon
 } from "react-native-elements"
 import { SearchBarBaseProps } from "react-native-elements/dist/searchbar/SearchBar"
 import EStyleSheet from "react-native-extended-stylesheet"
 import { FlatList } from "react-native-gesture-handler"
-import Icon from "react-native-vector-icons/Ionicons"
+// import Icon from "react-native-vector-icons/Ionicons"
 
 import { Screen } from "../../components/screen"
 import { translate } from "../../i18n"
@@ -239,7 +240,7 @@ export const ContactsScreen: ScreenType = ({ navigation }: Props) => {
             containerStyle={styles.itemContainer}
             onPress={() => navigation.navigate("contactDetail", { contact: item })}
           >
-            <Icon name={"ios-person-outline"} size={24} color={color.palette.green} />
+            <Icon name={"person-outline"} size={24} color={color.palette.green} type="ionicon" />
             <ListItem.Content>
               <ListItem.Title>{item.alias}</ListItem.Title>
             </ListItem.Content>

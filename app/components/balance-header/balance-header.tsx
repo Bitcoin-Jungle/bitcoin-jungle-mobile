@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react"
 import ContentLoader, { Rect } from "react-content-loader/native"
 import { StyleProp, Text, TouchableHighlight, View, ViewStyle } from "react-native"
 import EStyleSheet from "react-native-extended-stylesheet"
-import Icon from "react-native-vector-icons/Ionicons"
+import { Icon } from 'react-native-elements'
 import Tooltip from "react-native-walkthrough-tooltip"
 import { translate } from "../../i18n"
 import { palette } from "../../theme/palette"
@@ -159,7 +159,7 @@ export const BalanceHeaderDisplay: React.FC<BalanceHeaderProps> = ({
             }}
             style={styles.hiddenBalanceTouchableHighlight}
           >
-            <Icon style={styles.hiddenBalanceIcon} name="eye" />
+            <Icon style={styles.hiddenBalanceIcon} name="eye" type="ionicon" />
           </TouchableHighlight>
         </Tooltip>
       </>

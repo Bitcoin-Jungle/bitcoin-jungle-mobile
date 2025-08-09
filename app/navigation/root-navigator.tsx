@@ -11,8 +11,10 @@ import { useCallback, useEffect } from "react"
 import { AppState } from "react-native"
 import EStyleSheet from "react-native-extended-stylesheet"
 import * as RNLocalize from "react-native-localize"
-import Icon from "react-native-vector-icons/Ionicons"
+import { Icon } from 'react-native-elements'
+// import Icon from "react-native-vector-icons/Ionicons"
 import analytics from "@react-native-firebase/analytics"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { translate } from "../i18n"
 import {
@@ -575,6 +577,7 @@ type TabProps = {
 
 export const PrimaryNavigator: NavigatorType = () => {
   const { tokenNetwork } = useToken()
+  const insets = useSafeAreaInsets()
 
   // The cacheId is updated after every mutation that affects current user data (balanace, contacts, ...)
   // It's used to re-mount this component and thus reset what's cached in Apollo (and React)
@@ -592,7 +595,13 @@ export const PrimaryNavigator: NavigatorType = () => {
         tabBarActiveTintColor:
           tokenNetwork === "mainnet" ? palette.lightBlue : palette.orange,
         tabBarInactiveTintColor: palette.midGrey,
-        tabBarStyle: styles.bottomNavigatorStyle,
+        tabBarStyle: [
+          styles.bottomNavigatorStyle,
+          {
+            paddingBottom: insets.bottom,
+            height: 60 + insets.bottom, // Base height + safe area
+          }
+        ],
         tabBarLabelStyle: { paddingBottom: 6 },
         tabBarHideOnKeyboard: true,
       }}
@@ -603,7 +612,7 @@ export const PrimaryNavigator: NavigatorType = () => {
         options={{
           title: translate("MoveMoneyScreen.title"),
           tabBarIcon: ({ color }: TabProps) => (
-            <Icon name="ios-home" size={size} color={color} />
+            <Icon name="home" size={size} color={color} />
           ),
           headerShown: false,
         }}
@@ -614,7 +623,7 @@ export const PrimaryNavigator: NavigatorType = () => {
         options={{
           title: translate("ContactsScreen.title"),
           tabBarIcon: ({ color }: TabProps) => (
-            <Icon name="ios-people-outline" size={size} color={color} />
+            <Icon name="people-outline" size={size} color={color} />
           ),
         }}
       />
@@ -625,7 +634,7 @@ export const PrimaryNavigator: NavigatorType = () => {
           title: translate("MapScreen.title"),
           headerShown: false,
           tabBarIcon: ({ color }: TabProps) => (
-            <Icon name="ios-map-outline" size={size} color={color} />
+            <Icon name="map" size={size} color={color} />
           ),
         }}
       />
@@ -636,7 +645,7 @@ export const PrimaryNavigator: NavigatorType = () => {
           title: translate("EarnScreen.title"),
           headerShown: false,
           tabBarIcon: ({ color }: TabProps) => (
-            <Icon name="ios-rocket" size={size} color={color} />
+            <Icon name="rocket" size={size} color={color} />
           ),
         }}
       />

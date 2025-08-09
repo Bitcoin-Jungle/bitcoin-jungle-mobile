@@ -4,7 +4,8 @@ import * as React from "react"
 import { SectionList, Text, View } from "react-native"
 import EStyleSheet from "react-native-extended-stylesheet"
 import { TouchableOpacity } from "react-native-gesture-handler"
-import Icon from "react-native-vector-icons/Ionicons"
+import { Icon } from 'react-native-elements'
+// import Icon from "react-native-vector-icons/Ionicons"
 import { Screen } from "../../components/screen"
 import { TransactionItem } from "../../components/transaction-item"
 import { nextPrefCurrency, prefCurrencyVar } from "../../graphql/client-only-query"
@@ -209,7 +210,7 @@ export const TransactionScreen: ScreenType = ({
             <Text style={styles.sectionHeaderText}>
               {prefCurrency === "BTC" ? "sats" : "CRC"}{" "}
             </Text>
-            <Icon name="ios-swap-vertical" size={32} style={styles.icon} />
+            <Icon name="swap-vert" size={32} style={styles.icon} />
           </TouchableOpacity>
         </View>
       )}

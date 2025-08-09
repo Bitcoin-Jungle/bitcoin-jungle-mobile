@@ -1,9 +1,9 @@
 import { gql, useMutation } from "@apollo/client"
 import { translate } from "../../i18n"
 import * as React from "react"
-import { ListItem } from "react-native-elements"
+import { ListItem, Icon } from "react-native-elements"
 import EStyleSheet from "react-native-extended-stylesheet"
-import Icon from "react-native-vector-icons/Ionicons"
+// import Icon from "react-native-vector-icons/Ionicons"
 import { Screen } from "../../components/screen"
 import { palette } from "../../theme/palette"
 import type { ScreenType } from "../../types/jsx"
@@ -68,7 +68,7 @@ export const LanguageScreen: ScreenType = () => {
         >
           <ListItem.Title>{translate(`Languages.${language}`)}</ListItem.Title>
           {userPreferredLanguage === language && (
-            <Icon name="ios-checkmark-circle" size={18} color={palette.green} />
+            <Icon name="checkmark-circle" size={18} color={palette.green} type="ionicon" />
           )}
         </ListItem>
       ))}

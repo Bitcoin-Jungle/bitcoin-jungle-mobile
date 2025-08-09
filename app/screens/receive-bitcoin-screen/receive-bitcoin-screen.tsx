@@ -6,7 +6,7 @@ import { Alert, Keyboard, Platform, ScrollView, TextInput, View } from "react-na
 import EStyleSheet from "react-native-extended-stylesheet"
 // import ScreenBrightness from "react-native-screen-brightness"
 import Swiper from "react-native-swiper"
-import Icon from "react-native-vector-icons/Ionicons"
+// import Icon from "react-native-vector-icons/Ionicons"
 import debounce from "lodash.debounce"
 
 import { GaloyInput } from "../../components/galoy-input"
@@ -26,7 +26,7 @@ import {
 } from "../../hooks"
 import { TextCurrency } from "../../components/text-currency"
 import useToken from "../../utils/use-token"
-import { Button, Text } from "react-native-elements"
+import { Button, Text, Icon } from "react-native-elements"
 import { hasFullPermissions, requestPermission } from "../../utils/notifications"
 import useMainQuery from "@app/hooks/use-main-query"
 
@@ -213,7 +213,7 @@ export const ReceiveBitcoinScreen: ScreenType = ({ navigation, route }: Props) =
     paymentRequest: string
   } | null>(null)
   const [err, setErr] = useState("")
-  const { lnUpdate } = useMySubscription()
+  const { lnUpdate, convertCurrencyAmount } = useMySubscription()
   const [brightnessInitial, setBrightnessInitial] = useState(null)
 
   const updateInvoice = useMemo(
@@ -300,13 +300,21 @@ export const ReceiveBitcoinScreen: ScreenType = ({ navigation, route }: Props) =
         setMemo(lnurlParams.defaultDescription)
       }
 
-      if (primaryAmount.currency === "USD") {
-        toggleCurrency()
-      }
-
       if (lnurlParams.minWithdrawable == lnurlParams.maxWithdrawable) {
         setTimeout(() => {
-          setPrimaryAmountValue(lnurlParams.minWithdrawable)
+          if (primaryAmount.currency === "USD") {
+            // Set BTC value and also update USD value
+            const btcValue = lnurlParams.minWithdrawable
+            setSecondaryAmount({ currency: "BTC", value: btcValue })
+            const usdValue = convertCurrencyAmount({ amount: btcValue, from: "BTC", to: "USD" })
+            setPrimaryAmountValue(usdValue)
+          } else {
+            // Set BTC value and also update USD value
+            const btcValue = lnurlParams.minWithdrawable
+            setPrimaryAmountValue(btcValue)
+            const usdValue = convertCurrencyAmount({ amount: btcValue, from: "BTC", to: "USD" })
+            setSecondaryAmount({ currency: "USD", value: usdValue })
+          }
         }, 100)
       }
     }
@@ -522,7 +530,7 @@ export const ReceiveBitcoinScreen: ScreenType = ({ navigation, route }: Props) =
             containerStyle={{ marginTop: 0 }}
             inputStyle={styles.textStyle}
             leftIcon={
-              <Icon name="ios-create-outline" size={21} color={palette.darkGrey} />
+              <Icon name="add-circle-outline" size={21} color={palette.darkGrey} />
             }
             ref={inputMemoRef}
             disabled={invoicePaid}
@@ -546,7 +554,7 @@ export const ReceiveBitcoinScreen: ScreenType = ({ navigation, route }: Props) =
                   buttonStyle={(!swiperIndex ? styles.buttonStyleActive : styles.buttonStyleInactive)}
                   title={
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: "center" }}>
-                      <Icon style={{color: "white"}} size={20} name="ios-flash" />
+                      <Icon color="white" size={20} name="bolt" />
                       <Text style={{fontWeight: "bold", color: "white"}}>Lightning</Text>
                     </View>
                   }
@@ -563,7 +571,7 @@ export const ReceiveBitcoinScreen: ScreenType = ({ navigation, route }: Props) =
                   buttonContainer={{flex: 1}}
                   title={
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: "center" }}>
-                      <Icon style={{color: "white"}} size={20} name="logo-bitcoin" />
+                      <Icon color="white" size={20} name="currency-bitcoin" />
                       <Text style={{fontWeight: "bold", color: "white"}}>On-Chain</Text>
                     </View>
                   }
@@ -609,15 +617,15 @@ export const ReceiveBitcoinScreen: ScreenType = ({ navigation, route }: Props) =
                 />
               )}
               {!btcAddressRequested && !lastOnChainAddress && (
-                <Text style={styles.textButtonWrapper}>
+                <View style={styles.textButtonWrapper}>
                   <Button
                     buttonStyle={styles.buttonStyle}
-                    containerStyle={styles.buttonContainer}
+                    containerStyle={{ marginHorizontal: 52, paddingVertical: 18 }}
                     title={translate("ReceiveBitcoinScreen.generateQr")}
                     onPress={onBtcAddressRequestClick}
                     titleStyle={styles.buttonTitle}
                   />
-                </Text>
+                </View>
               )}
             </Swiper>
           </View>

@@ -1,10 +1,10 @@
 import * as React from "react"
 import { useState, useEffect } from "react"
 import { StackNavigationProp } from "@react-navigation/stack"
-import { ListItem } from "react-native-elements"
+import { ListItem, Icon } from "react-native-elements"
 import { Text } from "react-native"
 import EStyleSheet from "react-native-extended-stylesheet"
-import Icon from "react-native-vector-icons/Ionicons"
+// import Icon from "react-native-vector-icons/Ionicons"
 import { IconTransaction } from "../icon-transactions"
 import { palette } from "../../theme/palette"
 import { ParamListBase } from "@react-navigation/native"
@@ -151,7 +151,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
         <ListItem.Title>{description}</ListItem.Title>
         <ListItem.Subtitle style={styles.subtitle}>
           {subtitle ? dateDisplay({...tx, showFullDate}) : undefined}
-          {bbOrderNbr && <Icon name="information-circle-outline" size={16} color={palette.darkGrey} onPress={() => {
+          {bbOrderNbr && <Icon name="info-outline" size={16} color={palette.darkGrey} onPress={() => {
             navigation.navigate("sinpeScreen", {
               orderNbr: bbOrderNbr,
             })
@@ -159,7 +159,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
         </ListItem.Subtitle>
       </ListItem.Content>
       {txHideBalance ? (
-        <Icon style={styles.hiddenBalanceContainer} name="eye" onPress={pressTxAmount} />
+        <Icon style={styles.hiddenBalanceContainer} name="eye" type="ionicon" onPress={pressTxAmount} />
       ) : (
         <Text
           style={amountDisplayStyle({ isReceive, isPending })}
