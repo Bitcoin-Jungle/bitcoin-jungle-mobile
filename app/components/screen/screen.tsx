@@ -14,13 +14,17 @@ import { isNonScrolling, offsets, presets } from "./screen.presets"
 import { ModalClipboard } from "../modal-clipboard"
 import { ModalNfc } from "../modal-nfc"
 import { isIos } from "../../utils/helper"
+import { useThemeColor } from "../../theme/useThemeColor"
+import { useTheme } from "../../theme/theme-context"
 
 function ScreenWithoutScrolling(props: ScreenProps) {
+  const colors = useThemeColor()
+  const { isDark } = useTheme()
   const preset = presets.fixed
   const style = props.style || {}
   const backgroundStyle = props.backgroundColor
     ? { backgroundColor: props.backgroundColor }
-    : {}
+    : { backgroundColor: colors.background }
   
   let headerHeight = 0
   try {
@@ -58,8 +62,8 @@ function ScreenWithoutScrolling(props: ScreenProps) {
       keyboardVerticalOffset={offsets[props.keyboardOffset || "none"]}
     >
       <StatusBar
-        barStyle={props.statusBar || "dark-content"}
-        backgroundColor={props.backgroundColor}
+        barStyle={props.statusBar || (isDark ? "light-content" : "dark-content")}
+        backgroundColor={props.backgroundColor || colors.statusBar}
       />
       {/* modalClipboard requires StoreContext which requiere being inside a navigator */}
       <ModalClipboard />
@@ -76,11 +80,13 @@ function ScreenWithoutScrolling(props: ScreenProps) {
 }
 
 function ScreenWithScrolling(props: ScreenProps) {
+  const colors = useThemeColor()
+  const { isDark } = useTheme()
   const preset = presets.scroll
   const style = props.style || {}
   const backgroundStyle = props.backgroundColor
     ? { backgroundColor: props.backgroundColor }
-    : {}
+    : { backgroundColor: colors.background }
   
   let headerHeight = 0
   try {
@@ -118,8 +124,8 @@ function ScreenWithScrolling(props: ScreenProps) {
       keyboardVerticalOffset={offsets[props.keyboardOffset || "none"]}
     >
       <StatusBar
-        barStyle={props.statusBar || "dark-content"}
-        backgroundColor={props.backgroundColor}
+        barStyle={props.statusBar || (isDark ? "light-content" : "dark-content")}
+        backgroundColor={props.backgroundColor || colors.statusBar}
       />
       <ModalClipboard />
       <ModalNfc />
@@ -128,6 +134,7 @@ function ScreenWithScrolling(props: ScreenProps) {
           <ScrollView
             style={[preset.outer, backgroundStyle]}
             contentContainerStyle={[preset.inner, style]}
+            contentInsetAdjustmentBehavior="never"
           >
             {props.children}
           </ScrollView>
@@ -137,6 +144,7 @@ function ScreenWithScrolling(props: ScreenProps) {
           <ScrollView
             style={[preset.outer, backgroundStyle]}
             contentContainerStyle={[preset.inner, style]}
+            contentInsetAdjustmentBehavior="never"
           >
             {props.children}
           </ScrollView>
@@ -151,7 +159,7 @@ function ScreenWithScrolling(props: ScreenProps) {
  *
  * @param props The screen props
  */
-export function Screen(props: ScreenProps): JSX.Element {
+export function Screen(props: ScreenProps): React.ReactElement {
   if (isNonScrolling(props.preset)) {
     return <ScreenWithoutScrolling {...props} />
   }

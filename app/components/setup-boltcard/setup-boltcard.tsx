@@ -8,6 +8,7 @@ import QRCode from 'react-native-qrcode-svg';
 import {useMutation} from '@apollo/client';
 import {BOLT_CARD_GENERATE_OTP_MUTATION} from '../../graphql/query';
 import {translate} from '../../i18n';
+import {useThemeColor} from '../../theme/useThemeColor';
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RootStackParamList } from '../../navigation/stack-param-lists';
@@ -42,6 +43,7 @@ const SetupBoltcard: React.FC<SetupBoltcardProps> = ({
   cardId,
 }) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const colors = useThemeColor();
   const [step, setStep] = useState(SetupStep.Init);
   const [error, setError] = useState('');
   const [writingCard, setWritingCard] = useState(false);
@@ -304,7 +306,7 @@ const SetupBoltcard: React.FC<SetupBoltcardProps> = ({
           <View style={styles.container}>
             <View style={styles.optionsContainer}>
               <View style={styles.optionCard}>
-                <Icon name="phone-portrait" type="ionicon" size={40} color="#2089dc" style={styles.optionIcon} />
+                <Icon name="phone-portrait" type="ionicon" size={40} color={colors.primary} style={styles.optionIcon} />
                 <Text style={styles.optionTitle}>{translate('BoltCardScreen.programCardThisDevice')}</Text>
                 <Text style={styles.optionDescription}>
                   {translate('BoltCardScreen.programCardDescriptionThisDevice')}
@@ -318,7 +320,7 @@ const SetupBoltcard: React.FC<SetupBoltcardProps> = ({
               </View>
               
               <View style={styles.optionCard}>
-                <Icon name="link" size={40} color="#2089dc" style={styles.optionIcon} />
+                <Icon name="link" size={40} color={colors.primary} style={styles.optionIcon} />
                 <Text style={styles.optionTitle}>{translate('BoltCardScreen.getSetupUrl')}</Text>
                 <Text style={styles.optionDescription}>
                   {translate('BoltCardScreen.programCardOtherDevice')}
@@ -342,7 +344,7 @@ const SetupBoltcard: React.FC<SetupBoltcardProps> = ({
             <Text style={styles.description}>
               {translate('BoltCardScreen.holdCardToPhoneDescription')}
             </Text>
-            <ActivityIndicator size="large" color="#0000ff" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         );
       case SetupStep.WritingCard:
@@ -372,7 +374,7 @@ const SetupBoltcard: React.FC<SetupBoltcardProps> = ({
                 Key 4 Changed: {key4Changed ? '✅' : '⏳'}
               </Text>
             </View>
-            <ActivityIndicator size="large" color="#0000ff" />
+            <ActivityIndicator size="large" color={colors.primary} />
           </View>
         );
       case SetupStep.Success:
@@ -445,10 +447,11 @@ const SetupBoltcard: React.FC<SetupBoltcardProps> = ({
     }
   };
 
+  const styles = useStyles(colors);
   return <View style={styles.mainContainer}>{renderStep()}</View>;
 };
 
-const styles = StyleSheet.create({
+const useStyles = (colors: any) => StyleSheet.create({
   mainContainer: {
     flex: 1,
     padding: 10,
@@ -464,15 +467,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginVertical: 10,
     textAlign: 'center',
+    color: colors.text,
   },
   description: {
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 20,
+    color: colors.text,
   },
   errorText: {
     fontSize: 16,
-    color: 'red',
+    color: colors.error,
     textAlign: 'center',
     marginVertical: 10,
   },
@@ -488,9 +493,10 @@ const styles = StyleSheet.create({
   progressText: {
     fontSize: 14,
     marginVertical: 5,
+    color: colors.text,
   },
   button: {
-    backgroundColor: '#2089dc',
+    backgroundColor: colors.primary,
     borderRadius: 5,
     marginTop: 20,
     paddingHorizontal: 30,
@@ -507,6 +513,7 @@ const styles = StyleSheet.create({
   statusItem: {
     fontSize: 14,
     marginVertical: 5,
+    color: colors.text,
   },
   optionsContainer: {
     flexDirection: 'column',
@@ -514,12 +521,12 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   optionCard: {
-    backgroundColor: '#f9f9f9',
+    backgroundColor: colors.surface,
     borderRadius: 10,
     padding: 20,
     marginVertical: 10,
     alignItems: 'center',
-    shadowColor: '#000',
+    shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -533,15 +540,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 5,
     textAlign: 'center',
+    color: colors.text,
   },
   optionDescription: {
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 15,
-    color: '#666',
+    color: colors.textSecondary,
   },
   qrContainer: {
-    backgroundColor: 'white',
+    backgroundColor: colors.qrCodeBackground,
     padding: 15,
     borderRadius: 10,
     marginVertical: 15,
@@ -551,9 +559,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 15,
     padding: 10,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: colors.surfaceElevated,
     borderRadius: 5,
     width: '100%',
+    color: colors.text,
   },
   buttonRow: {
     flexDirection: 'row',

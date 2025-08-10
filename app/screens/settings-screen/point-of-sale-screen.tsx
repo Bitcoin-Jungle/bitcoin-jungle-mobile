@@ -10,6 +10,7 @@ import debounce from "lodash.debounce"
 import { Screen } from "../../components/screen"
 import { Dropdown } from "../../components/dropdown"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import { GaloyInput } from "../../components/galoy-input"
 import * as UsernameValidation from "../../utils/validation"
 
@@ -20,7 +21,7 @@ import { Button, Text, ListItem, Icon } from "react-native-elements"
 import Clipboard from "@react-native-clipboard/clipboard"
 import Toast from "react-native-root-toast"
 import { translate } from "@app/i18n"
-import { color } from "@app/theme"
+// import { color } from "@app/theme"
 
 import useMainQuery from "@app/hooks/use-main-query"
 import KeyStoreWrapper from "../../utils/storage/secureStorage"
@@ -30,42 +31,54 @@ import QRCode from "react-native-qrcode-svg"
 
 import { CREATE_POS_API_KEY } from "../../constants/support"
 
-const styles = EStyleSheet.create({
-  container: {
-    backgroundColor: palette.white,
-    minHeight: "100%",
-    paddingLeft: 24,
-    paddingRight: 24,
-  },
-  buttonStyle: {
-    backgroundColor: color.primary,
-    marginBottom: "10rem",
-    marginHorizontal: "10rem",
-    marginTop: "10rem",
-  },
-  secondaryButtonStyle: {
-    backgroundColor: palette.midGrey,
-    marginBottom: "10rem",
-    marginHorizontal: "10rem",
-    marginTop: "10rem",
-  },
-  input: {
-    height: 40,
-    margin: 12,
-    borderWidth: 1,
-    padding: 10,
-  },
-  title: {
-    fontWeight: "bold",
-    fontSize: 24,
-    paddingBottom: 10,
-    paddingTop: 10,
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    container: {
+      backgroundColor: colors.background,
+      minHeight: "100%",
+      paddingLeft: 24,
+      paddingRight: 24,
+    },
+    buttonStyle: {
+      backgroundColor: colors.primary,
+      marginBottom: "10rem",
+      marginHorizontal: "10rem",
+      marginTop: "10rem",
+    },
+    secondaryButtonStyle: {
+      backgroundColor: colors.buttonSecondary,
+      marginBottom: "10rem",
+      marginHorizontal: "10rem",
+      marginTop: "10rem",
+    },
+    secondaryButtonTitle: {
+      color: colors.buttonSecondaryText,
+      fontWeight: "bold",
+    },
+    input: {
+      height: 40,
+      margin: 12,
+      borderWidth: 1,
+      borderColor: colors.inputBorder,
+      backgroundColor: colors.inputBackground,
+      color: colors.text,
+      padding: 10,
+    },
+    title: {
+      color: colors.text,
+      fontWeight: "bold",
+      fontSize: 24,
+      paddingBottom: 10,
+      paddingTop: 10,
 
-  },
-  text: {
-    paddingBottom: 5,
-  }
-})
+    },
+    text: {
+      color: colors.text,
+      paddingBottom: 5,
+    }
+  })
+}
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, "pointOfSale">
@@ -99,6 +112,8 @@ const USER_WALLET_ID = gql`
 `
 
 export const PointOfSaleScreen: ScreenType = ({ route }: Props) => {
+  const colors = useThemeColor()
+  const styles = useStyles()
   const { username } = useMainQuery()
 
   const [
@@ -301,7 +316,7 @@ export const PointOfSaleScreen: ScreenType = ({ route }: Props) => {
               onChangeText={setStoreOwnerEmail}
               value={storeOwnerEmail}
               placeholder={translate("common.email")}
-               placeholderTextColor="#000000"
+               placeholderTextColor={colors.placeholder}
             />
 
             <TextInput
@@ -309,7 +324,7 @@ export const PointOfSaleScreen: ScreenType = ({ route }: Props) => {
               onChangeText={setStoreName}
               value={storeName}
               placeholder={translate("PointOfSaleScreen.storeName")}
-              placeholderTextColor="#000000" 
+              placeholderTextColor={colors.placeholder} 
             />
 
             <Dropdown label={translate("PointOfSaleScreen.currency")} data={[{label: "CRC", value: "CRC"},{label: "USD", value: "USD"}]} onSelect={setDefaultCurrency} />
@@ -320,7 +335,7 @@ export const PointOfSaleScreen: ScreenType = ({ route }: Props) => {
               return (
                 <GaloyInput
                   placeholder={"Tip Recipient Username"}
-                  placeholderTextColor="#000000" 
+                  placeholderTextColor={colors.placeholder} 
                   onChangeText={(val) => {
                     setTipUsername(val, i)
                   }}
@@ -342,13 +357,6 @@ export const PointOfSaleScreen: ScreenType = ({ route }: Props) => {
               )
             })}
 
-            <Button
-              buttonStyle={styles.secondaryButtonStyle}
-              containerStyle={{ flex: 1 }}
-              title={"Add another Tip User"}
-              onPress={addTipUsername}
-              disabled={loading}
-            />
 
             <Button
               buttonStyle={styles.buttonStyle}
@@ -365,21 +373,28 @@ export const PointOfSaleScreen: ScreenType = ({ route }: Props) => {
           {translate("PointOfSaleScreen.myTitle")}
         </Text>
         {storeData.length === 0 && 
-          <Text>{translate("PointOfSaleScreen.none")}</Text>
+          <Text style={{ color: colors.text }}>{translate("PointOfSaleScreen.none")}</Text>
         }
         {
           storeData.map((el) => {
             return (
-             <ListItem key={el.id} bottomDivider>
-              <Icon name="qr-code" type="ionicon" size={20} onPress={() => setQrCodeToShow(qrCodeToShow === el.id ? null : el.id)} />
-              <Icon name={"compass-outline"} type="ionicon" size={20} onPress={() => copyToClipboard(el.id, true)} />
+             <ListItem key={el.id} bottomDivider containerStyle={{ backgroundColor: colors.surface }}>
+              <Icon name="qr-code" type="ionicon" size={20} color={colors.iconDefault} onPress={() => setQrCodeToShow(qrCodeToShow === el.id ? null : el.id)} />
+              <Icon name={"compass-outline"} type="ionicon" size={20} color={colors.iconDefault} onPress={() => copyToClipboard(el.id, true)} />
               <ListItem.Content>
-                <ListItem.Title>{el.name}</ListItem.Title>
+                <ListItem.Title style={{ color: colors.text }}>{el.name}</ListItem.Title>
                 {el.id === qrCodeToShow &&
                   <View>
-                    <QRCode size={200} value={`https://btcpayserver.bitcoinjungle.app/apps/${qrCodeToShow}/pos`} logoBackgroundColor="white" ecl={"H"} />
-                    <Text>{translate("PointOfSaleScreen.qrCodeText1")}</Text>
-                    <Text>{translate("PointOfSaleScreen.qrCodeText2")}</Text>
+                    <QRCode 
+                      size={200} 
+                      value={`https://btcpayserver.bitcoinjungle.app/apps/${qrCodeToShow}/pos`} 
+                      backgroundColor={colors.qrCodeBackground}
+                      color={colors.qrCodeForeground}
+                      logoBackgroundColor="white" 
+                      ecl={"H"} 
+                    />
+                    <Text style={{ color: colors.text }}>{translate("PointOfSaleScreen.qrCodeText1")}</Text>
+                    <Text style={{ color: colors.text }}>{translate("PointOfSaleScreen.qrCodeText2")}</Text>
                   </View>
                 }
               </ListItem.Content>

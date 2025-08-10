@@ -10,35 +10,41 @@ import EStyleSheet from "react-native-extended-stylesheet"
 import { Screen } from "../../components/screen"
 import { translate } from "../../i18n"
 import { color, palette } from "../../theme"
+import { useThemeColor } from "../../theme/useThemeColor"
 import type { ScreenType } from "../../types/jsx"
 import type { RootStackParamList } from "../../navigation/stack-param-lists"
 import useMainQuery from "@app/hooks/use-main-query"
 
-const styles = EStyleSheet.create({
-  activity: { 
-    marginTop: 2,
-    marginBottom: 2,
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    activity: { 
+      marginTop: 2,
+      marginBottom: 2,
+    },
 
-  /* eslint-disable react-native/no-unused-styles */
-  availableMessage: { color: palette.green },
-  errorMessage: { color: palette.red },
+    /* eslint-disable react-native/no-unused-styles */
+    availableMessage: { color: colors.success },
+    errorMessage: { color: colors.error },
 
-  screenStyle: {
-    marginHorizontal: 48,
-  },
+    screenStyle: {
+      marginHorizontal: 48,
+    },
 
-  text: {
-    fontSize: "16rem",
-    paddingVertical: "18rem",
-    textAlign: "center",
-  },
-  subtext: {
-    fontSize: "14rem",
-    paddingBottom: "18rem",
-    textAlign: "center",
-  }
-})
+    text: {
+      color: colors.text,
+      fontSize: "16rem",
+      paddingVertical: "18rem",
+      textAlign: "center",
+    },
+    subtext: {
+      color: colors.textSecondary,
+      fontSize: "14rem",
+      paddingBottom: "18rem",
+      textAlign: "center",
+    }
+  })
+}
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, "setEmail">
@@ -59,6 +65,8 @@ const UPDATE_EMAIL = gql`
 `
 
 export const EmailScreen: ScreenType = ({ navigation }: Props) => {
+  const colors = useThemeColor()
+  const styles = useStyles()
   const [input, setInput] = React.useState("")
   const [inputStatus, setInputStatus] = React.useState({
     status: "empty",
@@ -150,7 +158,10 @@ export const EmailScreen: ScreenType = ({ navigation }: Props) => {
         ref={inputForm}
         autoFocus
         placeholder={translate("common.email")}
-        leftIcon={{ type: "ionicon", name: "mail-outline" }}
+        placeholderTextColor={colors.placeholder}
+        inputStyle={{ color: colors.text }}
+        inputContainerStyle={{ backgroundColor: colors.inputBackground, borderColor: colors.inputBorder }}
+        leftIcon={{ type: "ionicon", name: "mail-outline", color: colors.iconDefault }}
         onChangeText={onChangeText}
         errorStyle={styles[`${inputStatus.status}Message`]}
         errorMessage={inputStatus.message}

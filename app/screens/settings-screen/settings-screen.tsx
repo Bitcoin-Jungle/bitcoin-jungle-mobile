@@ -1,5 +1,5 @@
 import * as React from "react"
-import { Alert, Text, TextStyle } from "react-native"
+import { Alert, Text, TextStyle, View, Switch } from "react-native"
 import Share from "react-native-share"
 import { Divider, Icon, ListItem } from "react-native-elements"
 import { StackNavigationProp } from "@react-navigation/stack"
@@ -20,6 +20,8 @@ import useLogout from "../../hooks/use-logout"
 import useMainQuery from "@app/hooks/use-main-query"
 import crashlytics from "@react-native-firebase/crashlytics"
 import { openWhatsApp } from "@app/utils/external"
+import { useTheme } from "../../theme/theme-context"
+import { useThemeColor } from "../../theme/useThemeColor"
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, "settings">
@@ -155,6 +157,7 @@ type SettingRow = {
   greyed?: boolean
   danger?: boolean
   styleDivider?: StyleProp<ViewStyle>
+  customRight?: React.ReactNode
 }
 
 export const SettingsScreenJSX: ScreenType = (params: SettingsScreenProps) => {
@@ -170,6 +173,8 @@ export const SettingsScreenJSX: ScreenType = (params: SettingsScreenProps) => {
     deleteAction,
     lnurlAction,
   } = params
+  const { isDark, toggleTheme, themeMode, setThemeMode } = useTheme()
+  const colors = useThemeColor()
   const copyToClipBoard = (username) => {
     Clipboard.setString(GALOY_PAY_DOMAIN + username)
     Clipboard.getString().then((data) =>
@@ -181,6 +186,22 @@ export const SettingsScreenJSX: ScreenType = (params: SettingsScreenProps) => {
 
   const openWhatsAppAction = () =>
     openWhatsApp(WHATSAPP_CONTACT_NUMBER, translate("whatsapp.defaultSupportMessage"))
+  
+  const handleThemeModeChange = () => {
+    const modes: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system']
+    const currentIndex = modes.indexOf(themeMode)
+    const nextMode = modes[(currentIndex + 1) % modes.length]
+    setThemeMode(nextMode)
+  }
+
+  const getThemeModeText = () => {
+    switch (themeMode) {
+      case 'light': return translate("SettingsScreen.lightMode") || "Light"
+      case 'dark': return translate("SettingsScreen.darkMode") || "Dark"
+      case 'system': return translate("SettingsScreen.systemMode") || "System"
+      default: return "System"
+    }
+  }
 
   const settingList: SettingRow[] = [
     {
@@ -223,6 +244,15 @@ export const SettingsScreenJSX: ScreenType = (params: SettingsScreenProps) => {
       greyed: !hasToken,
     },
     {
+      category: translate("SettingsScreen.theme") || "Theme",
+      icon: isDark ? "moon" : "sunny",
+      id: "theme",
+      subTitleText: getThemeModeText(),
+      action: handleThemeModeChange,
+      enabled: true,
+      greyed: false,
+    },
+    {
       category: translate("common.security"),
       icon: "lock-closed-outline",
       id: "security",
@@ -253,6 +283,14 @@ export const SettingsScreenJSX: ScreenType = (params: SettingsScreenProps) => {
       action: () => copyToClipBoard(username),
       enabled: hasToken && username !== null,
       greyed: !hasToken || username === null,
+    },
+    {
+      category: translate("BoltCardScreen.manageBoltCards"),
+      icon: "card-outline",
+      id: "bolt-cards",
+      action: () => navigation.navigate("boltCards"),
+      enabled: true,
+      greyed: false,
     },
     {
       category: translate("AdvancedFeaturesScreen.title"),
@@ -286,7 +324,7 @@ export const SettingsScreenJSX: ScreenType = (params: SettingsScreenProps) => {
       action: openWhatsAppAction,
       enabled: true,
       greyed: false,
-      styleDivider: { backgroundColor: palette.lighterGrey, height: 18 },
+      styleDivider: { backgroundColor: colors.background, height: 18 },
     },
     {
       category: translate("common.logout"),
@@ -315,11 +353,15 @@ export const SettingsScreenJSX: ScreenType = (params: SettingsScreenProps) => {
         if (setting.hidden) {
           return null
         }
-        const settingColor = setting.greyed ? palette.midGrey : setting.danger ? palette.red : palette.darkGrey
+        const settingColor = setting.greyed ? colors.placeholder : setting.danger ? colors.error : colors.text
         const settingStyle: TextStyle = { color: settingColor }
         return (
           <React.Fragment key={`setting-option-${i}`}>
-            <ListItem onPress={setting.action} disabled={!setting.enabled}>
+            <ListItem 
+              onPress={setting.action} 
+              disabled={!setting.enabled}
+              containerStyle={{ backgroundColor: colors.surface }}
+            >
               <Icon name={setting.icon} type="ionicon" color={settingColor} />
               <ListItem.Content>
                 <ListItem.Title style={settingStyle}>
@@ -331,9 +373,9 @@ export const SettingsScreenJSX: ScreenType = (params: SettingsScreenProps) => {
                   </ListItem.Subtitle>
                 )}
               </ListItem.Content>
-              {setting.enabled && <ListItem.Chevron />}
+              {setting.customRight ? setting.customRight : (setting.enabled && <ListItem.Chevron />)}
             </ListItem>
-            <Divider style={setting.styleDivider} />
+            <Divider style={[{ backgroundColor: colors.divider }, setting.styleDivider]} />
           </React.Fragment>
         )
       })}

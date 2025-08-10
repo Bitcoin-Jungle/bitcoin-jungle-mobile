@@ -8,6 +8,8 @@ import { useApolloClient } from "@apollo/client"
 
 import { Screen } from "../../components/screen"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
+import { useTheme } from "../../theme/theme-context"
 import { translate } from "../../i18n"
 import KeyStoreWrapper from "../../utils/storage/secureStorage"
 import type { ScreenType } from "../../types/jsx"
@@ -21,97 +23,100 @@ import useToken from "../../utils/use-token"
 import useLogout from "../../hooks/use-logout"
 import useMainQuery from "@app/hooks/use-main-query"
 
-const styles = EStyleSheet.create({
-  bottomSpacer: {
-    flex: 1,
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    bottomSpacer: {
+      flex: 1,
+    },
 
-  circleContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: 32,
-  },
+    circleContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      width: 32,
+    },
 
-  circles: {
-    flex: 2,
-    flexDirection: "row",
-  },
+    circles: {
+      flex: 2,
+      flexDirection: "row",
+    },
 
-  container: {
-    alignItems: "center",
-    flex: 1,
-    width: "100%",
-  },
+    container: {
+      alignItems: "center",
+      flex: 1,
+      width: "100%",
+    },
 
-  emptyCircle: {
-    backgroundColor: palette.lightBlue,
-    borderColor: palette.white,
-    borderRadius: 16 / 2,
-    borderWidth: 2,
-    height: 16,
-    width: 16,
-  },
+    emptyCircle: {
+      backgroundColor: colors.transparent,
+      borderColor: colors.buttonPrimaryText,
+      borderRadius: 16 / 2,
+      borderWidth: 2,
+      height: 16,
+      width: 16,
+    },
 
-  filledCircle: {
-    backgroundColor: palette.white,
-    borderRadius: 16 / 2,
-    height: 16,
-    width: 16,
-  },
+    filledCircle: {
+      backgroundColor: colors.buttonPrimaryText,
+      borderRadius: 16 / 2,
+      height: 16,
+      width: 16,
+    },
 
-  helperText: {
-    color: palette.white,
-    fontSize: 20,
-  },
+    helperText: {
+      color: colors.buttonPrimaryText,
+      fontSize: 20,
+    },
 
-  helperTextContainer: {
-    flex: 1,
-  },
+    helperTextContainer: {
+      flex: 1,
+    },
 
-  pinPad: {
-    alignItems: "center",
-    flexDirection: "column",
-    flex: 6,
-  },
+    pinPad: {
+      alignItems: "center",
+      flexDirection: "column",
+      flex: 6,
+      justifyContent: "center",
+    },
 
-  pinPadButton: {
-    backgroundColor: palette.lightBlue,
-    flex: 1,
-    height: "95%",
-    width: "95%",
-  },
+    pinPadButton: {
+      backgroundColor: colors.surface,
+      borderRadius: 35,
+      height: 70,
+      width: 70,
+      alignItems: "center",
+      justifyContent: "center",
+    },
 
-  pinPadButtonContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    width: 100,
-  },
+    pinPadButtonContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      flex: 1,
+      padding: 8,
+    },
 
-  pinPadButtonIcon: {
-    color: palette.white,
-    fontSize: 32,
-    marginRight: "20%",
-  },
+    pinPadButtonIcon: {
+      color: colors.buttonPrimaryText,
+      fontSize: 28,
+    },
 
-  pinPadButtonTitle: {
-    color: palette.white,
-    fontSize: 26,
-    fontWeight: "bold",
-    marginLeft: "40%",
-    marginRight: "40%",
-  },
+    pinPadButtonTitle: {
+      color: colors.text,
+      fontSize: 28,
+      fontWeight: "600",
+    },
 
-  pinPadRow: {
-    flex: 1,
-    flexDirection: "row",
-    marginLeft: 32,
-    marginRight: 32,
-  },
+    pinPadRow: {
+      flexDirection: "row",
+      justifyContent: "center",
+      marginBottom: 16,
+    },
 
-  topSpacer: {
-    flex: 1,
-  },
-})
+    topSpacer: {
+      flex: 1,
+    },
+  })
+}
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, "pin">
@@ -119,6 +124,9 @@ type Props = {
 }
 
 export const PinScreen: ScreenType = ({ route, navigation }: Props) => {
+  const colors = useThemeColor()
+  const { isDark } = useTheme()
+  const styles = useStyles()
   const client = useApolloClient()
   const { hasToken, tokenNetwork } = useToken()
   const { logout } = useLogout()
@@ -246,9 +254,11 @@ export const PinScreen: ScreenType = ({ route, navigation }: Props) => {
     )
   }
 
+  const backgroundColor = isDark ? colors.backgroundSecondary : colors.primary
+  
   return (
-    <Screen style={styles.container} backgroundColor={palette.lightBlue}>
-      <StatusBar backgroundColor={palette.lightBlue} barStyle="light-content" />
+    <Screen style={styles.container} backgroundColor={backgroundColor}>
+      <StatusBar backgroundColor={backgroundColor} barStyle="light-content" />
       <View style={styles.topSpacer} />
       <View style={styles.circles}>
         {circleComponentForDigit(0)}
@@ -281,7 +291,7 @@ export const PinScreen: ScreenType = ({ route, navigation }: Props) => {
           <View style={styles.pinPadButtonContainer}>
             <Button
               buttonStyle={styles.pinPadButton}
-              icon={<Icon style={styles.pinPadButtonIcon} name="delete" />}
+              icon={<Icon name="delete" size={28} color={colors.text} />}
               onPress={() => setEnteredPIN(enteredPIN.slice(0, -1))}
             />
           </View>

@@ -2,13 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
+import { useThemeColor } from '../../theme/useThemeColor';
+
+interface Message {
+  id: number;
+  text: string;
+  sender: 'user' | 'ai';
+}
 
 const ChatInterface = () => {
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isStreaming, setIsStreaming] = useState(false);
-  const [currentAiMessage, setCurrentAiMessage] = useState(null);
-  const flatListRef = useRef(null);
+  const [currentAiMessage, setCurrentAiMessage] = useState<Message | null>(null);
+  const flatListRef = useRef<FlatList>(null);
+  const colors = useThemeColor();
   
   useEffect(() => {
     loadChatHistory();
@@ -44,7 +52,7 @@ const ChatInterface = () => {
     }
   };
 
-  const saveChatHistory = async (updatedMessages) => {
+  const saveChatHistory = async (updatedMessages: Message[]) => {
     try {
       await AsyncStorage.setItem('chatHistory', JSON.stringify(updatedMessages));
     } catch (error) {
@@ -62,7 +70,7 @@ const ChatInterface = () => {
     }
   };
 
-  const fetchStreamingResponse = async (prompt) => {
+  const fetchStreamingResponse = async (prompt: string) => {
     const apiUrl = 'https://chat-assist.bitcoinjungle.app/api/chat';
   
     console.log('Sending request to OpenAI API...');
@@ -88,7 +96,7 @@ const ChatInterface = () => {
           stream: true,
         },
         responseType: 'text',
-        onDownloadProgress: (progressEvent) => {
+        onDownloadProgress: (progressEvent: any) => {
           const chunk = progressEvent.currentTarget.response;
           processChunk(chunk);
         },
@@ -104,7 +112,7 @@ const ChatInterface = () => {
   
   let accumulatedText = '';
 
-  const processChunk = (chunk) => {
+  const processChunk = (chunk: string) => {
     const lines = chunk.split('\n').filter(line => line.trim() !== '');
   
     for (const line of lines) {
@@ -137,10 +145,10 @@ const ChatInterface = () => {
               return [...prevMessages.slice(0, -1), updatedAiMessage];
             } else {
               // Create new AI message
-              const newAiMessage = {
+              const newAiMessage: Message = {
                 id: Date.now(),
                 text: accumulatedText,
-                sender: 'ai'
+                sender: 'ai' as const
               };
               return [...prevMessages, newAiMessage];
             }
@@ -155,7 +163,7 @@ const ChatInterface = () => {
   const sendMessage = async () => {
     if (inputText.trim() === '') return;
   
-    const userMessage = { id: Date.now(), text: inputText, sender: 'user' };
+    const userMessage: Message = { id: Date.now(), text: inputText, sender: 'user' };
     setMessages(prevMessages => [...prevMessages, userMessage]);
     saveChatHistory([...messages, userMessage]);
     setInputText('');
@@ -172,14 +180,91 @@ const ChatInterface = () => {
     saveChatHistory(messages);
   };
 
-  const renderMessage = ({ item }) => (
-    <View style={item.sender === 'user' ? styles.userMessage : styles.aiMessage}>
-      <Text style={styles.senderLabel}>
+  const renderMessage = ({ item }: { item: Message }) => (
+    <View style={[
+      item.sender === 'user' ? styles.userMessage : styles.aiMessage,
+      item.sender === 'user' 
+        ? { backgroundColor: colors.primary + '20' }
+        : { backgroundColor: colors.surfaceElevated }
+    ]}>
+      <Text style={[styles.senderLabel, { color: colors.textSecondary }]}>
         {item.sender === 'user' ? 'Me' : 'Educator'}
       </Text>
-      <Text>{item.text}</Text>
+      <Text style={{ color: colors.text }}>{item.text}</Text>
     </View>
   );
+
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+    },
+    innerContainer: {
+      flex: 1,
+      padding: 0,
+    },
+    inputContainer: {
+      flexDirection: 'row' as const,
+      flex: 1,
+      marginLeft: 5,
+    },
+    bottomContainer: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      justifyContent: 'space-between' as const,
+      marginTop: 10,
+    },
+    input: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: 5,
+      padding: 10,
+      marginRight: 10,
+      backgroundColor: colors.inputBackground,
+      color: colors.text,
+    },
+    clearButton: {
+      backgroundColor: colors.error,
+      padding: 10,
+      borderRadius: 5,
+    },
+    clearButtonText: {
+      color: colors.textInverse,
+      fontWeight: 'bold' as const,
+      fontSize: 12,
+    },
+    userMessage: {
+      alignSelf: 'flex-end' as const,
+      padding: 10,
+      borderRadius: 10,
+      marginVertical: 5,
+      maxWidth: '80%',
+    },
+    aiMessage: {
+      alignSelf: 'flex-start' as const,
+      padding: 10,
+      borderRadius: 10,
+      marginVertical: 5,
+      maxWidth: '80%',
+    },
+    senderLabel: {
+      fontWeight: 'bold' as const,
+      marginBottom: 5,
+      fontSize: 12,
+    },
+    streamingIndicator: {
+      alignSelf: 'center' as const,
+      color: colors.textSecondary,
+      marginTop: 5,
+    },
+    messageList: {
+      flex: 1,
+    },
+    messageListContent: {
+      flexGrow: 1,
+      justifyContent: 'flex-end' as const,
+    },
+  });
 
   return (
     <KeyboardAvoidingView 
@@ -208,6 +293,7 @@ const ChatInterface = () => {
               value={inputText}
               onChangeText={setInputText}
               placeholder="Type a message..."
+              placeholderTextColor={colors.placeholder}
               onSubmitEditing={sendMessage}
             />
           </View>
@@ -217,89 +303,5 @@ const ChatInterface = () => {
     </KeyboardAvoidingView>
   )
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  innerContainer: {
-    flex: 1,
-    padding: 0,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  bottomContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 10,
-  },
-  inputContainer: {
-    flex: 1,
-    marginLeft: 5,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    backgroundColor: '#FFFFFF',
-  },
-  clearButton: {
-    backgroundColor: '#f44336',
-    padding: 10,
-    borderRadius: 5,
-  },
-  clearButtonText: {
-    color: '#FFFFFF',
-    fontWeight: 'bold',
-    fontSize: 12,
-  },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 5,
-    padding: 10,
-    marginRight: 10,
-    backgroundColor: '#FFFFFF', // White background for input
-  },
-  userMessage: {
-    alignSelf: 'flex-end',
-    backgroundColor: '#DCF8C6', // Light green background for user messages
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 5,
-    maxWidth: '80%',
-  },
-  aiMessage: {
-    alignSelf: 'flex-start',
-    backgroundColor: '#E0E0E0', // Gray background for AI messages
-    padding: 10,
-    borderRadius: 10,
-    marginVertical: 5,
-    maxWidth: '80%',
-  },
-  senderLabel: {
-    fontWeight: 'bold',
-    marginBottom: 5,
-    fontSize: 12,
-    color: '#555', // Dark gray color for labels
-  },
-  streamingIndicator: {
-    alignSelf: 'center',
-    color: '#888',
-    marginTop: 5,
-  },
-  messageList: {
-    flex: 1,
-  },
-  messageListContent: {
-    flexGrow: 1,
-    justifyContent: 'flex-end',
-  },
-});
 
 export default ChatInterface;

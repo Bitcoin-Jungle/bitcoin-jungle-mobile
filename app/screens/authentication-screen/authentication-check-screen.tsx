@@ -6,6 +6,8 @@ import { useApolloClient } from "@apollo/client"
 
 import { Screen } from "../../components/screen"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
+import { useTheme } from "../../theme/theme-context"
 import KeyStoreWrapper from "../../utils/storage/secureStorage"
 import BiometricWrapper from "../../utils/biometricAuthentication"
 import type { ScreenType } from "../../types/jsx"
@@ -40,6 +42,8 @@ export const AuthenticationCheckScreen: ScreenType = ({ navigation }: Props) => 
   const client = useApolloClient()
   const { hasToken, tokenNetwork } = useToken()
   const { myPubKey, username } = useMainQuery()
+  const colors = useThemeColor()
+  const { isDark } = useTheme()
   useEffect(() => {
     ;(async () => {
       const isPinEnabled = await KeyStoreWrapper.getIsPinEnabled()
@@ -70,8 +74,8 @@ export const AuthenticationCheckScreen: ScreenType = ({ navigation }: Props) => 
   return (
     <Screen
       style={styles.container}
-      backgroundColor={palette.offWhite}
-      statusBar="light-content"
+      backgroundColor={colors.backgroundSecondary}
+      statusBar={isDark ? "light-content" : "dark-content"}
     >
       <Image style={styles.Logo} source={BitcoinJungleLogo} resizeMode="contain" />
     </Screen>

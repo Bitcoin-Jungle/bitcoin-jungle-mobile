@@ -7,6 +7,7 @@ import EStyleSheet from "react-native-extended-stylesheet"
 // import Icon from "react-native-vector-icons/Ionicons"
 import { IconTransaction } from "../icon-transactions"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import { ParamListBase } from "@react-navigation/native"
 import { prefCurrencyVar as primaryCurrencyVar } from "../../graphql/client-only-query"
 import { useHideBalance } from "../../hooks"
@@ -14,32 +15,44 @@ import * as currency_fmt from "currency.js"
 import i18n from "i18n-js"
 import moment from "moment"
 
-const styles = EStyleSheet.create({
-  container: {
-    paddingVertical: 9,
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    container: {
+      paddingVertical: 9,
+    },
 
-  hiddenBalanceContainer: {
-    fontSize: "16rem",
-  },
+    hiddenBalanceContainer: {
+      fontSize: "16rem",
+      color: colors.text,
+    },
 
-  pending: {
-    color: palette.midGrey,
-  },
+    pending: {
+      color: colors.transactionPending,
+    },
 
-  receive: {
-    color: palette.green,
-  },
+    receive: {
+      color: colors.transactionPositive,
+    },
 
-  send: {
-    color: palette.darkGrey,
-  },
+    send: {
+      color: colors.text,
+    },
 
-  subtitle: {
-    fontSize: "12rem",
-    color: palette.darkGrey,
-  },
-})
+    subtitle: {
+      fontSize: "12rem",
+      color: colors.textSecondary,
+    },
+    
+    title: {
+      color: colors.text,
+    },
+    
+    infoIcon: {
+      color: colors.textSecondary,
+    },
+  })
+}
 
 export interface TransactionItemProps {
   navigation: StackNavigationProp<ParamListBase>
@@ -102,7 +115,7 @@ const descriptionDisplay = (tx: WalletTransaction) => {
   }
 }
 
-const amountDisplayStyle = ({ isReceive, isPending }) => {
+const amountDisplayStyle = ({ isReceive, isPending, styles }) => {
   if (isPending) {
     return styles.pending
   }
@@ -116,6 +129,8 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
   subtitle = false,
   showFullDate = false,
 }: TransactionItemProps) => {
+  const styles = useStyles()
+  const colors = useThemeColor()
   const primaryCurrency = primaryCurrencyVar()
   const hideBalance = useHideBalance()
 
@@ -135,7 +150,7 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
 
   return (
     <ListItem
-      containerStyle={styles.container}
+      containerStyle={[styles.container, { backgroundColor: colors.surface }]}
       onPress={() =>
         navigation.navigate("transactionDetail", {
           ...tx,
@@ -148,10 +163,10 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
     >
       <IconTransaction isReceive={isReceive} size={24} pending={isPending} />
       <ListItem.Content>
-        <ListItem.Title>{description}</ListItem.Title>
+        <ListItem.Title style={styles.title}>{description}</ListItem.Title>
         <ListItem.Subtitle style={styles.subtitle}>
           {subtitle ? dateDisplay({...tx, showFullDate}) : undefined}
-          {bbOrderNbr && <Icon name="info-outline" size={16} color={palette.darkGrey} onPress={() => {
+          {bbOrderNbr && <Icon name="info-outline" size={16} color={colors.textSecondary} onPress={() => {
             navigation.navigate("sinpeScreen", {
               orderNbr: bbOrderNbr,
             })
@@ -159,10 +174,10 @@ export const TransactionItem: React.FC<TransactionItemProps> = ({
         </ListItem.Subtitle>
       </ListItem.Content>
       {txHideBalance ? (
-        <Icon style={styles.hiddenBalanceContainer} name="eye" type="ionicon" onPress={pressTxAmount} />
+        <Icon style={styles.hiddenBalanceContainer} name="eye" type="ionicon" color={colors.text} onPress={pressTxAmount} />
       ) : (
         <Text
-          style={amountDisplayStyle({ isReceive, isPending })}
+          style={amountDisplayStyle({ isReceive, isPending, styles })}
           onPress={hideBalance ? pressTxAmount : undefined}
         >
           {amountDisplay({ ...tx, currencyAmount, primaryCurrency })}

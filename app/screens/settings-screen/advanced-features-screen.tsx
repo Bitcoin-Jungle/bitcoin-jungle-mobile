@@ -3,6 +3,7 @@ import { Alert, Text, TextStyle } from "react-native"
 import { Divider, Icon, ListItem } from "react-native-elements"
 import { translate } from "../../i18n"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import { readNfcTag, writeNfcTag } from "../../utils/nfc"
 import { validPayment } from "../../utils/parsing"
 import { getParams, LNURLPayParams, LNURLWithdrawParams } from "js-lnurl"
@@ -28,6 +29,7 @@ type FeatureRow = {
 }
 
 export const AdvancedFeaturesScreen: React.FC<AdvancedFeaturesScreenProps> = ({ navigation }) => {
+  const colors = useThemeColor()
   const { tokenNetwork } = useToken()
   const { myPubKey, username } = useMainQuery()
   const { hasToken } = useToken()
@@ -155,14 +157,6 @@ export const AdvancedFeaturesScreen: React.FC<AdvancedFeaturesScreenProps> = ({ 
       enabled: true,
       greyed: false,
     },
-    {
-      category: translate("BoltCardScreen.manageBoltCards"),
-      icon: "card-outline",
-      id: "bolt-cards",
-      action: () => navigation.navigate("boltCards"),
-      enabled: true,
-      greyed: false,
-    },
   ]
 
   return (
@@ -171,11 +165,11 @@ export const AdvancedFeaturesScreen: React.FC<AdvancedFeaturesScreenProps> = ({ 
         if (feature.hidden) {
           return null
         }
-        const featureColor = feature.greyed ? palette.midGrey : palette.darkGrey
+        const featureColor = feature.greyed ? colors.textSecondary : colors.text
         const featureStyle: TextStyle = { color: featureColor }
         return (
           <React.Fragment key={`feature-option-${i}`}>
-            <ListItem onPress={feature.action} disabled={!feature.enabled}>
+            <ListItem onPress={feature.action} disabled={!feature.enabled} containerStyle={{ backgroundColor: colors.surface }}>
               <Icon name={feature.icon} type="ionicon" color={featureColor} />
               <ListItem.Content>
                 <ListItem.Title style={featureStyle}>

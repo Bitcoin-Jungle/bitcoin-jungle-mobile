@@ -5,12 +5,13 @@ import SendSMS from 'react-native-sms'
 import { Screen } from "../../components/screen"
 import type { ScreenType } from "../../types/jsx"
 import useMainQuery from "@app/hooks/use-main-query"
-import { ActivityIndicator, Text, View, Alert, Button, Platform, BackHandler, Linking, Share as RNShare } from "react-native"
+import { ActivityIndicator, Text, View, Alert, Button, Platform, BackHandler, Linking, Share as RNShare, StyleSheet } from "react-native"
 import { WebView } from 'react-native-webview'
 import { gql, useApolloClient, useMutation } from "@apollo/client"
 import { useWalletBalance } from "../../hooks"
 import { getOtcBaseUri } from "../../utils/network"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import { validPayment } from "../../utils/parsing"
 import useToken from "../../utils/use-token"
 import { useMySubscription } from "../../hooks/user-hooks"
@@ -56,6 +57,7 @@ type SinpeScreenProps = {
 
 export const SinpeScreen: ScreenType = ({route, navigation}: SinpeScreenProps) => {
   let webview = null
+  const colors = useThemeColor()
   const { myPubKey, username, phoneNumber, userPreferredLanguage, refetch } = useMainQuery()
   const { walletId: myDefaultWalletId, satBalance, loading } = useWalletBalance()
   const { tokenNetwork } = useToken()
@@ -368,10 +370,11 @@ export const SinpeScreen: ScreenType = ({route, navigation}: SinpeScreenProps) =
 
   return (
     <Screen>
-      <View style={{flex: 1}}>
+      <View style={{flex: 1, backgroundColor: colors.background}}>
         {mySatBalance !== null &&
           <WebView
             ref={(ref) => (this.webview = ref)}
+            style={{backgroundColor: colors.background}}
             source={{
               uri: `${otcBaseUri.url}?key=E4WE5GgDr6g8HFyS4K4m5rdJ&fromBJ=true&phone=${encodeURIComponent(phoneNumber)}&username=${encodeURIComponent(username)}&lang=${userPreferredLanguage}&satBalance=${mySatBalance}${(orderNbr ? `#/order/${orderNbr}` : '')}`,
               headers: {

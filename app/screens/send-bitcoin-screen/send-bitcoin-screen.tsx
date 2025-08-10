@@ -19,6 +19,7 @@ import { translate } from "../../i18n"
 import type { MoveMoneyStackParamList } from "../../navigation/stack-param-lists"
 import { color } from "../../theme"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import type { ScreenType } from "../../types/jsx"
 import { IPaymentType, validPayment } from "../../utils/parsing"
 import useToken from "../../utils/use-token"
@@ -529,6 +530,8 @@ export const SendBitcoinScreenJSX: ScreenType = ({
   reset,
   isStaticLnurlIdentifier,
 }: SendBitcoinScreenJSXProps) => {
+  const colors = useThemeColor()
+  const styles = useStyles()
   const destinationInputRightIcon = () => {
     if (
       (UsernameValidation.hasValidLength(destination) && paymentType === "username") ||
@@ -596,6 +599,7 @@ export const SendBitcoinScreenJSX: ScreenType = ({
           type="ionicon"
           onPress={() => navigation.navigate("scanningQRCode")}
           size={30}
+          color={colors.iconDefault}
           style={styles.iconColor}
         />
       )
@@ -643,7 +647,7 @@ export const SendBitcoinScreenJSX: ScreenType = ({
                 <Icon
                   name="logout"
                   size={24}
-                  color={color.primary}
+                  color={colors.primary}
                   style={styles.icon}
                 />
               </View>
@@ -670,7 +674,7 @@ export const SendBitcoinScreenJSX: ScreenType = ({
                 <Icon
                   name="add-circle-outline"
                   size={24}
-                  color={color.primary}
+                  color={colors.primary}
                   style={styles.icon}
                 />
               </View>
@@ -720,61 +724,65 @@ export const SendBitcoinScreenJSX: ScreenType = ({
   )
 }
 
-const styles = EStyleSheet.create({
-  buttonStyle: {
-    backgroundColor: color.primary,
-    marginBottom: "32rem",
-    marginHorizontal: "24rem",
-    marginTop: "32rem",
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    buttonStyle: {
+      backgroundColor: colors.primary,
+      marginBottom: "32rem",
+      marginHorizontal: "24rem",
+      marginTop: "32rem",
+    },
 
-  errorContainer: {
-    alignItems: "center",
-  },
+    errorContainer: {
+      alignItems: "center",
+    },
 
-  errorText: {
-    color: color.error,
-  },
+    errorText: {
+      color: colors.error,
+    },
 
-  icon: {
-    color: palette.darkGrey,
-    marginRight: 15,
-  },
+    icon: {
+      color: colors.text,
+      marginRight: 15,
+    },
 
-  iconColor: {
-    color: palette.darkGrey,
-  },
+    iconColor: {
+      color: colors.text,
+    },
 
-  mainView: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
+    mainView: {
+      flex: 1,
+      paddingHorizontal: 20,
+    },
 
-  row: { flexDirection: "row" },
+    row: { flexDirection: "row" },
 
-  section: {
-    marginHorizontal: 16,
-  },
+    section: {
+      marginHorizontal: 16,
+    },
 
-  smallText: {
-    color: palette.darkGrey,
-    fontSize: 18,
-    textAlign: "left",
-    width: "48rem",
-  },
+    smallText: {
+      color: colors.text,
+      fontSize: 18,
+      textAlign: "left",
+      width: "48rem",
+    },
 
-  subCurrencyText: {
-    color: palette.midGrey,
-    fontSize: "20rem",
-    marginRight: "10%",
-    marginTop: 0,
-    paddingTop: 0,
-    textAlign: "center",
-    width: "90%",
-  },
+    subCurrencyText: {
+      color: colors.textSecondary,
+      fontSize: "20rem",
+      marginRight: "10%",
+      marginTop: 0,
+      paddingTop: 0,
+      textAlign: "center",
+      width: "90%",
+    },
 
-  domainText: {
-    fontSize: 20,
-    marginLeft: "4%",
-  },
-})
+    domainText: {
+      color: colors.text,
+      fontSize: 20,
+      marginLeft: "4%",
+    },
+  })
+}

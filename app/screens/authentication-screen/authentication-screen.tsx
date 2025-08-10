@@ -8,6 +8,7 @@ import { useApolloClient } from "@apollo/client"
 import { Screen } from "../../components/screen"
 import { color } from "../../theme"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import { translate } from "../../i18n"
 import KeyStoreWrapper from "../../utils/storage/secureStorage"
 import BiometricWrapper from "../../utils/biometricAuthentication"
@@ -22,51 +23,54 @@ import BitcoinJungleLogo from "../get-started-screen/BitcoinJungleLogo.png"
 import useLogout from "../../hooks/use-logout"
 import useMainQuery from "@app/hooks/use-main-query"
 
-const styles = EStyleSheet.create({
-  Logo: {
-    marginTop: 24,
-    maxHeight: "50%",
-    maxWidth: "50%",
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    Logo: {
+      marginTop: 24,
+      maxHeight: "50%",
+      maxWidth: "50%",
+    },
 
-  bottom: {
-    alignItems: "center",
-    flex: 1,
-    justifyContent: "flex-end",
-    marginBottom: 36,
-    width: "100%",
-  },
+    bottom: {
+      alignItems: "center",
+      flex: 1,
+      justifyContent: "flex-end",
+      marginBottom: 36,
+      width: "100%",
+    },
 
-  button: {
-    backgroundColor: palette.white,
-    borderRadius: 24,
-  },
+    button: {
+      backgroundColor: colors.surface,
+      borderRadius: 24,
+    },
 
-  buttonAlternate: {
-    backgroundColor: palette.lightBlue,
-    borderRadius: 24,
-  },
+    buttonAlternate: {
+      backgroundColor: colors.primary,
+      borderRadius: 24,
+    },
 
-  buttonAlternateTitle: {
-    color: palette.white,
-  },
+    buttonAlternateTitle: {
+      color: colors.buttonPrimaryText,
+    },
 
-  buttonContainer: {
-    marginVertical: 12,
-    width: "80%",
-  },
+    buttonContainer: {
+      marginVertical: 12,
+      width: "80%",
+    },
 
-  buttonTitle: {
-    color: color.primary,
-    fontWeight: "bold",
-  },
+    buttonTitle: {
+      color: colors.primary,
+      fontWeight: "bold",
+    },
 
-  container: {
-    alignItems: "center",
-    flex: 1,
-    width: "100%",
-  },
-})
+    container: {
+      alignItems: "center",
+      flex: 1,
+      width: "100%",
+    },
+  })
+}
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, "authentication">
@@ -74,6 +78,8 @@ type Props = {
 }
 
 export const AuthenticationScreen: ScreenType = ({ route, navigation }: Props) => {
+  const colors = useThemeColor()
+  const styles = useStyles()
   const client = useApolloClient()
   const { hasToken, tokenNetwork } = useToken()
   const { logout } = useLogout()
@@ -181,8 +187,8 @@ export const AuthenticationScreen: ScreenType = ({ route, navigation }: Props) =
   return (
     <Screen
       style={styles.container}
-      backgroundColor={palette.offWhite}
-      statusBar="light-content"
+      backgroundColor={colors.backgroundSecondary}
+      statusBar={colors.text === palette.white ? "light-content" : "dark-content"}
     >
       <Image style={styles.Logo} source={BitcoinJungleLogo} resizeMode="contain" />
       <View style={styles.bottom}>

@@ -26,6 +26,8 @@ import { Screen } from "../../components/screen"
 import { translate } from "../../i18n"
 import { color } from "../../theme"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
+import { useTheme } from "../../theme/theme-context"
 import useToken from "../../utils/use-token"
 import { toastShow } from "../../utils/toast"
 import { addDeviceToken } from "../../utils/notifications"
@@ -38,7 +40,32 @@ import { parseTimer } from "../../utils/timer"
 import { useGeetestCaptcha } from "../../hooks"
 import { networkVar } from "../../graphql/client-only-query"
 import { requestPermission } from "../../utils/notifications"
-import { SafeAreaView } from "react-native-safe-area-context"
+// Removed SafeAreaView here; Screen component already applies safe area handling
+
+export const DEFAULT_THEME = {
+  primaryColor: '#ccc',
+  primaryColorVariant: '#eee',
+  backgroundColor: '#ffffff',
+  onBackgroundTextColor: '#000000',
+  fontSize: 16,
+  fontFamily: Platform.select({
+    ios: 'System',
+    android: 'Roboto',
+    web: 'Arial'
+  }),
+  filterPlaceholderTextColor: '#aaa',
+  activeOpacity: 0.5,
+  // itemHeight: getHeightPercent(7),
+  flagSize: Platform.select({ android: 20, default: 30 }),
+  flagSizeButton: Platform.select({ android: 20, default: 30 })
+}
+export const DARK_THEME = {
+  ...DEFAULT_THEME,
+  primaryColor: '#222',
+  primaryColorVariant: '#444',
+  backgroundColor: '#000',
+  onBackgroundTextColor: '#fff'
+}
 
 const phoneRegex = new RegExp("^\\+[0-9]+$")
 
@@ -135,7 +162,7 @@ const styles = EStyleSheet.create({
   },
 
   textContainer: {
-    backgroundColor: color.transparent,
+    backgroundColor: "transparent",
   },
 
   textDisabledSendAgain: {
@@ -182,7 +209,7 @@ export const WelcomePhoneInputScreen: ScreenType = ({
   const [phoneNumber, setPhoneNumber] = useState("")
   const [whatsapp, setWhatsApp] = useState(false)
 
-  const phoneInputRef = useRef<PhoneInput | null>()
+  const phoneInputRef = useRef<PhoneInput | null>(null)
 
   const [requestPhoneCode, { loading: loadingRequestPhoneCode }] = useMutation(
     REQUEST_AUTH_CODE,
@@ -287,7 +314,7 @@ export const WelcomePhoneInputScreen: ScreenType = ({
   }
 
   const showCaptcha = phoneNumber.length > 0
-  let captchaContent: JSX.Element
+  let captchaContent: React.ReactNode
 
   if (loadingRegisterCaptcha || loadingRequestPhoneCode) {
     captchaContent = <ActivityIndicator size="large" color={color.primary} />
@@ -295,13 +322,14 @@ export const WelcomePhoneInputScreen: ScreenType = ({
     captchaContent = null
   }
 
+  const colors = useThemeColor()
+  const { isDark } = useTheme()
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: palette.white }}>
-      <Screen backgroundColor={palette.lighterGrey} preset="scroll">
-        <View style={{ flex: 1, justifyContent: "space-around", marginTop: 50 }}>
+      <Screen backgroundColor={colors.background} preset="scroll">
+        <View style={{ flex: 1, justifyContent: "flex-start", paddingTop: 16 }}>
           <View>
             <BadgerPhone style={styles.image} />
-            <Text style={styles.text}>
+            <Text style={[styles.text, { color: colors.text }] }>
               {showCaptcha
                 ? translate("WelcomePhoneInputScreen.headerVerify")
                 : translate("WelcomePhoneInputScreen.header")}
@@ -314,14 +342,18 @@ export const WelcomePhoneInputScreen: ScreenType = ({
               <PhoneInput
                 ref={phoneInputRef}
                 value={phoneNumber}
-                containerStyle={styles.phoneEntryContainer}
-                textInputStyle={styles.textEntry}
-                textContainerStyle={styles.textContainer}
+                containerStyle={[styles.phoneEntryContainer, { borderColor: colors.border, backgroundColor: colors.inputBackground }]}
+                textInputStyle={[styles.textEntry, { color: colors.text }]}
+                textContainerStyle={[styles.textContainer, { backgroundColor: colors.inputBackground }]}
+                codeTextStyle={{ marginLeft: -25, color: colors.text }}
+                flagButtonStyle={{ backgroundColor: colors.inputBackground }}
+                withDarkTheme={isDark}
                 defaultValue={phoneNumber}
                 defaultCode="CR"
                 layout="first"
                 textInputProps={{
                   placeholder: translate("WelcomePhoneInputScreen.placeholder"),
+                  placeholderTextColor: colors.placeholder,
                   returnKeyType: loadingRequestPhoneCode ? "default" : "done",
                   onSubmitEditing: submitPhoneNumber,
                   keyboardType: "phone-pad",
@@ -329,16 +361,20 @@ export const WelcomePhoneInputScreen: ScreenType = ({
                   accessibilityLabel: "Input phone number",
                 }}
                 countryPickerProps={{
+                  withFilter: true,
+                  withFlag: true,
+                  withCountryNameButton: false,
+                  withAlphaFilter: false,
+                  theme: isDark ? DARK_THEME : DEFAULT_THEME,
                   modalProps: {
                     testID: "country-picker",
                   },
                 }}
-                codeTextStyle={{ marginLeft: -25 }}
                 autoFocus
               />
               <View style={styles.whatsappRow}>
                 <Pressable onPress={() => setWhatsApp(!whatsapp)}>
-                  <Text>
+                  <Text style={{ color: colors.text }}>
                     {translate("WelcomePhoneInputScreen.whatsapp")}
                   </Text>
                 </Pressable>
@@ -347,16 +383,11 @@ export const WelcomePhoneInputScreen: ScreenType = ({
                   onValueChange={(newValue) => setWhatsApp(newValue)}
                 />
               </View>
-              <ActivityIndicator
-                animating={loadingRequestPhoneCode}
-                size="large"
-                color={color.primary}
-                style={{ marginTop: 32 }}
-              />
+          <ActivityIndicator animating={loadingRequestPhoneCode} size="large" color={colors.primary} style={{ marginTop: 32 }} />
             </KeyboardAvoidingView>
           )}
           <Button
-            buttonStyle={styles.buttonContinue}
+            buttonStyle={[styles.buttonContinue, { backgroundColor: colors.primary }]}
             title={translate("WelcomePhoneInputScreen.continue")}
             disabled={phoneNumber ? true : false}
             onPress={() => {
@@ -364,9 +395,8 @@ export const WelcomePhoneInputScreen: ScreenType = ({
             }}
           />
         </View>
-        <CloseCross color={palette.darkGrey} onPress={() => navigation.goBack()} />
+        <CloseCross color={colors.text} onPress={() => navigation.goBack()} />
       </Screen>
-    </SafeAreaView>
   )
 }
 
@@ -426,13 +456,14 @@ export const WelcomePhoneValidationScreen: ScreenType = ({
   error,
   saveToken,
 }: WelcomePhoneValidationScreenProps) => {
+  const colors = useThemeColor()
   const client = useApolloClient()
   const [code, setCode] = useState("")
   const [secondsRemaining, setSecondsRemaining] = useState<number>(60)
 
   const { phone } = route.params
   const updateCode = (input) => setCode(input)
-  const inputRef = useRef<TextInput>()
+  const inputRef = useRef<TextInput | null>(null)
 
   useEffect(() => {
     setTimeout(() => inputRef?.current?.focus(), 150)
@@ -481,11 +512,11 @@ export const WelcomePhoneValidationScreen: ScreenType = ({
   }, [secondsRemaining])
 
   return (
-    <Screen backgroundColor={palette.lighterGrey}>
+    <Screen backgroundColor={colors.background}>
       <View style={{ flex: 1 }}>
         <ScrollView>
           <View style={{ flex: 1, minHeight: 32 }} />
-          <Text style={styles.text}>
+          <Text style={[styles.text, { color: colors.text }] }>
             {translate("WelcomePhoneValidationScreen.header", { phone })}
           </Text>
           <KeyboardAvoidingView
@@ -498,8 +529,10 @@ export const WelcomePhoneValidationScreen: ScreenType = ({
               errorStyle={{ color: palette.red }}
               errorMessage={error}
               autoFocus={true}
-              style={styles.authCodeEntryContainer}
+              style={[styles.authCodeEntryContainer, { borderColor: colors.border, backgroundColor: colors.inputBackground, color: colors.text }]}
               containerStyle={styles.codeContainer}
+              inputStyle={{ color: colors.text }}
+              placeholderTextColor={colors.placeholder}
               onChangeText={updateCode}
               keyboardType="number-pad"
               textContentType="oneTimeCode"
@@ -512,15 +545,15 @@ export const WelcomePhoneValidationScreen: ScreenType = ({
             </Input>
             {secondsRemaining > 0 ? (
               <View style={styles.timerRow}>
-                <Text style={styles.textDisabledSendAgain}>
+                <Text style={[styles.textDisabledSendAgain, { color: colors.textSecondary }]}>
                   {translate("WelcomePhoneValidationScreen.sendAgain")}
                 </Text>
-                <Text>{parseTimer(secondsRemaining)}</Text>
+                <Text style={{ color: colors.text }}>{parseTimer(secondsRemaining)}</Text>
               </View>
             ) : (
               <View style={styles.sendAgainButtonRow}>
                 <Button
-                  buttonStyle={styles.buttonResend}
+                  buttonStyle={[styles.buttonResend, { backgroundColor: colors.primary }]}
                   title={translate("WelcomePhoneValidationScreen.sendAgain")}
                   onPress={() => {
                     if (!loading) {
@@ -533,7 +566,7 @@ export const WelcomePhoneValidationScreen: ScreenType = ({
             )}
           </KeyboardAvoidingView>
           <View style={{ flex: 1, minHeight: 16 }} />
-          <ActivityIndicator animating={loading} size="large" color={color.primary} />
+          <ActivityIndicator animating={loading} size="large" color={colors.primary} />
           <View style={{ flex: 1 }} />
         </ScrollView>
       </View>

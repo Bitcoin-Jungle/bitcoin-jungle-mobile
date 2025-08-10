@@ -3,6 +3,7 @@ import * as React from "react"
 import { StyleSheet, Text, View } from "react-native"
 import { Button } from "react-native-elements"
 import { color } from "../../theme"
+import { useThemeColor } from "../../theme/useThemeColor"
 import { palette } from "../../theme/palette"
 import type { StackNavigationProp } from "@react-navigation/stack"
 import type { RootStackParamList } from "../../navigation/stack-param-lists"
@@ -46,13 +47,13 @@ const styles = StyleSheet.create({
 })
 
 type Props = {
-  children: JSX.Element
-  next: keyof RootStackParamList
+  children: React.ReactNode
+  next?: keyof RootStackParamList
   nextTitle: string
-  action: () => void
-  Svg: typeof React.Component
-  header: string
-  loading: boolean
+  action?: () => void
+  Svg: React.ComponentType<any>
+  header?: string
+  loading?: boolean
 }
 
 export const OnboardingScreen: ScreenType = ({
@@ -66,6 +67,7 @@ export const OnboardingScreen: ScreenType = ({
 }: Props) => {
   const navigation =
     useNavigation<StackNavigationProp<RootStackParamList, "welcomeFirst">>()
+  const colors = useThemeColor()
   return (
     <>
       <Text style={styles.header}>{header}</Text>
@@ -76,12 +78,12 @@ export const OnboardingScreen: ScreenType = ({
       {(next || action) && (
         <Button
           title={nextTitle || "Next"}
-          onPress={next ? () => navigation.navigate(next) : action}
+          onPress={next ? () => navigation.navigate(next as never) : action}
           containerStyle={styles.buttonContainer}
-          buttonStyle={styles.buttonStyle}
+          buttonStyle={[styles.buttonStyle, { backgroundColor: colors.buttonPrimary }]}
           loading={loading}
           disabled={loading}
-          titleStyle={styles.buttonTitle}
+          titleStyle={[styles.buttonTitle, { color: colors.buttonPrimaryText }]}
         />
       )}
     </>

@@ -6,52 +6,57 @@ import { TouchableOpacity } from "react-native-gesture-handler"
 import { Icon } from 'react-native-elements'
 // import Icon from "react-native-vector-icons/Ionicons"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import type { ComponentType } from "../../types/jsx"
 import { currencyToText, textToCurrency } from "../../utils/currencyConversion"
 import { GaloyInput } from "../galoy-input"
 
 const digitLimit = 10
 
-const styles = EStyleSheet.create({
-  container: {
-    alignItems: "center",
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    container: {
+      alignItems: "center",
+    },
 
-  icon: {
-    color: palette.darkGrey,
-    paddingTop: 4,
-  },
+    icon: {
+      color: colors.text,
+      paddingTop: 4,
+    },
 
-  inputContainer: {
-    width: "100%",
-  },
+    inputContainer: {
+      width: "100%",
+    },
 
-  inputMaskPositioning: {
-    position: "absolute",
-  },
+    inputMaskPositioning: {
+      position: "absolute",
+    },
 
-  inputText: {
-    opacity: 0,
-  },
+    inputText: {
+      opacity: 0,
+    },
 
-  main: {
-    alignItems: "center",
-    flexDirection: "row",
-    marginTop: "20rem",
-  },
+    main: {
+      alignItems: "center",
+      flexDirection: "row",
+      marginTop: "20rem",
+    },
 
-  textStyle: {
-    color: palette.darkGrey,
-    fontSize: "35rem",
-    fontWeight: "bold",
-    textAlign: "center",
-  },
+    textStyle: {
+      color: colors.text,
+      fontSize: "35rem",
+      fontWeight: "bold",
+      textAlign: "center",
+    },
 
-  textStyleIcon: {
-    fontSize: "18rem",
-    textAlign: "center",
-  },
-})
+    textStyleIcon: {
+      color: colors.text,
+      fontSize: "18rem",
+      textAlign: "center",
+    },
+  })
+}
 
 type InputPaymentProps = {
   editable: boolean
@@ -72,6 +77,8 @@ export const InputPayment: ComponentType = ({
 }: InputPaymentProps) => {
   const [input, setInput] = React.useState("")
   const inputRef = React.useRef<TextInput>()
+  const colors = useThemeColor()
+  const styles = useStyles()
 
   React.useEffect(() => {
     // TODO: re-use textToCurrency
@@ -113,7 +120,7 @@ export const InputPayment: ComponentType = ({
         <Text
           style={[
             styles.textStyleIcon,
-            { color: primaryAmount.value === 0 ? palette.midGrey : palette.darkGrey },
+            { color: primaryAmount.value === 0 ? colors.textSecondary : colors.text },
           ]}
         >
           ₡
@@ -130,7 +137,7 @@ export const InputPayment: ComponentType = ({
         <Text
           style={[
             styles.textStyleIcon,
-            { color: primaryAmount.value === 0 ? palette.midGrey : palette.darkGrey },
+            { color: primaryAmount.value === 0 ? colors.textSecondary : colors.text },
           ]}
         >
           sats
@@ -184,7 +191,10 @@ export const InputPayment: ComponentType = ({
           value={displayValue}
           leftIcon={leftIcon()}
           rightIcon={rightIcon()}
-          inputContainerStyle={styles.inputContainer}
+          inputContainerStyle={[
+            styles.inputContainer,
+            { borderBottomColor: colors.iconDefault },
+          ]}
           inputStyle={[styles.textStyle, styles.inputText]}
           contextMenuHidden
           onChangeText={handleTextInputChange}
@@ -199,7 +209,7 @@ export const InputPayment: ComponentType = ({
           selection={{ start: displayValue.length, end: displayValue.length }}
         />
         <TouchableOpacity onPress={toggleCurrency}>
-          <Icon name="swap-vert" size={32} style={styles.icon} />
+          <Icon name="swap-vert" size={32} color={colors.text} style={styles.icon} />
         </TouchableOpacity>
       </View>
     </View>

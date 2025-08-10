@@ -9,6 +9,7 @@ import { RouteProp } from "@react-navigation/native"
 import { Screen } from "../../../components/screen"
 import { translate } from "../../../i18n"
 import { palette } from "../../../theme/palette"
+import { useThemeColor } from "../../../theme/useThemeColor"
 import { RootStackParamList } from "../../../navigation/stack-param-lists"
 import { BOLT_CARD_PAIR_MUTATION, BOLT_CARDS_QUERY, BOLT_CARD_GENERATE_OTP_MUTATION } from "../../../graphql/query"
 import SetupBoltcard from "../../../components/setup-boltcard/setup-boltcard"
@@ -28,6 +29,7 @@ interface CardKeys {
 }
 
 export const BoltCardPairScreen: React.FC<BoltCardPairScreenProps> = ({ navigation, route }) => {
+  const colors = useThemeColor()
   const { cardId, cardUID } = route.params
   const [pairCard] = useMutation(BOLT_CARD_PAIR_MUTATION)
   const [generateOTP] = useMutation(BOLT_CARD_GENERATE_OTP_MUTATION)
@@ -37,6 +39,7 @@ export const BoltCardPairScreen: React.FC<BoltCardPairScreenProps> = ({ navigati
   const [cardKeys, setCardKeys] = useState<CardKeys | null>(null)
   const [isProgramming, setIsProgramming] = useState(false)
   const [pairingComplete, setPairingComplete] = useState(false)
+  const styles = useStyles()
 
   // Start the pairing process when the component mounts
   useEffect(() => {
@@ -131,7 +134,7 @@ export const BoltCardPairScreen: React.FC<BoltCardPairScreenProps> = ({ navigati
             name="nfc"
             type="material-community"
             size={48}
-            color={palette.darkGrey}
+            color={colors.iconDefault}
           />
           <Text style={styles.headerTitle}>{translate("BoltCardScreen.programCard")}</Text>
           <Text style={styles.headerSubtitle}>
@@ -142,7 +145,7 @@ export const BoltCardPairScreen: React.FC<BoltCardPairScreenProps> = ({ navigati
         {isLoading ? (
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>{translate("BoltCardScreen.fetchingOTP")}</Text>
-            <ActivityIndicator size="large" color={palette.blue} style={{ marginTop: 10 }} />
+            <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 10 }} />
           </View>
         ) : error ? (
           <View style={styles.errorContainer}>
@@ -163,7 +166,7 @@ export const BoltCardPairScreen: React.FC<BoltCardPairScreenProps> = ({ navigati
         ) : (
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>{translate("BoltCardScreen.preparingCard")}</Text>
-            <ActivityIndicator size="large" color={palette.blue} style={{ marginTop: 10 }} />
+            <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 10 }} />
           </View>
         )}
 
@@ -181,57 +184,60 @@ export const BoltCardPairScreen: React.FC<BoltCardPairScreenProps> = ({ navigati
   )
 }
 
-const styles = StyleSheet.create({
-  header: {
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: palette.lighterGrey,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 10,
-    color: palette.darkGrey,
-    textAlign: "center",
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: palette.midGrey,
-    marginTop: 5,
-    textAlign: "center",
-  },
-  loadingContainer: {
-    padding: 20,
-    alignItems: "center",
-  },
-  loadingText: {
-    fontSize: 16,
-    color: palette.darkGrey,
-  },
-  errorContainer: {
-    padding: 20,
-    alignItems: "center",
-  },
-  errorText: {
-    fontSize: 16,
-    color: palette.red,
-    marginBottom: 15,
-    textAlign: "center",
-  },
-  retryButton: {
-    backgroundColor: palette.blue,
-    borderRadius: 8,
-    paddingHorizontal: 30,
-  },
-  buttonContainer: {
-    padding: 20,
-    marginTop: 10,
-  },
-  cancelButton: {
-    borderRadius: 8,
-    borderColor: palette.midGrey,
-  },
-  cancelButtonText: {
-    color: palette.midGrey,
-  },
-}) 
+const useStyles = () => {
+  const colors = useThemeColor()
+  return StyleSheet.create({
+    header: {
+      alignItems: "center",
+      padding: 20,
+      backgroundColor: colors.surface,
+    },
+    headerTitle: {
+      fontSize: 24,
+      fontWeight: "bold",
+      marginTop: 10,
+      color: colors.text,
+      textAlign: "center",
+    },
+    headerSubtitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginTop: 5,
+      textAlign: "center",
+    },
+    loadingContainer: {
+      padding: 20,
+      alignItems: "center",
+    },
+    loadingText: {
+      fontSize: 16,
+      color: colors.text,
+    },
+    errorContainer: {
+      padding: 20,
+      alignItems: "center",
+    },
+    errorText: {
+      fontSize: 16,
+      color: colors.error,
+      marginBottom: 15,
+      textAlign: "center",
+    },
+    retryButton: {
+      backgroundColor: colors.primary,
+      borderRadius: 8,
+      paddingHorizontal: 30,
+    },
+    buttonContainer: {
+      padding: 20,
+      marginTop: 10,
+    },
+    cancelButton: {
+      borderRadius: 8,
+      borderColor: colors.textSecondary,
+    },
+    cancelButtonText: {
+      color: colors.textSecondary,
+    },
+  })
+} 

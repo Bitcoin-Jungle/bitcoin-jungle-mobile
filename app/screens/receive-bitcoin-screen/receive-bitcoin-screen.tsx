@@ -15,6 +15,7 @@ import { Screen } from "../../components/screen"
 import { translate } from "../../i18n"
 import { MoveMoneyStackParamList } from "../../navigation/stack-param-lists"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import { ScreenType } from "../../types/jsx"
 import { isIos } from "../../utils/helper"
 import QRView from "./qr-view"
@@ -44,63 +45,71 @@ type LnurlParams = {
   error: string
 }
 
-const styles = EStyleSheet.create({
-  buttonContainer: { marginHorizontal: 52, paddingVertical: 200 },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    buttonContainer: { marginHorizontal: 52, paddingVertical: 200 },
 
-  buttonStyle: {
-    backgroundColor: palette.lightBlue,
-    borderRadius: 32,
-  },
+    buttonStyle: {
+      backgroundColor: colors.primary,
+      borderRadius: 32,
+    },
 
-  buttonStyleActive: {
-    backgroundColor: palette.blue,
-  },
+    buttonStyleActive: {
+      backgroundColor: colors.surfaceElevated,
+      borderColor: colors.primary,
+      borderWidth: 1,
+    },
 
-  buttonStyleInactive: {
-    backgroundColor: palette.midGrey,
-  },
+    buttonStyleInactive: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+      borderWidth: 1,
+    },
 
-  receiveButtonStyle: {
-    backgroundColor: color.primary,
-    marginBottom: "32rem",
-    marginHorizontal: "24rem",
-    marginTop: "32rem",
-  },
+    receiveButtonStyle: {
+      backgroundColor: colors.primary,
+      marginBottom: "32rem",
+      marginHorizontal: "24rem",
+      marginTop: "32rem",
+    },
 
-  buttonTitle: {
-    fontWeight: "bold",
-  },
+    buttonTitle: {
+      fontWeight: "bold",
+    },
 
-  domainText: {
-    fontSize: 20,
-    marginLeft: "4%",
-  },
+    domainText: {
+      color: colors.text,
+      fontSize: 20,
+      marginLeft: "4%",
+    },
 
-  screen: {
-    // FIXME: doesn't work for some reason
-    // justifyContent: "space-around"
-  },
-  section: {
-    flex: 1,
-    paddingHorizontal: 50,
-  },
+    screen: {
+      // FIXME: doesn't work for some reason
+      // justifyContent: "space-around"
+    },
+    section: {
+      flex: 1,
+      paddingHorizontal: 50,
+    },
 
-  subCurrencyText: {
-    color: palette.midGrey,
-    fontSize: "16rem",
-    marginRight: "10%",
-    marginTop: 0,
-    paddingTop: 0,
-    textAlign: "center",
-    width: "90%",
-  },
-  textButtonWrapper: { alignSelf: "center", marginHorizontal: 52 },
-  textStyle: {
-    color: palette.darkGrey,
-    fontSize: "18rem",
-    textAlign: "center",
-  },
-})
+    subCurrencyText: {
+      color: colors.textSecondary,
+      fontSize: "16rem",
+      marginRight: "10%",
+      marginTop: 0,
+      paddingTop: 0,
+      textAlign: "center",
+      width: "90%",
+    },
+    textButtonWrapper: { alignSelf: "center", marginHorizontal: 52 },
+    textStyle: {
+      color: colors.text,
+      fontSize: "18rem",
+      textAlign: "center",
+    },
+  })
+}
 
 const ADD_NO_AMOUNT_INVOICE = gql`
   mutation lnNoAmountInvoiceCreate($input: LnNoAmountInvoiceCreateInput!) {
@@ -147,6 +156,8 @@ type Props = {
 }
 
 export const ReceiveBitcoinScreen: ScreenType = ({ navigation, route }: Props) => {
+  const colors = useThemeColor()
+  const styles = useStyles()
   const client = useApolloClient()
   const { hasToken } = useToken()
 
@@ -497,7 +508,7 @@ export const ReceiveBitcoinScreen: ScreenType = ({ navigation, route }: Props) =
   }
 
   return (
-    <Screen backgroundColor={palette.lighterGrey} style={styles.screen} preset="fixed">
+    <Screen backgroundColor={colors.background} style={styles.screen} preset="fixed">
       <ScrollView keyboardShouldPersistTaps="always">
         <View style={styles.section}>
           <InputPayment
@@ -530,7 +541,7 @@ export const ReceiveBitcoinScreen: ScreenType = ({ navigation, route }: Props) =
             containerStyle={{ marginTop: 0 }}
             inputStyle={styles.textStyle}
             leftIcon={
-              <Icon name="add-circle-outline" size={21} color={palette.darkGrey} />
+              <Icon name="add-circle-outline" size={21} color={colors.text} />
             }
             ref={inputMemoRef}
             disabled={invoicePaid}
@@ -554,8 +565,8 @@ export const ReceiveBitcoinScreen: ScreenType = ({ navigation, route }: Props) =
                   buttonStyle={(!swiperIndex ? styles.buttonStyleActive : styles.buttonStyleInactive)}
                   title={
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: "center" }}>
-                      <Icon color="white" size={20} name="bolt" />
-                      <Text style={{fontWeight: "bold", color: "white"}}>Lightning</Text>
+                      <Icon color={!swiperIndex ? colors.primary : colors.text} size={20} name="bolt" />
+                      <Text style={{fontWeight: "bold", color: !swiperIndex ? colors.primary : colors.text}}>Lightning</Text>
                     </View>
                   }
                   titleStyle={styles.buttonTitle}
@@ -571,8 +582,8 @@ export const ReceiveBitcoinScreen: ScreenType = ({ navigation, route }: Props) =
                   buttonContainer={{flex: 1}}
                   title={
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: "center" }}>
-                      <Icon color="white" size={20} name="currency-bitcoin" />
-                      <Text style={{fontWeight: "bold", color: "white"}}>On-Chain</Text>
+                      <Icon color={swiperIndex ? colors.primary : colors.text} size={20} name="currency-bitcoin" />
+                      <Text style={{fontWeight: "bold", color: swiperIndex ? colors.primary : colors.text}}>On-Chain</Text>
                     </View>
                   }
                   

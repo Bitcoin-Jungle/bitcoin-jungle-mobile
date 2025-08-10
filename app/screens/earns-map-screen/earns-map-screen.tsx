@@ -12,6 +12,7 @@ import { translate, translateQuizSections } from "../../i18n"
 import { PrimaryStackParamList } from "../../navigation/stack-param-lists"
 import { color } from "../../theme"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import { ComponentType, ScreenType } from "../../types/jsx"
 import useToken from "../../utils/use-token"
 import { sectionCompletedPct } from "../earns-screen"
@@ -38,88 +39,91 @@ const BottomOngoingES = React.lazy(() => import("./bottom-ongoing-01.es.svg"))
 const BottomStartEN = React.lazy(() => import("./bottom-start-01.en.svg"))
 const BottomStartES = React.lazy(() => import("./bottom-start-01.es.svg"))
 
-const styles = StyleSheet.create({
-  contentContainer: {
-    backgroundColor: palette.lightBlue,
-    flexGrow: 1,
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return StyleSheet.create({
+    contentContainer: {
+      backgroundColor: palette.lightBlue,
+      flexGrow: 1,
+    },
 
-  finishText: {
-    color: palette.white,
-    fontSize: 18,
-    position: "absolute",
-    right: 30,
-    textAlign: "center",
-    top: 30,
-    width: 160,
-  },
+    finishText: {
+      color: palette.white,
+      fontSize: 18,
+      position: "absolute",
+      right: 30,
+      textAlign: "center",
+      top: 30,
+      width: 160,
+    },
 
-  icon: {
-    marginBottom: 6,
-    marginHorizontal: 10,
-  },
+    icon: {
+      marginBottom: 6,
+      marginHorizontal: 10,
+    },
 
-  mainView: {
-    alignSelf: "center",
-  },
+    mainView: {
+      alignSelf: "center",
+    },
 
-  textStyleBox: {
-    color: palette.white,
-    fontSize: 16,
-    fontWeight: "bold",
-    marginHorizontal: 10,
-  },
+    textStyleBox: {
+      color: palette.white,
+      fontSize: 16,
+      fontWeight: "bold",
+      marginHorizontal: 10,
+    },
 
-  progressContainer: { backgroundColor: palette.darkGrey, margin: 10 },
+    progressContainer: { backgroundColor: palette.darkGrey, margin: 10 },
 
-  position: { height: 40 },
+    position: { height: 40 },
 
-  chatBubble: {
-    position: 'absolute',
-    right: 20,
-    bottom: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: palette.lightBlue,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    zIndex: 1000,
-  },
+    chatBubble: {
+      position: 'absolute',
+      right: 20,
+      bottom: 20,
+      width: 60,
+      height: 60,
+      borderRadius: 30,
+      backgroundColor: palette.lightBlue,
+      justifyContent: 'center',
+      alignItems: 'center',
+      elevation: 5,
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      zIndex: 1000,
+    },
 
-  chatBubbleText: {
-    fontSize: 30,
-  },
+    chatBubbleText: {
+      fontSize: 30,
+    },
 
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // semi-transparent background
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    height: '80%', // takes up 80% of the screen height
-  },
-  dragIndicator: {
-    width: 40,
-    height: 5,
-    backgroundColor: 'grey',
-    borderRadius: 3,
-    alignSelf: 'center',
-    marginBottom: 10,
-  },
-  chatContainer: {
-    flex: 1,
-  },
-})
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'flex-end',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)', // semi-transparent background
+    },
+    modalContent: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 20,
+      borderTopRightRadius: 20,
+      padding: 20,
+      height: '80%', // takes up 80% of the screen height
+    },
+    dragIndicator: {
+      width: 40,
+      height: 5,
+      backgroundColor: colors.textSecondary,
+      borderRadius: 3,
+      alignSelf: 'center',
+      marginBottom: 10,
+    },
+    chatContainer: {
+      flex: 1,
+    },
+  })
+}
 
 type SideType = "left" | "right"
 interface IInBetweenTile {
@@ -159,7 +163,7 @@ export const ProgressBar: ComponentType = ({ progress }: ProgressProps) => {
   const balanceWidth = progress * 100
 
   return (
-    <View style={styles.progressContainer}>
+    <View style={{ backgroundColor: palette.darkGrey, margin: 10 }}>
       {/* pass props to style object to remove inline style */}
       {/* eslint-disable-next-line react-native/no-inline-styles */}
       <View style={{ width: balanceWidth, height: 3, backgroundColor: palette.white }} />
@@ -252,6 +256,7 @@ export const EarnMapScreen: React.FC<IEarnMapScreen> = ({
   earned,
 }: IEarnMapScreen) => {
   const [isChatOpen, setIsChatOpen] = React.useState(false);
+  const styles = useStyles();
 
   const Finish = ({ currSection, length }: FinishProps) => {
     if (currSection !== sectionsData.length) return null
@@ -329,8 +334,8 @@ export const EarnMapScreen: React.FC<IEarnMapScreen> = ({
               {/* eslint-disable-next-line react-native/no-inline-styles */}
               <View style={{ position: "absolute", width: "100%" }}>
                 <ProgressBar progress={progressSection} />
-                <Icon style={styles.icon} width={50} height={50} />
-                <Text style={styles.textStyleBox}>{text}</Text>
+                <Icon style={{ marginBottom: 6, marginHorizontal: 10 }} width={50} height={50} />
+                <Text style={{ color: palette.white, fontSize: 16, fontWeight: "bold", marginHorizontal: 10 }}>{text}</Text>
               </View>
             </TouchableOpacity>
           </View>

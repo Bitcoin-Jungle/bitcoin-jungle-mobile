@@ -29,6 +29,7 @@ import { TransactionItem } from "../../components/transaction-item"
 import { translate } from "../../i18n"
 import { color } from "../../theme"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import { AccountType } from "../../utils/enum"
 import { isIos } from "../../utils/helper"
 import { ScreenType } from "../../types/jsx"
@@ -40,125 +41,145 @@ import useMainQuery from "@app/hooks/use-main-query"
 import IconM from "@mdi/react"
 import { mdiTrendingUp } from "@mdi/js"
 
-const styles = EStyleSheet.create({
-  balanceHeader: {
-    marginBottom: "32rem",
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    balanceHeader: {
+      marginBottom: "32rem",
+    },
 
-  bottom: {
-    alignItems: "center",
-    marginVertical: "16rem",
-  },
+    bottom: {
+      alignItems: "center",
+      marginVertical: "16rem",
+    },
 
-  buttonContainerStyle: {
-    marginTop: "16rem",
-    width: "80%",
-  },
+    buttonContainerStyle: {
+      marginTop: "16rem",
+      width: "80%",
+    },
 
-  buttonStyle: {
-    borderColor: color.primary,
-    borderRadius: 32,
-    borderWidth: 2,
-  },
+    buttonStyle: {
+      borderColor: colors.primary,
+      borderRadius: 32,
+      borderWidth: 2,
+    },
 
-  buttonStyleTime: {
-    backgroundColor: palette.white,
-    borderRadius: "38rem",
-    width: "50rem",
-  },
+    buttonStyleTime: {
+      backgroundColor: colors.surface,
+      borderRadius: "38rem",
+      width: "50rem",
+    },
 
-  cover: { height: "100%", width: "100%" },
+    cover: { height: "100%", width: "100%" },
 
-  divider: { flex: 1 },
+    divider: { flex: 1 },
 
-  error: { alignSelf: "center", color: palette.red, paddingBottom: 18 },
+    error: { alignSelf: "center", color: colors.error, paddingBottom: 18 },
 
-  flex: {
-    flex: 1,
-  },
+    flex: {
+      flex: 1,
+    },
 
-  header: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
+    header: {
+      alignItems: "center",
+      flexDirection: "row",
+      justifyContent: "space-around",
+    },
 
-  icon: { height: 34, top: -22 },
+    icon: { height: 34, top: -22 },
 
-  lightningText: {
-    fontSize: "16rem",
-    marginBottom: 12,
-    textAlign: "center",
-  },
+    lightningText: {
+      color: colors.text,
+      fontSize: "16rem",
+      marginBottom: 12,
+      textAlign: "center",
+    },
 
-  listContainer: {
-    marginTop: "12rem",
-  },
+    listContainer: {
+      marginTop: "12rem",
+    },
 
-  menuIcon: {
-    color: palette.darkGrey,
-  },
+    menuIcon: {
+      color: colors.headerText,
+    },
 
-  modal: { marginBottom: 0, marginHorizontal: 0 },
+    modal: { marginBottom: 0, marginHorizontal: 0 },
 
-  screenStyle: {
-    backgroundColor: palette.lighterGrey,
-  },
+    screenStyle: {
+      backgroundColor: colors.background,
+    },
 
-  separator: { marginTop: 32 },
+    separator: { marginTop: 32 },
 
-  text: {
-    color: palette.darkGrey,
-    fontSize: "20rem",
-    // fontWeight: "bold",
-  },
+    text: {
+      color: colors.text,
+      fontSize: "20rem",
+      // fontWeight: "bold",
+    },
 
-  titleStyle: {
-    color: color.primary,
-    fontSize: "18rem",
-    fontWeight: "bold",
-  },
+    titleStyle: {
+      color: colors.primary,
+      fontSize: "18rem",
+      fontWeight: "bold",
+    },
 
-  transactionsView: {
-    flex: 1,
-    marginHorizontal: "30rem",
-  },
+    transactionsView: {
+      flex: 1,
+      marginHorizontal: "30rem",
+      backgroundColor: colors.surface,
+      borderLeftWidth: 1,
+      borderRightWidth: 1,
+      borderBottomWidth: 1,
+      borderColor: colors.border,
+      borderBottomLeftRadius: 8,
+      borderBottomRightRadius: 8,
+    },
+    
+    transactionViewContainer: {
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 8,
+      borderTopRightRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderBottomWidth: 0,
+    },
 
-  viewModal: {
-    alignItems: "center",
-    backgroundColor: palette.white,
-    height: "25%",
-    justifyContent: "flex-end",
-    paddingHorizontal: 20,
-  },
+    viewModal: {
+      alignItems: "center",
+      backgroundColor: colors.surface,
+      height: "25%",
+      justifyContent: "flex-end",
+      paddingHorizontal: 20,
+    },
 
-  bannerImage: {
-    width: '100%',
-    height: 120,
-    marginBottom: 0,
-    resizeMode: 'cover',
-  },
+    bannerImage: {
+      width: '100%',
+      height: 120,
+      marginBottom: 0,
+      resizeMode: 'cover',
+    },
 
-  bannerTouchable: {
-    marginHorizontal: 30,
-  },
+    bannerTouchable: {
+      marginHorizontal: 30,
+    },
 
-  sinpeMessage: {
-    backgroundColor: palette.white,
-    padding: 16,
-    marginHorizontal: 30,
-    marginTop: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: color.primary,
-  },
+    sinpeMessage: {
+      backgroundColor: colors.surface,
+      padding: 16,
+      marginHorizontal: 30,
+      marginTop: 12,
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: colors.primary,
+    },
 
-  sinpeText: {
-    color: palette.darkGrey,
-    fontSize: 14,
-    textAlign: 'center',
-  },
-})
+    sinpeText: {
+      color: colors.text,
+      fontSize: 14,
+      textAlign: 'center',
+    },
+  })
+}
 
 type MoveMoneyScreenDataInjectedProps = {
   navigation: StackNavigationProp<MoveMoneyStackParamList, "moveMoney">
@@ -263,6 +284,8 @@ export const MoveMoneyScreen: ScreenType = ({
   isUpdateAvailable,
   hasToken,
 }: MoveMoneyScreenProps) => {
+  const colors = useThemeColor()
+  const styles = useStyles()
   const [modalVisible, setModalVisible] = useState(false)
   const [bannerData, setBannerData] = useState<BannerData>({
     show: false,
@@ -331,7 +354,7 @@ export const MoveMoneyScreen: ScreenType = ({
     recentTRansactionsData = {
       title: translate("TransactionScreen.title"),
       target: "transactionHistory",
-      icon: <Icon name="list" size={32} color={palette.black} />,
+      icon: <Icon name="list" size={32} color={colors.text} />,
       style: "transactionViewContainer",
       hidden: false,
       details: (
@@ -379,7 +402,7 @@ export const MoveMoneyScreen: ScreenType = ({
       >
         <View style={{ flex: 1 }}>
           <Screen style={styles.screenStyle}>
-            <StatusBar backgroundColor={palette.lighterGrey} barStyle="dark-content" />
+            <StatusBar backgroundColor={colors.background} barStyle={colors.text === palette.white ? "light-content" : "dark-content"} />
             <Modal
               style={styles.modal}
               isVisible={modalVisible}
@@ -396,7 +419,7 @@ export const MoveMoneyScreen: ScreenType = ({
                 <Icon
                   name="ios-remove"
                   size={64}
-                  color={palette.lightGrey}
+                  color={colors.textSecondary}
                   style={styles.icon}
                 />
                 <Text style={styles.text}>{translate("common.needWallet")}</Text>
@@ -420,14 +443,14 @@ export const MoveMoneyScreen: ScreenType = ({
                     account: AccountType.Bitcoin,
                   })
                 }
-                icon={<Icon name="trending-up" size={32} style={styles.menuIcon} />}
+                icon={<Icon name="trending-up" size={32} color={colors.text} />}
               />
               <BalanceHeader loading={loading} style={styles.balanceHeader} />
               <Button
                 buttonStyle={styles.buttonStyleTime}
                 containerStyle={styles.separator}
                 onPress={() => navigation.navigate("settings")}
-                icon={<Icon name="settings" size={32} style={styles.menuIcon} />}
+                icon={<Icon name="settings" size={32} color={colors.text} />}
               />
             </View>
 
@@ -467,7 +490,7 @@ export const MoveMoneyScreen: ScreenType = ({
                 {
                   title: translate("ScanningQRCodeScreen.title"),
                   target: "scanningQRCode",
-                  icon: <Icon name="qr-code" size={32} color={palette.orange} />,
+                  icon: <Icon name="qr-code" size={32} color={colors.secondary} />,
                   hidden: false,
                 },
                 {
@@ -485,7 +508,7 @@ export const MoveMoneyScreen: ScreenType = ({
                 {
                   title: translate("MoveMoneyScreen.sinpe"),
                   target: "sinpeScreen",
-                  icon: <Icon name="payments" size={32} color={palette.orange} />,
+                  icon: <Icon name="payments" size={32} color={colors.secondary} />,
                   hidden: !phoneNumber?.startsWith("+506") || !username,
                 },
                 ...(recentTRansactionsData ? [recentTRansactionsData] : []),

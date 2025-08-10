@@ -10,47 +10,60 @@ import { LargeButton } from "../../components/large-button"
 import { Screen } from "../../components/screen"
 import { translate } from "../../i18n"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import type { ContactStackParamList } from "../../navigation/stack-param-lists"
 import { StackNavigationProp } from "@react-navigation/stack"
 import { RouteProp } from "@react-navigation/native"
 import type { ScreenType } from "../../types/jsx"
 import { ContactTransactionsDataInjected } from "./contact-transactions"
 import useMainQuery from "@app/hooks/use-main-query"
-import { SafeAreaView } from "react-native-safe-area-context"
+// import { SafeAreaView } from "react-native-safe-area-context"
 
-const styles = EStyleSheet.create({
-  actionsContainer: { paddingBottom: 18 },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    actionsContainer: { paddingBottom: 18 },
 
-  amount: {
-    color: palette.white,
-    fontSize: "36rem",
-  },
+    amount: {
+      color: palette.white,
+      fontSize: "36rem",
+    },
 
-  amountSecondary: {
-    color: palette.white,
-    fontSize: "16rem",
-  },
+    amountSecondary: {
+      color: palette.white,
+      fontSize: "16rem",
+    },
 
-  amountView: {
-    alignItems: "center",
-    paddingBottom: "6rem",
-  },
+    amountView: {
+      alignItems: "center",
+      paddingVertical: "12rem",
+    },
 
-  icon: { margin: 0 },
+    icon: { margin: 0 },
 
-  inputContainer: {
-    flexDirection: "row",
-  },
+    inputContainer: {
+      flexDirection: "row",
+    },
 
-  inputStyle: { textAlign: "center", textDecorationLine: "underline" },
+    inputStyle: { textAlign: "center", textDecorationLine: "underline" },
 
-  screenTitle: { fontSize: 18, marginBottom: 12, marginTop: 18 },
+    screenTitle: { 
+      fontSize: 18, 
+      marginBottom: 12, 
+      marginTop: 8,
+      color: colors.text,
+    },
+    
+    screen: {
+      backgroundColor: colors.background,
+    },
 
-  transactionsView: {
-    flex: 1,
-    marginHorizontal: "30rem",
-  },
-})
+    transactionsView: {
+      flex: 1,
+      marginHorizontal: "30rem",
+    },
+  })
+}
 
 type ContactDetailProps = {
   route: RouteProp<ContactStackParamList, "contactDetail">
@@ -84,6 +97,8 @@ export const ContactsDetailScreenJSX: ScreenType = ({
   refetchMain,
 }: ContactDetailScreenProps) => {
   const [contactName, setContactName] = React.useState(contact.alias)
+  const styles = useStyles()
+  const colors = useThemeColor()
 
   const UPDATE_NAME = gql`
     mutation userContactUpdateAlias($input: UserContactUpdateAliasInput!) {
@@ -108,9 +123,8 @@ export const ContactsDetailScreenJSX: ScreenType = ({
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: palette.white }}>
-      <Screen style={styles.screen} unsafe>
-        <View style={[styles.amountView, { backgroundColor: palette.green }]}>
+      <Screen style={styles.screen}>
+        <View style={[styles.amountView, { backgroundColor: colors.primary }]}>
           <Icon
             name="person-outline"
             size={86}
@@ -122,7 +136,7 @@ export const ContactsDetailScreenJSX: ScreenType = ({
             <Input
               style={styles.amount}
               inputStyle={styles.inputStyle}
-              inputContainerStyle={{ borderColor: palette.green }}
+              inputContainerStyle={{ borderColor: colors.primary }}
               onChangeText={setContactName}
               onSubmitEditing={updateName}
               onBlur={updateName}
@@ -157,6 +171,5 @@ export const ContactsDetailScreenJSX: ScreenType = ({
         </View>
         <CloseCross color={palette.white} onPress={navigation.goBack} />
       </Screen>
-    </SafeAreaView>
   )
 }

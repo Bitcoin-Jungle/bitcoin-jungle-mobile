@@ -12,6 +12,7 @@ import { CloseCross } from "../../components/close-cross"
 import { Screen } from "../../components/screen"
 import { translate } from "../../i18n"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import { shuffle } from "../../utils/helper"
 import { sleep } from "../../utils/sleep"
 import { SVGs } from "./earn-svg-factory"
@@ -20,136 +21,141 @@ import { StackNavigationProp } from "@react-navigation/stack"
 import type { RootStackParamList } from "../../navigation/stack-param-lists"
 import { RouteProp } from "@react-navigation/native"
 
-const styles = EStyleSheet.create({
-  answersView: {
-    flex: 1,
-    marginHorizontal: 15,
-    marginTop: 6,
-    height: 500,
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    answersView: {
+      flex: 1,
+      marginHorizontal: 15,
+      marginTop: 6,
+      height: 500,
+    },
 
-  bottomContainer: {
-    alignItems: "center",
-    backgroundColor: palette.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 0,
-    shadowColor: palette.darkGrey,
-    shadowOpacity: 5,
-    shadowRadius: 8,
-  },
+    bottomContainer: {
+      alignItems: "center",
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      paddingTop: 0,
+      shadowColor: colors.shadow,
+      shadowOpacity: 5,
+      shadowRadius: 8,
+    },
 
-  buttonStyle: {
-    backgroundColor: palette.lightBlue,
-    borderRadius: 32,
-    width: 224,
-  },
+    buttonStyle: {
+      backgroundColor: palette.lightBlue,
+      borderRadius: 32,
+      width: 224,
+    },
 
-  completedTitleStyle: {
-    color: palette.lightBlue,
-    fontSize: 18,
-    fontWeight: "bold",
-  },
+    completedTitleStyle: {
+      color: palette.lightBlue,
+      fontSize: 18,
+      fontWeight: "bold",
+    },
 
-  correctAnswerText: {
-    color: palette.green,
-    fontSize: 16,
-  },
+    correctAnswerText: {
+      color: palette.green,
+      fontSize: 16,
+    },
 
-  incorrectAnswerText: {
-    color: palette.red,
-    fontSize: 16,
-  },
+    incorrectAnswerText: {
+      color: palette.red,
+      fontSize: 16,
+    },
 
-  keepDiggingContainerStyle: {
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 24,
-    marginTop: 18,
-    minHeight: 18,
-  },
+    keepDiggingContainerStyle: {
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 24,
+      marginTop: 18,
+      minHeight: 18,
+    },
 
-  modalBackground: {
-    alignItems: "center",
-    backgroundColor: palette.white,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    justifyContent: "flex-end",
-    minHeight: 630,
-  },
+    modalBackground: {
+      alignItems: "center",
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: 24,
+      borderTopRightRadius: 24,
+      justifyContent: "flex-end",
+      minHeight: 630,
+    },
 
-  quizButtonContainerStyle: {
-    marginVertical: 12,
-    width: 48,
-  },
+    quizButtonContainerStyle: {
+      marginVertical: 12,
+      width: 48,
+    },
 
-  quizButtonStyle: {
-    backgroundColor: palette.lightBlue,
-    borderRadius: 32,
-    padding: 12,
-  },
+    quizButtonStyle: {
+      backgroundColor: palette.lightBlue,
+      borderRadius: 32,
+      padding: 12,
+    },
 
-  quizButtonTitleStyle: {
-    color: palette.white,
-    fontWeight: "bold",
-  },
+    quizButtonTitleStyle: {
+      color: palette.white,
+      fontWeight: "bold",
+    },
 
-  quizCorrectButtonStyle: {
-    backgroundColor: palette.green,
-    borderRadius: 32,
-    padding: 12,
-  },
+    quizCorrectButtonStyle: {
+      backgroundColor: palette.green,
+      borderRadius: 32,
+      padding: 12,
+    },
 
-  quizTextAnswer: {
-    color: palette.darkGrey,
-    textAlign: "left",
-    width: "100%",
-  },
+    quizTextAnswer: {
+      color: colors.text,
+      textAlign: "left",
+      width: "100%",
+    },
 
-  quizTextContainerStyle: {
-    alignItems: "flex-start",
-    marginLeft: 12,
-    marginRight: 36,
-  },
+    quizTextContainerStyle: {
+      alignItems: "flex-start",
+      marginLeft: 12,
+      marginRight: 36,
+    },
 
-  quizWrongButtonStyle: {
-    backgroundColor: palette.red,
-    borderRadius: 32,
-    padding: 12,
-  },
+    quizWrongButtonStyle: {
+      backgroundColor: palette.red,
+      borderRadius: 32,
+      padding: 12,
+    },
 
-  svgContainer: {
-    alignItems: "center",
-    paddingVertical: 16,
-  },
+    svgContainer: {
+      alignItems: "center",
+      paddingVertical: 16,
+    },
 
-  text: {
-    fontSize: 24,
-  },
+    text: {
+      color: colors.text,
+      fontSize: 24,
+    },
 
-  textContainer: {
-    marginHorizontal: 24,
-    paddingBottom: 48,
-  },
+    textContainer: {
+      marginHorizontal: 24,
+      paddingBottom: 48,
+    },
 
-  textEarn: {
-    color: palette.darkGrey,
-    fontSize: 16,
-    fontWeight: "bold",
-  },
+    textEarn: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "bold",
+    },
 
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-    paddingBottom: 5,
-  },
+    title: {
+      color: colors.text,
+      fontSize: 18,
+      fontWeight: "bold",
+      paddingBottom: 5,
+    },
 
-  titleStyle: {
-    color: palette.white,
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-})
+    titleStyle: {
+      color: palette.white,
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+  })
+}
 
 const mappingLetter = { 0: "A", 1: "B", 2: "C" }
 
@@ -161,6 +167,9 @@ type Props = {
 export const EarnQuiz: ScreenType = ({ route, navigation }: Props) => {
   const { title, text, amount, answers, feedback, question, onComplete, id, completed } =
     route.params
+  
+  const colors = useThemeColor()
+  const styles = useStyles()
 
   const [isCompleted, setIsCompleted] = useState(completed)
   const [quizVisible, setQuizVisible] = useState(false)
@@ -239,7 +248,7 @@ export const EarnQuiz: ScreenType = ({ route, navigation }: Props) => {
   })
 
   return (
-    <Screen backgroundColor={palette.lighterGrey} unsafe>
+    <Screen backgroundColor={colors.background} unsafe>
       <Modal
         style={{ marginHorizontal: 0, marginBottom: 0, flexGrow: 1 }}
         isVisible={quizVisible}
@@ -259,7 +268,7 @@ export const EarnQuiz: ScreenType = ({ route, navigation }: Props) => {
             <Icon
               name="ios-remove"
               size={72}
-              color={palette.lightGrey}
+              color={colors.textSecondary}
               style={{ height: 40, top: -30 }}
             />
           </View>

@@ -8,6 +8,7 @@ import { StackNavigationProp } from "@react-navigation/stack"
 import { Screen } from "../../../components/screen"
 import { translate } from "../../../i18n"
 import { palette } from "../../../theme/palette"
+import { useThemeColor } from "../../../theme/useThemeColor"
 import { RootStackParamList } from "../../../navigation/stack-param-lists"
 import { BOLT_CARD_REGISTER_MUTATION, BOLT_CARDS_QUERY } from "../../../graphql/query"
 import { generateBoltCardKeys } from "../../../utils/crypto"
@@ -18,6 +19,7 @@ type BoltCardRegisterScreenProps = {
 }
 
 export const BoltCardRegisterScreen: React.FC<BoltCardRegisterScreenProps> = ({ navigation }) => {
+  const colors = useThemeColor()
   const [registerCard, { loading }] = useMutation(BOLT_CARD_REGISTER_MUTATION)
   
   const [cardName, setCardName] = useState("")
@@ -32,6 +34,7 @@ export const BoltCardRegisterScreen: React.FC<BoltCardRegisterScreenProps> = ({ 
   const [keysGenerated, setKeysGenerated] = useState(false)
   const [scanningNfc, setScanningNfc] = useState(false)
   const [showKeyInputs, setShowKeyInputs] = useState(false)
+  const styles = useStyles()
 
   // Generate secure keys when the component mounts
   useEffect(() => {
@@ -167,7 +170,7 @@ export const BoltCardRegisterScreen: React.FC<BoltCardRegisterScreenProps> = ({ 
           <Icon
             name="check-circle"
             type="material-community"
-            color={palette.green}
+            color={colors.success}
             size={20}
             containerStyle={styles.keyCheckIcon}
           />
@@ -188,7 +191,7 @@ export const BoltCardRegisterScreen: React.FC<BoltCardRegisterScreenProps> = ({ 
             name="card-plus-outline"
             type="material-community"
             size={48}
-            color={palette.darkGrey}
+            color={colors.iconDefault}
           />
           <Text style={styles.headerTitle}>{translate("BoltCardScreen.registerNewCard")}</Text>
           <Text style={styles.headerSubtitle}>
@@ -202,6 +205,9 @@ export const BoltCardRegisterScreen: React.FC<BoltCardRegisterScreenProps> = ({ 
             value={cardName}
             onChangeText={setCardName}
             placeholder={translate("BoltCardScreen.cardNamePlaceholder")}
+            placeholderTextColor={colors.placeholder}
+            inputStyle={{ color: colors.text }}
+            inputContainerStyle={{ backgroundColor: colors.inputBackground, borderColor: colors.inputBorder }}
             autoCapitalize="none"
           />
 
@@ -222,7 +228,7 @@ export const BoltCardRegisterScreen: React.FC<BoltCardRegisterScreenProps> = ({ 
               <Icon
                 name="nfc"
                 type="material-community"
-                color={scanningNfc ? palette.lightGrey : palette.blue}
+                color={scanningNfc ? colors.textSecondary : colors.primary}
                 size={24}
               />
               <Text style={[
@@ -266,7 +272,7 @@ export const BoltCardRegisterScreen: React.FC<BoltCardRegisterScreenProps> = ({ 
               <Icon
                 name="refresh"
                 type="material-community"
-                color={palette.blue}
+                color={colors.primary}
                 size={16}
               />
               <Text style={styles.regenerateText}>
@@ -284,7 +290,7 @@ export const BoltCardRegisterScreen: React.FC<BoltCardRegisterScreenProps> = ({ 
             <Icon
               name="shield-check"
               type="material-community"
-              color={palette.white}
+              color={colors.buttonPrimaryText}
               size={20}
             />
             <Text style={styles.keysInfoText}>
@@ -293,7 +299,7 @@ export const BoltCardRegisterScreen: React.FC<BoltCardRegisterScreenProps> = ({ 
             <Icon
               name={showKeyInputs ? "chevron-up" : "chevron-down"}
               type="material-community"
-              color={palette.white}
+              color={colors.buttonPrimaryText}
               size={20}
             />
           </TouchableOpacity>
@@ -330,129 +336,133 @@ export const BoltCardRegisterScreen: React.FC<BoltCardRegisterScreenProps> = ({ 
   )
 }
 
-const styles = StyleSheet.create({
-  header: {
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: palette.lighterGrey,
-  },
-  headerTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 10,
-    color: palette.darkGrey,
-    textAlign: "center",
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: palette.midGrey,
-    marginTop: 5,
-    textAlign: "center",
-  },
-  form: {
-    padding: 15,
-  },
-  uidContainer: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    marginBottom: 15,
-  },
-  uidInput: {
-    flex: 1,
-  },
-  scanButton: {
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    marginLeft: 10,
-    marginBottom: 15,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: palette.lightGrey,
-    borderRadius: 8,
-    width: 80,
-  },
-  scanButtonText: {
-    fontSize: 12,
-    color: palette.blue,
-    marginTop: 5,
-    textAlign: "center",
-  },
-  scanButtonTextDisabled: {
-    color: palette.lightGrey,
-  },
-  sectionHeaderContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 20,
-    marginBottom: 10,
-    paddingHorizontal: 10,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: palette.darkGrey,
-  },
-  regenerateButton: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  regenerateText: {
-    fontSize: 14,
-    color: palette.blue,
-    marginLeft: 5,
-  },
-  divider: {
-    backgroundColor: palette.lighterGrey,
-    marginBottom: 10,
-  },
-  keysInfoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: palette.green,
-    padding: 10,
-    borderRadius: 8,
-    marginBottom: 15,
-  },
-  keysInfoText: {
-    fontSize: 14,
-    color: palette.white,
-    marginLeft: 10,
-    flex: 1,
-  },
-  keyInputContainer: {
-    position: "relative",
-  },
-  generatedKeyInput: {
-    color: palette.midGrey,
-    backgroundColor: palette.lighterGrey,
-    borderRadius: 4,
-    paddingHorizontal: 8,
-  },
-  keyCheckIcon: {
-    position: "absolute",
-    right: 10,
-    top: 20,
-  },
-  satLabel: {
-    color: palette.midGrey,
-    marginRight: 10,
-  },
-  buttonContainer: {
-    padding: 20,
-    marginTop: 10,
-  },
-  registerButton: {
-    backgroundColor: palette.green,
-    borderRadius: 8,
-  },
-  cancelButton: {
-    marginTop: 10,
-    borderRadius: 8,
-    borderColor: palette.midGrey,
-  },
-  cancelButtonText: {
-    color: palette.midGrey,
-  },
-}) 
+const useStyles = () => {
+  const colors = useThemeColor()
+  return StyleSheet.create({
+    header: {
+      alignItems: "center",
+      padding: 20,
+      backgroundColor: colors.surface,
+    },
+    headerTitle: {
+      fontSize: 24,
+      fontWeight: "bold",
+      marginTop: 10,
+      color: colors.text,
+      textAlign: "center",
+    },
+    headerSubtitle: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginTop: 5,
+      textAlign: "center",
+    },
+    form: {
+      padding: 15,
+    },
+    uidContainer: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      marginBottom: 15,
+    },
+    uidInput: {
+      flex: 1,
+    },
+    scanButton: {
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: 10,
+      marginBottom: 15,
+      padding: 10,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      borderRadius: 8,
+      width: 80,
+    },
+    scanButtonText: {
+      fontSize: 12,
+      color: colors.primary,
+      marginTop: 5,
+      textAlign: "center",
+    },
+    scanButtonTextDisabled: {
+      color: colors.textSecondary,
+    },
+    sectionHeaderContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: 20,
+      marginBottom: 10,
+      paddingHorizontal: 10,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: colors.text,
+    },
+    regenerateButton: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    regenerateText: {
+      fontSize: 14,
+      color: colors.primary,
+      marginLeft: 5,
+    },
+    divider: {
+      backgroundColor: colors.border,
+      marginBottom: 10,
+    },
+    keysInfoContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.success,
+      padding: 10,
+      borderRadius: 8,
+      marginBottom: 15,
+    },
+    keysInfoText: {
+      fontSize: 14,
+      color: colors.buttonPrimaryText,
+      marginLeft: 10,
+      flex: 1,
+    },
+    keyInputContainer: {
+      position: "relative",
+    },
+    generatedKeyInput: {
+      color: colors.textSecondary,
+      backgroundColor: colors.inputBackground,
+      borderRadius: 4,
+      paddingHorizontal: 8,
+    },
+    keyCheckIcon: {
+      position: "absolute",
+      right: 10,
+      top: 20,
+    },
+    satLabel: {
+      color: colors.textSecondary,
+      marginRight: 10,
+    },
+    buttonContainer: {
+      padding: 20,
+      marginTop: 10,
+    },
+    registerButton: {
+      backgroundColor: colors.success,
+      borderRadius: 8,
+    },
+    cancelButton: {
+      marginTop: 10,
+      borderRadius: 8,
+      borderColor: colors.textSecondary,
+    },
+    cancelButtonText: {
+      color: colors.textSecondary,
+    },
+  })
+} 

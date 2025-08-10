@@ -1,9 +1,24 @@
 import { gql, useQuery } from "@apollo/client"
 import * as React from "react"
-import { ActivityIndicator, StyleProp, Text, View, Dimensions, ViewStyle, TextStyle } from "react-native"
-import { Button } from "@rneui/themed"
+import {
+  ActivityIndicator,
+  Dimensions,
+  Pressable,
+  StyleProp,
+  Text,
+  TextStyle,
+  View,
+  ViewStyle,
+} from "react-native"
 import EStyleSheet from "react-native-extended-stylesheet"
-import { VictoryChart, VictoryLine, VictoryVoronoiContainer, VictoryTooltip } from "victory-native"
+import {
+  VictoryArea,
+  VictoryAxis,
+  VictoryChart,
+  VictoryLine,
+  VictoryScatter,
+  VictoryVoronoiContainer,
+} from "victory-native"
 import * as currency_fmt from "currency.js"
 import { parseDate } from "../../utils/date"
 import { color } from "../../theme"
@@ -115,9 +130,15 @@ export const PriceGraph: ComponentType = ({
 }: Props) => {
   let price
   let delta
-  let color
+  let strokeColor
 
-  const [selectedPrice, setSelectedPrice] = React.useState<Price | null>(null)
+  const [selectedPoint, setSelectedPoint] = React.useState<
+    | {
+        timestamp: number
+        price: Price
+      }
+    | null
+  >(null)
 
   const formatPrice = (price: number) => {
     return currency_fmt
@@ -137,7 +158,7 @@ export const PriceGraph: ComponentType = ({
         (startPriceData.base / 10 ** startPriceData.offset) *
           multiple(startPriceData.currencyUnit)) /
       price
-    color = delta > 0 ? palette.green : palette.red
+    strokeColor = delta > 0 ? palette.green : palette.red
   } catch (err) {
     return <ActivityIndicator animating size="large" color={palette.lightBlue} />
   }
@@ -166,22 +187,60 @@ export const PriceGraph: ComponentType = ({
     return graphRange === titleGraphRange ? null : styles.titleStyleTime
   }
 
+  const chartData = prices.map((point) => ({
+    x: point.timestamp,
+    y:
+      (point.price.base / 10 ** point.price.offset) *
+      multiple(point.price.currencyUnit),
+    price: point.price,
+  }))
+
+  const latestPriceDisplay = (() => {
+    const latest = prices[prices.length - 1].price
+    // Keep display consistent with existing selected calculation (× 1000)
+    return (
+      (latest.base / 10 ** latest.offset) * multiple(latest.currencyUnit) * 1000
+    )
+  })()
+
+  const selectedY = selectedPoint
+    ?
+      (selectedPoint.price.base / 10 ** selectedPoint.price.offset) *
+      multiple(selectedPoint.price.currencyUnit)
+    : null
+
   return (
     <View style={styles.container}>
       <View style={styles.topContainer}>
-        {!selectedPrice && (
-          <View style={styles.textView}>
-            <Text style={[styles.delta, { color }]}>{(delta * 100).toFixed(2)}% </Text>
-            <Text style={styles.neutral}>{label()}</Text>
+        {!selectedPoint && (
+          <View style={styles.headerWrapper}>
+            <View style={styles.priceRow}>
+              <Text style={styles.currentPrice}>{formatPrice(latestPriceDisplay)}</Text>
+              <View
+                style={[
+                  styles.deltaPill,
+                  { backgroundColor: strokeColor + "33" },
+                ]}
+              >
+                <Text style={[styles.deltaText, { color: strokeColor }]}>
+                  {delta > 0 ? "▲" : "▼"} {(delta * 100).toFixed(2)}%
+                </Text>
+              </View>
+            </View>
+            <Text style={styles.periodText}>{label()}</Text>
           </View>
         )}
-        {selectedPrice && (
-          <View>
-            <Text style={styles.selectedPrice}>
-              {parseDate(selectedPrice.timestamp).toDateString()}
+        {selectedPoint && (
+          <View style={styles.headerWrapper}>
+            <Text style={styles.selectedMeta}>
+              {parseDate(selectedPoint.timestamp).toDateString()}
             </Text>
             <Text style={styles.selectedPrice}>
-              {formatPrice((selectedPrice.base / 10 ** selectedPrice.offset) * multiple(selectedPrice.currencyUnit) * 1000 )}
+              {formatPrice(
+                (selectedPoint.price.base / 10 ** selectedPoint.price.offset) *
+                  multiple(selectedPoint.price.currencyUnit) *
+                  1000,
+              )}
             </Text>
           </View>
         )}
@@ -189,65 +248,77 @@ export const PriceGraph: ComponentType = ({
       <View style={styles.chartContainer}>
         <VictoryChart
           width={Dimensions.get("window").width}
-          height={Dimensions.get("window").height * 0.7}
-          padding={0}
+          height={Dimensions.get("window").height * 0.55}
+          padding={{ top: 10, bottom: 40, left: 0, right: 0 }}
           containerComponent={
             <VictoryVoronoiContainer
               voronoiDimension="x"
               onActivated={(points) => {
                 if (points && points.length > 0) {
-                  console.log(points[0])
-                  setSelectedPrice({
-                    timestamp: points[0]["_x"],
-                    ...points[0].price
+                  setSelectedPoint({
+                    timestamp: (points[0] as any)["_x"],
+                    price: (points[0] as any).price,
                   })
                 }
               }}
-              // onDeactivated={() => setSelectedPrice(null)}
+              onDeactivated={() => setSelectedPoint(null)}
             />
           }
         >
-          <VictoryLine
-            data={prices.map((index) => ({
-              x: index.timestamp,
-              y: (index.price.base / 10 ** index.price.offset) * multiple(index.price.currencyUnit),
-              price: index.price,
-            }))}
+          <VictoryAxis dependentAxis style={{ axis: { stroke: "transparent" } }} tickFormat={() => ""} />
+          <VictoryAxis style={{ axis: { stroke: "transparent" } }} tickFormat={() => ""} />
+          <VictoryArea
+            data={chartData}
             interpolation="monotoneX"
             style={{
-              data: { 
-                stroke: color,
-                strokeWidth: 2 
-              }
+              data: {
+                stroke: strokeColor,
+                strokeWidth: 2.5,
+                fill: strokeColor + "22",
+              },
             }}
+            animate={{ duration: 700, easing: "quadInOut" }}
           />
+          <VictoryLine
+            data={chartData}
+            interpolation="monotoneX"
+            style={{ data: { stroke: strokeColor, strokeWidth: 2.5 } }}
+            animate={{ duration: 700, easing: "quadInOut" }}
+          />
+          {selectedPoint && selectedY !== null && (
+            <VictoryScatter
+              data={[
+                {
+                  x: selectedPoint.timestamp,
+                  y: selectedY,
+                },
+              ]}
+              size={5}
+              style={{ data: { fill: strokeColor, strokeWidth: 0 } }}
+            />
+          )}
         </VictoryChart>
       </View>
-      <View style={styles.pricesContainer}>
-        <Button
-          title={translate("PriceScreen.oneDay")}
-          buttonStyle={buttonStyleForRange(Graph_Range.ONE_DAY)}
-          titleStyle={titleStyleForRange(Graph_Range.ONE_DAY)}
-          onPress={() => setGraphRange(Graph_Range.ONE_DAY)}
-        />
-        <Button
-          title={translate("PriceScreen.oneWeek")}
-          buttonStyle={buttonStyleForRange(Graph_Range.ONE_WEEK)}
-          titleStyle={titleStyleForRange(Graph_Range.ONE_WEEK)}
-          onPress={() => setGraphRange(Graph_Range.ONE_WEEK)}
-        />
-        <Button
-          title={translate("PriceScreen.oneMonth")}
-          buttonStyle={buttonStyleForRange(Graph_Range.ONE_MONTH)}
-          titleStyle={titleStyleForRange(Graph_Range.ONE_MONTH)}
-          onPress={() => setGraphRange(Graph_Range.ONE_MONTH)}
-        />
-        <Button
-          title={translate("PriceScreen.oneYear")}
-          buttonStyle={buttonStyleForRange(Graph_Range.ONE_YEAR)}
-          titleStyle={titleStyleForRange(Graph_Range.ONE_YEAR)}
-          onPress={() => setGraphRange(Graph_Range.ONE_YEAR)}
-        />
+      <View style={styles.segmentedContainer}>
+        {[
+          { key: Graph_Range.ONE_DAY, label: translate("PriceScreen.oneDay") },
+          { key: Graph_Range.ONE_WEEK, label: translate("PriceScreen.oneWeek") },
+          { key: Graph_Range.ONE_MONTH, label: translate("PriceScreen.oneMonth") },
+          { key: Graph_Range.ONE_YEAR, label: translate("PriceScreen.oneYear") },
+        ].map(({ key, label: title }) => {
+          const isActive = graphRange === key
+          return (
+            <Pressable
+              key={key}
+              style={[styles.segment, isActive ? styles.segmentActive : styles.segmentInactive]}
+              onPress={() => setGraphRange(key)}
+            >
+              <Text style={[styles.segmentText, isActive ? styles.segmentTextActive : styles.segmentTextInactive]}>
+                {title}
+              </Text>
+            </Pressable>
+          )
+        })}
       </View>
     </View>
   )
@@ -261,25 +332,13 @@ const styles = EStyleSheet.create({
   },
   
   topContainer: {
-    // paddingTop: '10rem',
-    // paddingHorizontal: '20rem',
+    paddingTop: '6rem',
+    paddingHorizontal: '16rem',
   },
 
   chartContainer: {
     width: '100%',
-    height: Dimensions.get("window").height * 0.7, // Increased height
-  },
-
-  buttonStyleTime: {
-    backgroundColor: color.transparent,
-    borderRadius: '40rem',
-    paddingHorizontal: '10rem',
-  },
-
-  buttonStyleTimeActive: {
-    backgroundColor: palette.lightBlue,
-    borderRadius: '40rem',
-    paddingHorizontal: '10rem',
+    height: Dimensions.get("window").height * 0.55,
   },
 
   delta: {
@@ -292,19 +351,6 @@ const styles = EStyleSheet.create({
     fontSize: '18rem',
   },
 
-  price: {
-    color: palette.lightBlue,
-    fontSize: '24rem',
-    fontWeight: 'bold',
-  },
-
-  pricesContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: '20rem',
-    paddingBottom: '20rem',
-  },
-
   textView: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -315,11 +361,89 @@ const styles = EStyleSheet.create({
     color: palette.midGrey,
   },
 
+  headerWrapper: {
+    alignItems: 'center',
+  },
+
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '8rem',
+  },
+
+  currentPrice: {
+    color: palette.lightBlue,
+    fontSize: '28rem',
+    fontWeight: '700',
+  },
+
+  deltaPill: {
+    paddingHorizontal: '10rem',
+    paddingVertical: '4rem',
+    borderRadius: '999rem',
+  },
+
+  deltaText: {
+    fontSize: '14rem',
+    fontWeight: '600',
+  },
+
+  periodText: {
+    marginTop: '4rem',
+    color: palette.midGrey,
+    fontSize: '14rem',
+  },
+
+  selectedMeta: {
+    color: palette.midGrey,
+    fontSize: '14rem',
+  },
+
   selectedPrice: {
-    fontSize: '20rem',
-    fontWeight: 'bold',
+    fontSize: '24rem',
+    fontWeight: '700',
     color: palette.lightBlue,
     textAlign: 'center',
-    marginTop: '5rem',
+    marginTop: '4rem',
+  },
+
+  segmentedContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: color.transparent,
+    paddingHorizontal: '16rem',
+    paddingBottom: '16rem',
+    gap: '8rem',
+  },
+
+  segment: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: '8rem',
+    borderRadius: '999rem',
+  },
+
+  segmentActive: {
+    backgroundColor: palette.lightBlue,
+  },
+
+  segmentInactive: {
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+
+  segmentText: {
+    fontSize: '14rem',
+    fontWeight: '600',
+  },
+
+  segmentTextActive: {
+    color: color.background,
+  },
+
+  segmentTextInactive: {
+    color: palette.midGrey,
   },
 })

@@ -7,6 +7,7 @@ import EStyleSheet from "react-native-extended-stylesheet"
 
 import { Screen } from "../../components/screen"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 
 import type { ScreenType } from "../../types/jsx"
 import type { RootStackParamList } from "../../navigation/stack-param-lists"
@@ -21,35 +22,39 @@ import { translate } from "@app/i18n"
 // import Icon from "react-native-vector-icons/MaterialCommunityIcons"
 import { color } from "@app/theme"
 
-const styles = EStyleSheet.create({
-  container: {
-    backgroundColor: palette.white,
-    minHeight: "100%",
-    paddingLeft: 24,
-    paddingRight: 24,
-  },
-  settingContainer: {
-    alignItems: "center",
-    paddingTop: 40,
-  },
-  lightningAddressContainer: {
-    paddingLeft: 20,
-    paddingRight: 20,
-    paddingTop: 40,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  text: {
-    fontWeight: "bold",
-    fontSize: 50,
-  },
-  buttonStyle: {
-    backgroundColor: color.primary,
-    marginBottom: "32rem",
-    marginHorizontal: "24rem",
-    marginTop: "32rem",
-  },
-})
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    container: {
+      backgroundColor: colors.background,
+      minHeight: "100%",
+      paddingLeft: 24,
+      paddingRight: 24,
+    },
+    settingContainer: {
+      alignItems: "center",
+      paddingTop: 40,
+    },
+    lightningAddressContainer: {
+      paddingLeft: 20,
+      paddingRight: 20,
+      paddingTop: 40,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    text: {
+      color: colors.text,
+      fontWeight: "bold",
+      fontSize: 50,
+    },
+    buttonStyle: {
+      backgroundColor: colors.primary,
+      marginBottom: "32rem",
+      marginHorizontal: "24rem",
+      marginTop: "32rem",
+    },
+  })
+}
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, "lnurl">
@@ -71,6 +76,8 @@ const copyToClipboard = (str) => {
 }
 
 export const LnurlScreen: ScreenType = ({ route }: Props) => {
+  const colors = useThemeColor()
+  const styles = useStyles()
   const { username } = route.params
   const lnurl = bech32.encode(
     "lnurl",
@@ -89,12 +96,19 @@ export const LnurlScreen: ScreenType = ({ route }: Props) => {
   return (
     <Screen style={styles.container} preset="scroll">
       <View style={styles.settingContainer}>
-        <QRCode size={280} value={lnurl} logoBackgroundColor="white" ecl={"H"} />
+        <QRCode 
+          size={280} 
+          value={lnurl} 
+          backgroundColor={colors.qrCodeBackground}
+          color={colors.qrCodeForeground}
+          logoBackgroundColor="white" 
+          ecl={"H"} 
+        />
       </View>
       <View style={styles.lightningAddressContainer}>
         <Pressable onPress={() => copyToClipboard(lnurlAddress)}>
           <Text style={styles.text} adjustsFontSizeToFit={true} numberOfLines={1}>
-            <Icon name="content-copy" size={40} />
+            <Icon name="content-copy" size={40} color={colors.iconDefault} />
             {`  `}
             {lnurlAddress}
           </Text>

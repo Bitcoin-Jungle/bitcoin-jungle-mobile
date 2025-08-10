@@ -8,6 +8,8 @@ import EStyleSheet from "react-native-extended-stylesheet"
 
 import { Screen } from "../../components/screen"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
+import { useTheme } from "../../theme/theme-context"
 import { translate } from "../../i18n"
 import BiometricWrapper from "../../utils/biometricAuthentication"
 import { toastShow } from "../../utils/toast"
@@ -24,64 +26,81 @@ import { useApolloClient, useQuery } from "@apollo/client"
 import useLogout from "../../hooks/use-logout"
 import { sleep } from "../../utils/sleep"
 
-const styles = EStyleSheet.create({
-  button: {
-    backgroundColor: palette.white,
-    paddingBottom: 16,
-    paddingLeft: 0,
-    paddingRight: 16,
-    paddingTop: 16,
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  const { isDark } = useTheme()
+  return EStyleSheet.create({
+    button: {
+      backgroundColor: colors.surface,
+      paddingBottom: 16,
+      paddingLeft: 0,
+      paddingRight: 16,
+      paddingTop: 16,
+    },
 
-  buttonTitle: {
-    color: palette.black,
-    fontSize: 16,
-    fontWeight: "normal",
-  },
+    buttonTitle: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "normal",
+    },
 
-  container: {
-    backgroundColor: palette.white,
-    minHeight: "100%",
-    paddingLeft: 24,
-    paddingRight: 24,
-  },
+    container: {
+      backgroundColor: colors.background,
+      minHeight: "100%",
+      paddingLeft: 24,
+      paddingRight: 24,
+    },
 
-  description: {
-    color: palette.darkGrey,
-    fontSize: 14,
-    marginTop: 2,
-  },
+    description: {
+      color: isDark ? colors.textSecondary : colors.text,
+      fontSize: 14,
+      marginTop: 2,
+    },
 
-  settingContainer: {
-    borderBottomColor: palette.lightGrey,
-    borderBottomWidth: 1,
-    flexDirection: "row",
-  },
+    settingContainer: {
+      borderBottomColor: colors.border,
+      borderBottomWidth: 1,
+      flexDirection: "row",
+    },
 
-  subtitle: {
-    color: palette.darkGrey,
-    fontSize: 16,
-    marginTop: 16,
-  },
+    subtitle: {
+      color: isDark ? colors.textSecondary : colors.text,
+      fontSize: 16,
+      marginTop: 16,
+    },
 
-  switch: {
-    bottom: 18,
-    position: "absolute",
-    right: 0,
-  },
+    switch: {
+      bottom: 18,
+      position: "absolute",
+      right: 0,
+    },
 
-  textContainer: {
-    marginBottom: 12,
-    marginRight: 60,
-    marginTop: 32,
-  },
+    textContainer: {
+      marginBottom: 12,
+      marginRight: 60,
+      marginTop: 32,
+    },
 
-  title: {
-    color: palette.black,
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-})
+    title: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: "bold",
+    },
+
+    // Action row for standalone buttons
+    actionContainer: {
+      borderBottomColor: colors.border,
+      borderBottomWidth: 1,
+      paddingVertical: 8,
+    },
+
+    buttonContainer: {
+      width: "100%",
+      paddingVertical: 8,
+      alignSelf: "stretch",
+    },
+  })
+}
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, "security">
@@ -89,6 +108,8 @@ type Props = {
 }
 
 export const SecurityScreen: ScreenType = ({ route, navigation }: Props) => {
+  const colors = useThemeColor()
+  const styles = useStyles()
   const client = useApolloClient()
   const { mIsBiometricsEnabled, mIsPinEnabled, mIsSendLockEnabled } = route.params
   const { data } = useQuery(HIDE_BALANCE)
@@ -262,8 +283,9 @@ export const SecurityScreen: ScreenType = ({ route, navigation }: Props) => {
           onValueChange={(value) => onPinValueChanged(value)}
         />
       </View>
-      <View style={styles.settingContainer}>
+      <View style={styles.actionContainer}>
         <Button
+          containerStyle={styles.buttonContainer}
           buttonStyle={styles.button}
           titleStyle={styles.buttonTitle}
           title={translate("SecurityScreen.setPin")}

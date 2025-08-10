@@ -3,6 +3,7 @@ import { View, Text, ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity
 import { gql, useLazyQuery } from "@apollo/client"
 import { Screen } from "../../components/screen"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import { translate } from "../../i18n"
 import useMainQuery from "@app/hooks/use-main-query"
 import crashlytics from "@react-native-firebase/crashlytics"
@@ -24,6 +25,7 @@ const GET_CSV_TRANSACTIONS = gql`
 `
 
 export const TransactionStatsScreen: React.FC = () => {
+  const colors = useThemeColor()
   const [stats, setStats] = useState<{
     totalReceiveFiat: number
     totalSendFiat: number
@@ -179,7 +181,7 @@ export const TransactionStatsScreen: React.FC = () => {
   if (loadingCsvTransactions) {
     return (
       <Screen preset="scroll">
-        <ActivityIndicator size="large" color={palette.lightBlue} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </Screen>
     )
   }
@@ -187,39 +189,39 @@ export const TransactionStatsScreen: React.FC = () => {
   if (csvError) {
     return (
       <Screen preset="scroll">
-        <Text style={styles.errorText}>{translate("common.error")}</Text>
+        <Text style={useStyles().errorText}>{translate("common.error")}</Text>
       </Screen>
     )
   }
 
   return (
     <Screen preset="scroll">
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>{translate("TransactionStatsScreen.title")}</Text>
-        <View style={styles.filterButtons}>
+      <ScrollView contentContainerStyle={useStyles().container}>
+        <Text style={useStyles().title}>{translate("TransactionStatsScreen.title")}</Text>
+        <View style={useStyles().filterButtons}>
           <TouchableOpacity
-            style={[styles.filterButton, selectedFilter === 'week' && styles.selectedFilter]}
+            style={[useStyles().filterButton, selectedFilter === 'week' && useStyles().selectedFilter]}
             onPress={() => handleFilterChange('week')}
           >
-            <Text style={selectedFilter === 'week' ? styles.selectedFilterButtonText : styles.filterButtonText}>Week</Text>
+            <Text style={selectedFilter === 'week' ? useStyles().selectedFilterButtonText : useStyles().filterButtonText}>Week</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.filterButton, selectedFilter === 'month' && styles.selectedFilter]}
             onPress={() => handleFilterChange('month')}
           >
-            <Text style={selectedFilter === 'month' ? styles.selectedFilterButtonText : styles.filterButtonText}>Month</Text>
+            <Text style={selectedFilter === 'month' ? useStyles().selectedFilterButtonText : useStyles().filterButtonText}>Month</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.filterButton, selectedFilter === 'year' && styles.selectedFilter]}
             onPress={() => handleFilterChange('year')}
           >
-            <Text style={selectedFilter === 'year' ? styles.selectedFilterButtonText : styles.filterButtonText}>Year</Text>
+            <Text style={selectedFilter === 'year' ? useStyles().selectedFilterButtonText : useStyles().filterButtonText}>Year</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.filterButton, selectedFilter === 'all' && styles.selectedFilter]}
             onPress={() => handleFilterChange('all')}
           >
-            <Text style={selectedFilter === 'all' ? styles.selectedFilterButtonText : styles.filterButtonText}>All</Text>
+            <Text style={selectedFilter === 'all' ? useStyles().selectedFilterButtonText : useStyles().filterButtonText}>All</Text>
           </TouchableOpacity>
         </View>
         {stats && (
@@ -266,8 +268,8 @@ export const TransactionStatsScreen: React.FC = () => {
             />
           </>
         )}
-        <TouchableOpacity style={styles.exportButton} onPress={handleExportCsv} disabled={loadingCsvTransactions}>
-          <Text style={styles.exportButtonText}>
+        <TouchableOpacity style={useStyles().exportButton} onPress={handleExportCsv} disabled={loadingCsvTransactions}>
+          <Text style={useStyles().exportButtonText}>
             {loadingCsvTransactions
               ? translate("common.loading")
               : translate("common.csvExport")}
@@ -278,71 +280,77 @@ export const TransactionStatsScreen: React.FC = () => {
   )
 }
 
-const StatItem: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <View style={styles.statItem}>
-    <Text style={styles.statLabel}>{label}</Text>
-    <Text style={styles.statValue}>{value}</Text>
-  </View>
-)
+const StatItem: React.FC<{ label: string; value: string }> = ({ label, value }) => {
+  const styles = useStyles()
+  return (
+    <View style={styles.statItem}>
+      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={styles.statValue}>{value}</Text>
+    </View>
+  )
+}
 
-const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    color: palette.darkGrey,
-  },
-  statItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  statLabel: {
-    fontSize: 16,
-    color: palette.darkGrey,
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: palette.darkGrey,
-  },
-  errorText: {
-    color: palette.red,
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  exportButton: {
-    backgroundColor: palette.lightBlue,
-    padding: 10,
-    borderRadius: 5,
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  exportButtonText: {
-    color: palette.white,
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  filterButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: 10,
-    marginBottom: 10,
-  },
-  filterButton: {
-    padding: 10,
-    borderRadius: 5,
-  },
-  selectedFilter: {
-    backgroundColor: palette.lightBlue,
-  },
-  filterButtonText: {
-    color: palette.darkGrey,
-  },
-  selectedFilterButtonText: {
-    color: palette.white,
-  }
-})
+const useStyles = () => {
+  const colors = useThemeColor()
+  return StyleSheet.create({
+    container: {
+      padding: 16,
+    },
+    title: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 16,
+      color: colors.text,
+    },
+    statItem: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      marginBottom: 12,
+    },
+    statLabel: {
+      fontSize: 16,
+      color: colors.text,
+    },
+    statValue: {
+      fontSize: 16,
+      fontWeight: 'bold',
+      color: colors.text,
+    },
+    errorText: {
+      color: colors.error,
+      fontSize: 16,
+      textAlign: 'center',
+    },
+    exportButton: {
+      backgroundColor: colors.primary,
+      padding: 10,
+      borderRadius: 5,
+      marginTop: 20,
+      alignItems: 'center',
+    },
+    exportButtonText: {
+      color: colors.buttonPrimaryText,
+      fontSize: 16,
+      fontWeight: 'bold',
+    },
+    filterButtons: {
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      marginTop: 10,
+      marginBottom: 10,
+    },
+    filterButton: {
+      padding: 10,
+      borderRadius: 5,
+    },
+    selectedFilter: {
+      backgroundColor: colors.primary,
+    },
+    filterButtonText: {
+      color: colors.text,
+    },
+    selectedFilterButtonText: {
+      color: colors.buttonPrimaryText,
+    }
+  })
+}

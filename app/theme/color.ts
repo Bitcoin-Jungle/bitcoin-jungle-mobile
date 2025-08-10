@@ -1,4 +1,5 @@
 import { palette } from "./palette"
+import { lightColors } from "./colors"
 
 /**
  * Roles for colors.  Prefer using these over the palette.  It makes it easier
@@ -8,6 +9,8 @@ import { palette } from "./palette"
  *
  * If you have a specific use-case, like a spinner color.  It makes more sense to
  * put that in the <Spinner /> component.
+ * 
+ * NOTE: This is maintained for backward compatibility. New code should use useThemeColor hook.
  */
 export const color = {
   /**

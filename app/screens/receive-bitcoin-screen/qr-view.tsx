@@ -20,6 +20,7 @@ import Icon from "react-native-vector-icons/Ionicons"
 import { translate } from "../../i18n"
 import { MoveMoneyStackParamList } from "../../navigation/stack-param-lists"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import {
   getFullUri as getFullUriUtil,
   TYPE_LIGHTNING,
@@ -64,6 +65,8 @@ export const QRView = ({
   navigation,
   err,
 }: Props): JSX.Element => {
+  const colors = useThemeColor()
+  const styles = useStyles()
   const isReady = !err && (type === TYPE_LIGHTNING ? !loading && data !== "" : true)
 
   const getFullUri = useCallback(
@@ -181,10 +184,10 @@ export const QRView = ({
         <View style={styles.errorContainer}>
           {(err !== "" && (
             // eslint-disable-next-line react-native/no-inline-styles
-            <Text style={{ color: palette.red, alignSelf: "center" }} selectable>
+            <Text style={{ color: colors.error, alignSelf: "center" }} selectable>
               {err}
             </Text>
-          )) || <ActivityIndicator size="large" color={palette.blue} />}
+          )) || <ActivityIndicator size="large" color={colors.primary} />}
         </View>
       )
     }
@@ -218,42 +221,45 @@ export const QRView = ({
   )
 }
 
-const styles = EStyleSheet.create({
-  buttonContainer: { marginHorizontal: 52, paddingVertical: 18 },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    buttonContainer: { marginHorizontal: 52, paddingVertical: 18 },
 
-  buttonStyle: {
-    backgroundColor: palette.lightBlue,
-    borderRadius: 32,
-  },
+    buttonStyle: {
+      backgroundColor: colors.primary,
+      borderRadius: 32,
+    },
 
-  buttonTitle: {
-    fontWeight: "bold",
-  },
+    buttonTitle: {
+      fontWeight: "bold",
+    },
 
-  completedText: {
-    color: palette.darkGrey,
-  },
+    completedText: {
+      color: colors.text,
+    },
 
-  copyToClipboardText: { color: palette.darkGrey, textAlign: "center" },
+    copyToClipboardText: { color: colors.text, textAlign: "center" },
 
-  errorContainer: {
-    alignContent: "center",
-    alignItems: "center",
-    alignSelf: "center",
-    backgroundColor: palette.white,
-    height: 280,
-    justifyContent: "center",
-    width: 280,
-  },
+    errorContainer: {
+      alignContent: "center",
+      alignItems: "center",
+      alignSelf: "center",
+      backgroundColor: colors.surface,
+      height: 280,
+      justifyContent: "center",
+      width: 280,
+    },
 
-  lottie: {
-    height: "200rem",
-    width: "200rem",
-  },
+    lottie: {
+      height: "200rem",
+      width: "200rem",
+    },
 
-  qr: {
-    alignItems: "center",
-  },
-})
+    qr: {
+      alignItems: "center",
+    },
+  })
+}
 
 export default React.memo(QRView)

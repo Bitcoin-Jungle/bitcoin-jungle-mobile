@@ -8,73 +8,78 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { modalNfcVisibleVar } from "../../graphql/client-only-query"
 import NfcManager from "react-native-nfc-manager"
 import { translate } from "../../i18n"
-import { color } from "../../theme"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import type { ComponentType } from "../../types/jsx"
 
-const styles = StyleSheet.create({
-  buttonContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignContent: "stretch",
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return StyleSheet.create({
+    buttonContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      alignContent: "stretch",
+    },
 
-  buttonStyle: {
-    backgroundColor: color.primary,
-    marginHorizontal: 20,
-    marginVertical: 10,
-    width: 145,
-  },
+    buttonStyle: {
+      backgroundColor: colors.primary,
+      marginHorizontal: 20,
+      marginVertical: 10,
+      width: 145,
+    },
 
-  icon: {
-    height: 40,
-    top: -40,
-  },
+    icon: {
+      height: 40,
+      top: -40,
+    },
 
-  iconContainer: {
-    height: 14,
-  },
+    iconContainer: {
+      height: 14,
+    },
 
-  scanIcon: {
-    height: 40,
-  },
+    scanIcon: {
+      height: 40,
+    },
 
-  scanIconContainer: {
-    height: 40,
-  },
+    scanIconContainer: {
+      height: 40,
+    },
 
-  message: {
-    fontSize: 18,
-    marginVertical: 8,
-    color: palette.darkGrey,
-  },
+    message: {
+      fontSize: 18,
+      marginVertical: 8,
+      color: colors.text,
+    },
 
-  modal: {
-    flexGrow: 1,
-    marginBottom: 0,
-    marginHorizontal: 0,
-  },
+    modal: {
+      flexGrow: 1,
+      marginBottom: 0,
+      marginHorizontal: 0,
+    },
 
-  modalBackground: {
-    alignItems: "center",
-    flex: 1,
-    justifyContent: "space-around",
-  },
+    modalBackground: {
+      alignItems: "center",
+      flex: 1,
+      justifyContent: "space-around",
+    },
 
-  modalForeground: {
-    alignItems: "center",
-    backgroundColor: palette.white,
-    paddingHorizontal: 20,
-    paddingTop: 10,
-  },
+    modalForeground: {
+      alignItems: "center",
+      backgroundColor: colors.surface,
+      paddingHorizontal: 20,
+      paddingTop: 10,
+    },
 
-  touchable: {
-    height: "100%",
-    width: "100%",
-  },
-})
+    touchable: {
+      height: "100%",
+      width: "100%",
+    },
+  })
+}
 
 export const ModalNfc: ComponentType = () => {
+  const colors = useThemeColor()
+  const styles = useStyles()
   const isVisible = useReactiveVar(modalNfcVisibleVar)
 
   const dismiss = async () => {

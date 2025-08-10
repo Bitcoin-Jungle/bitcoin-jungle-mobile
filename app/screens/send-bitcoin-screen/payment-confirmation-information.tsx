@@ -8,6 +8,7 @@ import { translate } from "../../i18n"
 import { currencyToTextWithUnits } from "../../utils/currencyConversion"
 import { palette } from "../../theme/palette"
 import { color } from "../../theme"
+import { useThemeColor } from "../../theme/useThemeColor"
 
 type FeeType = {
   value: number | null | undefined
@@ -44,6 +45,7 @@ export const PaymentConfirmationInformation = ({
   targetConfirmations,
   setTargetConfirmations,
 }: PaymentConfirmationInformationProps): JSX.Element => {
+  const styles = useStyles()
   const getEstimatedWaitTime = () => {
     if(targetConfirmations === 1) {
       return `~10 ${translate("common.minutes")}`
@@ -133,13 +135,16 @@ export const PaymentConfirmationInformation = ({
 }
 
 const FeeDetails = ({ fee }: FeeDetailsProps): JSX.Element => {
+  const styles = useStyles()
+  const colors = useThemeColor()
+  
   if (fee.status === "loading") {
     return (
       <ActivityIndicator
         style={[styles.activityIndicator, styles.paymentInformationData]}
         animating
         size="small"
-        color={palette.orange}
+        color={colors.primary}
       />
     )
   }
@@ -155,32 +160,34 @@ const FeeDetails = ({ fee }: FeeDetailsProps): JSX.Element => {
   return <Text style={styles.paymentInformationData}>{fee.text}</Text>
 }
 
-const styles = EStyleSheet.create({
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
   activityIndicator: {
     alignItems: "flex-start",
   },
 
   paymentInformation: {
-    color: palette.midGrey,
+    color: colors.textSecondary,
     flex: 1,
     marginTop: "32rem",
   },
 
   paymentInformationData: {
-    color: palette.midGrey,
+    color: colors.text,
     flex: 5,
     fontSize: "18rem",
     textAlignVertical: "bottom",
   },
 
   paymentInformationLabel: {
-    color: palette.midGrey,
+    color: colors.textSecondary,
     flex: 2,
     fontSize: "18rem",
   },
 
   paymentInformationMainAmount: {
-    color: palette.midGrey,
+    color: colors.text,
     flex: 3,
     fontSize: "18rem",
     textAlignVertical: "bottom",
@@ -192,9 +199,10 @@ const styles = EStyleSheet.create({
   },
 
   paymentInformationSecondaryAmount: {
-    color: palette.midGrey,
+    color: colors.textSecondary,
     flex: 2,
     fontSize: "18rem",
     textAlignVertical: "bottom",
   },
-})
+  })
+}

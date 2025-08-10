@@ -51,6 +51,8 @@ import { TransactionDetailScreen } from "../screens/transaction-detail-screen"
 import { TransactionHistoryScreenDataInjected } from "../screens/transaction-screen/transaction-screen"
 import { WelcomeFirstScreen } from "../screens/welcome-screens"
 import { palette } from "../theme/palette"
+import { useTheme } from "../theme/theme-context"
+import { useThemeColor } from "../theme/useThemeColor"
 import { AccountType } from "../utils/enum"
 import { addDeviceToken } from "../utils/notifications"
 import useToken from "../utils/use-token"
@@ -145,6 +147,7 @@ export const RootStack: NavigatorType = () => {
   const client = useApolloClient()
   const { token, hasToken, tokenNetwork } = useToken()
   const { userPreferredLanguage, myPubKey, username } = useMainQuery()
+  const colors = useThemeColor()
   const _handleAppStateChange = useCallback(
     async (nextAppState) => {
       if (appState.current.match(/background/) && nextAppState === "active") {
@@ -275,6 +278,13 @@ export const RootStack: NavigatorType = () => {
       screenOptions={{
         gestureEnabled: false,
         headerBackTitle: translate("common.back"),
+        headerStyle: {
+          backgroundColor: colors.headerBackground,
+        },
+        headerTintColor: colors.headerText,
+        cardStyle: {
+          backgroundColor: colors.background,
+        },
       }}
       initialRouteName={token ? "authenticationCheck" : "getStarted"}
     >
@@ -369,8 +379,8 @@ export const RootStack: NavigatorType = () => {
         component={EarnSection}
         options={{
           cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-          headerStyle: { backgroundColor: palette.blue },
-          headerTintColor: palette.white,
+          headerStyle: { backgroundColor: colors.primary },
+          headerTintColor: colors.headerText,
           headerTitleStyle: {
             fontWeight: "bold",
             fontSize: 18,
@@ -578,6 +588,7 @@ type TabProps = {
 export const PrimaryNavigator: NavigatorType = () => {
   const { tokenNetwork } = useToken()
   const insets = useSafeAreaInsets()
+  const colors = useThemeColor()
 
   // The cacheId is updated after every mutation that affects current user data (balanace, contacts, ...)
   // It's used to re-mount this component and thus reset what's cached in Apollo (and React)
@@ -593,17 +604,23 @@ export const PrimaryNavigator: NavigatorType = () => {
       initialRouteName="MoveMoney"
       screenOptions={{
         tabBarActiveTintColor:
-          tokenNetwork === "mainnet" ? palette.lightBlue : palette.orange,
-        tabBarInactiveTintColor: palette.midGrey,
+          tokenNetwork === "mainnet" ? colors.tabBarActive : palette.orange,
+        tabBarInactiveTintColor: colors.tabBarInactive,
         tabBarStyle: [
           styles.bottomNavigatorStyle,
           {
             paddingBottom: insets.bottom,
             height: 60 + insets.bottom, // Base height + safe area
+            backgroundColor: colors.tabBarBackground,
+            borderTopColor: colors.border,
           }
         ],
         tabBarLabelStyle: { paddingBottom: 6 },
         tabBarHideOnKeyboard: true,
+        headerStyle: {
+          backgroundColor: colors.headerBackground,
+        },
+        headerTintColor: colors.headerText,
       }}
     >
       <Tab.Screen

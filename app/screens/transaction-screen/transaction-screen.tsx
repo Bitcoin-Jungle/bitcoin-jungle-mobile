@@ -13,46 +13,51 @@ import { translate } from "../../i18n"
 import type { ScreenType } from "../../types/jsx"
 import type { RootStackParamList } from "../../navigation/stack-param-lists"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import { sameDay, sameMonth } from "../../utils/date"
 import { TRANSACTIONS_LIST } from "../../graphql/query"
 import { toastShow } from "../../utils/toast"
 
-const styles = EStyleSheet.create({
-  errorText: { alignSelf: "center", color: palette.red, paddingBottom: 18 },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    errorText: { alignSelf: "center", color: colors.error, paddingBottom: 18 },
 
-  icon: { color: palette.darkGrey, top: -4 },
+    icon: { color: colors.text, top: -4 },
 
-  noTransactionText: {
-    fontSize: "24rem",
-  },
+    noTransactionText: {
+      color: colors.text,
+      fontSize: "24rem",
+    },
 
-  noTransactionView: {
-    alignItems: "center",
-    flex: 1,
-    marginVertical: "48rem",
-  },
+    noTransactionView: {
+      alignItems: "center",
+      flex: 1,
+      marginVertical: "48rem",
+    },
 
-  row: {
-    flexDirection: "row",
-  },
+    row: {
+      flexDirection: "row",
+    },
 
-  screen: {
-    backgroundColor: palette.white,
-  },
+    screen: {
+      backgroundColor: colors.background,
+    },
 
-  sectionHeaderContainer: {
-    backgroundColor: palette.white,
-    color: palette.darkGrey,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    padding: 22,
-  },
+    sectionHeaderContainer: {
+      backgroundColor: colors.surface,
+      color: colors.text,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      padding: 22,
+    },
 
-  sectionHeaderText: {
-    color: palette.darkGrey,
-    fontSize: 18,
-  },
-})
+    sectionHeaderText: {
+      color: colors.text,
+      fontSize: 18,
+    },
+  })
+}
 
 const isToday = (tx) => sameDay(tx.createdAt, new Date())
 
@@ -187,7 +192,10 @@ export const TransactionScreen: ScreenType = ({
   fetchNextTransactionsPage,
   loading,
   refetch,
-}: TransactionScreenProps) => (
+}: TransactionScreenProps) => {
+  const colors = useThemeColor()
+  const styles = useStyles()
+  return (
   <Screen style={styles.screen}>
     <SectionList
       renderItem={({ item }) => (
@@ -206,11 +214,11 @@ export const TransactionScreen: ScreenType = ({
       renderSectionHeader={({ section: { title } }) => (
         <View style={styles.sectionHeaderContainer}>
           <Text style={styles.sectionHeaderText}>{title}</Text>
-          <TouchableOpacity style={styles.row} onPress={nextPrefCurrency}>
+           <TouchableOpacity style={styles.row} onPress={nextPrefCurrency}>
             <Text style={styles.sectionHeaderText}>
               {prefCurrency === "BTC" ? "sats" : "CRC"}{" "}
             </Text>
-            <Icon name="swap-vert" size={32} style={styles.icon} />
+             <Icon name="swap-vert" size={32} color={colors.text} style={styles.icon} />
           </TouchableOpacity>
         </View>
       )}
@@ -229,4 +237,5 @@ export const TransactionScreen: ScreenType = ({
       refreshing={loading}
     />
   </Screen>
-)
+  )
+}

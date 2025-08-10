@@ -29,7 +29,7 @@ import "./utils/randombytes-init"
 import * as React from "react"
 import { useEffect, useState } from "react"
 import { createNetworkStatusNotifier } from "react-apollo-network-status"
-import { Dimensions, LogBox } from "react-native"
+import { Dimensions, LogBox, StatusBar } from "react-native"
 import EStyleSheet from "react-native-extended-stylesheet"
 import { RootSiblingParent } from "react-native-root-siblings"
 import VersionNumber from "react-native-version-number"
@@ -48,6 +48,9 @@ import { INetwork } from "./types/network"
 import ErrorBoundary from "react-native-error-boundary"
 import { ErrorScreen } from "./screens/error-screen"
 import { SafeAreaProvider } from "react-native-safe-area-context"
+import { ThemeProvider } from "./theme/theme-context"
+import { useTheme } from "./theme/theme-context"
+import { useThemeColor } from "./theme/useThemeColor"
 
 export const BUILD_VERSION = "build_version"
 
@@ -76,7 +79,7 @@ LogBox.ignoreAllLogs()
 /**
  * This is the root component of our app.
  */
-export const App = (): JSX.Element => {
+export const App = (): React.ReactElement => {
   const { token, hasToken, tokenNetwork } = useToken()
   const networkReactiveVar = useReactiveVar<INetwork | null>(networkVar)
   const [routeName, setRouteName] = useState("Initial")
@@ -273,31 +276,46 @@ export const App = (): JSX.Element => {
 
   return (
     <SafeAreaProvider>
-      <ApolloProvider client={apolloClient}>
-        <ErrorBoundary FallbackComponent={ErrorScreen}>
-          <NavigationContainer
-            key={token}
-            linking={linking}
-            // fallback={<Text>Loading...</Text>}
-            onStateChange={(state) => {
-              const currentRouteName = getActiveRouteName(state)
+      <ThemeProvider>
+        {/** Default, theme-aware StatusBar for iOS/Android. Screens can override as needed. */}
+        <ThemedStatusBar />
+        <ApolloProvider client={apolloClient}>
+          <ErrorBoundary FallbackComponent={ErrorScreen}>
+            <NavigationContainer
+              key={token}
+              linking={linking}
+              // fallback={<Text>Loading...</Text>}
+              onStateChange={(state) => {
+                const currentRouteName = getActiveRouteName(state)
 
-              if (routeName !== currentRouteName) {
-                analytics().logScreenView({
-                  screen_name: currentRouteName,
-                  screen_class: currentRouteName,
-                })
-                setRouteName(currentRouteName)
-              }
-            }}
-          >
-            <RootSiblingParent>
-              <GlobalErrorToast />
-              <RootStack />
-            </RootSiblingParent>
-          </NavigationContainer>
-        </ErrorBoundary>
-      </ApolloProvider>
+                if (routeName !== currentRouteName) {
+                  analytics().logScreenView({
+                    screen_name: currentRouteName,
+                    screen_class: currentRouteName,
+                  })
+                  setRouteName(currentRouteName)
+                }
+              }}
+            >
+              <RootSiblingParent>
+                <GlobalErrorToast />
+                <RootStack />
+              </RootSiblingParent>
+            </NavigationContainer>
+          </ErrorBoundary>
+        </ApolloProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
+  )
+}
+
+function ThemedStatusBar(): React.ReactElement {
+  const { isDark } = useTheme()
+  const colors = useThemeColor()
+  return (
+    <StatusBar
+      barStyle={isDark ? "light-content" : "dark-content"}
+      backgroundColor={colors.statusBar}
+    />
   )
 }

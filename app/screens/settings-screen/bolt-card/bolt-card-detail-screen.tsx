@@ -9,6 +9,7 @@ import { StackNavigationProp } from "@react-navigation/stack"
 import { Screen } from "../../../components/screen"
 import { translate } from "../../../i18n"
 import { palette } from "../../../theme/palette"
+import { useThemeColor } from "../../../theme/useThemeColor"
 import { RootStackParamList } from "../../../navigation/stack-param-lists"
 import { BOLT_CARD_QUERY, BOLT_CARD_UPDATE_MUTATION, BOLT_CARD_DISABLE_MUTATION } from "../../../graphql/query"
 import { formatDate } from "../../../utils/date"
@@ -19,6 +20,7 @@ type BoltCardDetailScreenProps = {
 }
 
 export const BoltCardDetailScreen: React.FC<BoltCardDetailScreenProps> = ({ navigation, route }) => {
+  const colors = useThemeColor()
   const { cardId } = route.params
   const { data, loading, error, refetch } = useQuery(BOLT_CARD_QUERY, {
     variables: { id: cardId },
@@ -29,6 +31,7 @@ export const BoltCardDetailScreen: React.FC<BoltCardDetailScreenProps> = ({ navi
   const [cardName, setCardName] = useState("")
   const [txLimit, setTxLimit] = useState(0)
   const [dailyLimit, setDailyLimit] = useState(0)
+  const styles = useStyles()
 
   const card = data?.boltCard
 
@@ -160,7 +163,7 @@ export const BoltCardDetailScreen: React.FC<BoltCardDetailScreenProps> = ({ navi
     return (
       <Screen preset="scroll">
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={palette.darkGrey} />
+          <ActivityIndicator size="large" color={colors.text} />
         </View>
       </Screen>
     )
@@ -174,7 +177,7 @@ export const BoltCardDetailScreen: React.FC<BoltCardDetailScreenProps> = ({ navi
             name="alert-circle-outline"
             type="material-community"
             size={64}
-            color={palette.red}
+            color={colors.error}
           />
           <Text style={styles.errorText}>{translate("common.error")}</Text>
           <Text style={styles.errorMessage}>{error ? error.message : translate("BoltCardScreen.cardNotFound")}</Text>
@@ -191,7 +194,7 @@ export const BoltCardDetailScreen: React.FC<BoltCardDetailScreenProps> = ({ navi
             name={card.enabled ? "credit-card-outline" : "credit-card-off-outline"}
             type="material-community"
             size={48}
-            color={card.enabled ? palette.darkGrey : palette.lightGrey}
+            color={card.enabled ? colors.text : colors.textSecondary}
           />
           {isEditing ? (
             <ListItem.Input
@@ -326,157 +329,162 @@ export const BoltCardDetailScreen: React.FC<BoltCardDetailScreenProps> = ({ navi
   )
 }
 
-const styles = StyleSheet.create({
-  header: {
-    alignItems: "center",
-    padding: 20,
-    backgroundColor: palette.lighterGrey,
-  },
-  cardName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 10,
-    color: palette.darkGrey,
-  },
-  cardNameDisabled: {
-    color: palette.lightGrey,
-  },
-  cardNameInput: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginTop: 10,
-    textAlign: "center",
-  },
-  cardStatus: {
-    fontSize: 14,
-    color: palette.midGrey,
-    marginTop: 5,
-  },
-  section: {
-    marginTop: 20,
-    paddingHorizontal: 15,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: palette.darkGrey,
-    marginBottom: 10,
-  },
-  divider: {
-    backgroundColor: palette.lighterGrey,
-    marginBottom: 10,
-  },
-  detailRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: 10,
-  },
-  detailLabel: {
-    fontSize: 16,
-    color: palette.midGrey,
-  },
-  detailValue: {
-    fontSize: 16,
-    color: palette.darkGrey,
-    fontWeight: "500",
-    maxWidth: "60%",
-    textAlign: "right",
-  },
-  limitInput: {
-    width: 100,
-    textAlign: "right",
-  },
-  usageItem: {
-    paddingVertical: 10,
-  },
-  usageHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  usageDate: {
-    fontSize: 14,
-    color: palette.midGrey,
-  },
-  usageAmount: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: palette.darkGrey,
-  },
-  usageCounter: {
-    fontSize: 12,
-    color: palette.midGrey,
-    marginTop: 5,
-  },
-  usageDivider: {
-    backgroundColor: palette.lighterGrey,
-    marginTop: 10,
-  },
-  emptyUsage: {
-    padding: 20,
-    alignItems: "center",
-  },
-  emptyUsageText: {
-    fontSize: 14,
-    color: palette.midGrey,
-    textAlign: "center",
-  },
-  buttonContainer: {
-    padding: 20,
-    marginTop: 10,
-  },
-  enableButton: {
-    backgroundColor: palette.green,
-    borderRadius: 8,
-  },
-  disableButton: {
-    backgroundColor: palette.red,
-    borderRadius: 8,
-  },
-  editButton: {
-    marginTop: 10,
-    borderRadius: 8,
-    borderColor: palette.blue,
-  },
-  editButtonText: {
-    color: palette.blue,
-  },
-  saveButton: {
-    backgroundColor: palette.green,
-    borderRadius: 8,
-  },
-  cancelButton: {
-    marginTop: 10,
-    borderRadius: 8,
-    borderColor: palette.midGrey,
-  },
-  cancelButtonText: {
-    color: palette.midGrey,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-  },
-  errorContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 40,
-  },
-  errorText: {
-    marginTop: 16,
-    fontSize: 18,
-    fontWeight: "bold",
-    color: palette.red,
-    textAlign: "center",
-  },
-  errorMessage: {
-    marginTop: 8,
-    fontSize: 14,
-    color: palette.midGrey,
-    textAlign: "center",
-  },
-}) 
+const useStyles = () => {
+  const colors = useThemeColor()
+  return StyleSheet.create({
+    header: {
+      alignItems: "center",
+      padding: 20,
+      backgroundColor: colors.surface,
+    },
+    cardName: {
+      fontSize: 24,
+      fontWeight: "bold",
+      marginTop: 10,
+      color: colors.text,
+    },
+    cardNameDisabled: {
+      color: colors.textSecondary,
+    },
+    cardNameInput: {
+      fontSize: 24,
+      fontWeight: "bold",
+      marginTop: 10,
+      textAlign: "center",
+      color: colors.text,
+    },
+    cardStatus: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      marginTop: 5,
+    },
+    section: {
+      marginTop: 20,
+      paddingHorizontal: 15,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: "bold",
+      color: colors.text,
+      marginBottom: 10,
+    },
+    divider: {
+      backgroundColor: colors.border,
+      marginBottom: 10,
+    },
+    detailRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: 10,
+    },
+    detailLabel: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
+    detailValue: {
+      fontSize: 16,
+      color: colors.text,
+      fontWeight: "500",
+      maxWidth: "60%",
+      textAlign: "right",
+    },
+    limitInput: {
+      width: 100,
+      textAlign: "right",
+      color: colors.text,
+    },
+    usageItem: {
+      paddingVertical: 10,
+    },
+    usageHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    usageDate: {
+      fontSize: 14,
+      color: colors.textSecondary,
+    },
+    usageAmount: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: colors.text,
+    },
+    usageCounter: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      marginTop: 5,
+    },
+    usageDivider: {
+      backgroundColor: colors.border,
+      marginTop: 10,
+    },
+    emptyUsage: {
+      padding: 20,
+      alignItems: "center",
+    },
+    emptyUsageText: {
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: "center",
+    },
+    buttonContainer: {
+      padding: 20,
+      marginTop: 10,
+    },
+    enableButton: {
+      backgroundColor: colors.success,
+      borderRadius: 8,
+    },
+    disableButton: {
+      backgroundColor: colors.error,
+      borderRadius: 8,
+    },
+    editButton: {
+      marginTop: 10,
+      borderRadius: 8,
+      borderColor: colors.primary,
+    },
+    editButtonText: {
+      color: colors.primary,
+    },
+    saveButton: {
+      backgroundColor: colors.success,
+      borderRadius: 8,
+    },
+    cancelButton: {
+      marginTop: 10,
+      borderRadius: 8,
+      borderColor: colors.textSecondary,
+    },
+    cancelButtonText: {
+      color: colors.textSecondary,
+    },
+    loadingContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 20,
+    },
+    errorContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 40,
+    },
+    errorText: {
+      marginTop: 16,
+      fontSize: 18,
+      fontWeight: "bold",
+      color: colors.error,
+      textAlign: "center",
+    },
+    errorMessage: {
+      marginTop: 8,
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: "center",
+    },
+  })
+} 

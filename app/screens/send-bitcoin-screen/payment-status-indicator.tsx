@@ -6,6 +6,7 @@ import LottieView from "lottie-react-native"
 
 import { translate } from "../../i18n"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 
 import successLottieJson from "./success_lottie.json"
 import errorLottieJson from "./error_lottie.json"
@@ -17,6 +18,7 @@ type Props = {
 }
 
 export const PaymentStatusIndicator = ({ errs, status }: Props): JSX.Element => {
+  const styles = useStyles()
   if (status === "success") {
     return (
       <>
@@ -73,26 +75,30 @@ export const PaymentStatusIndicator = ({ errs, status }: Props): JSX.Element => 
   return null
 }
 
-const styles = EStyleSheet.create({
-  errorText: {
-    color: palette.red,
-    fontSize: 18,
-    textAlign: "center",
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    errorText: {
+      color: colors.error,
+      fontSize: 18,
+      textAlign: "center",
+    },
 
-  lottie: {
-    height: "150rem",
-    width: "150rem",
-  },
+    lottie: {
+      height: "150rem",
+      width: "150rem",
+    },
 
-  pendingLottieText: {
-    fontSize: 18,
-    textAlign: "center",
-  },
+    pendingLottieText: {
+      color: colors.text,
+      fontSize: 18,
+      textAlign: "center",
+    },
 
-  successLottieText: {
-    color: palette.darkGrey,
-    fontSize: 18,
-    textAlign: "center",
-  },
-})
+    successLottieText: {
+      color: colors.text,
+      fontSize: 18,
+      textAlign: "center",
+    },
+  })
+}

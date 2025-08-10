@@ -8,6 +8,7 @@ import {
   View,
 } from 'react-native';
 import { Icon } from 'react-native-elements';
+import { useThemeColor } from '../../theme/useThemeColor';
 
 interface Props {
   label: string;
@@ -16,6 +17,7 @@ interface Props {
 }
 
 export const Dropdown: FC<Props> = ({ label, data, onSelect }) => {
+  const colors = useThemeColor();
   const DropdownButton = useRef<View>(null);
   const [visible, setVisible] = useState(false);
   const [selected, setSelected] = useState(undefined);
@@ -39,8 +41,8 @@ export const Dropdown: FC<Props> = ({ label, data, onSelect }) => {
   };
 
   const renderItem = ({ item }): ReactElement<any, any> => (
-    <TouchableOpacity style={styles.item} onPress={() => onItemPress(item)}>
-      <Text>{item.label}</Text>
+    <TouchableOpacity style={styles(colors).item} onPress={() => onItemPress(item)}>
+      <Text style={{ color: colors.text }}>{item.label}</Text>
     </TouchableOpacity>
   );
 
@@ -48,10 +50,10 @@ export const Dropdown: FC<Props> = ({ label, data, onSelect }) => {
     return (
       <Modal visible={visible} transparent animationType="none">
         <TouchableOpacity
-          style={styles.overlay}
+          style={styles(colors).overlay}
           onPress={() => setVisible(false)}
         >
-          <View style={[styles.dropdown, { top: dropdownTop }]}>
+          <View style={[styles(colors).dropdown, { top: dropdownTop }]}>
             <FlatList
               data={data}
               renderItem={renderItem}
@@ -66,43 +68,51 @@ export const Dropdown: FC<Props> = ({ label, data, onSelect }) => {
   return (
     <TouchableOpacity
       ref={DropdownButton}
-      style={styles.button}
+      style={styles(colors).button}
       onPress={toggleDropdown}
     >
       {renderDropdown()}
-      <Text style={styles.buttonText}>
+      <Text style={[styles(colors).buttonText, { color: colors.text }]}>
         {(selected && selected.label) || label}
       </Text>
-      <Icon style={styles.icon} type="font-awesome" name="chevron-down" />
+      <Icon style={styles(colors).icon} type="font-awesome" name="chevron-down" color={colors.iconDefault} />
     </TouchableOpacity>
   );
 };
 
-const styles = StyleSheet.create({
+const styles = (colors: any) => StyleSheet.create({
   button: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#efefef',
+    backgroundColor: colors.inputBackground,
     height: 50,
     zIndex: 1,
     marginHorizontal: 10,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: colors.inputBorder,
+    paddingHorizontal: 15,
+    borderRadius: 4,
   },
   buttonText: {
     flex: 1,
     textAlign: 'center',
+    color: colors.text,
   },
   icon: {
     marginRight: 10,
   },
   dropdown: {
     position: 'absolute',
-    backgroundColor: '#fff',
+    backgroundColor: colors.surface,
     width: '100%',
-    shadowColor: '#000000',
+    shadowColor: colors.shadow,
     shadowRadius: 4,
     shadowOffset: { height: 4, width: 0 },
     shadowOpacity: 0.5,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 4,
   },
   overlay: {
     width: '100%',
@@ -112,5 +122,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 10,
     borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    backgroundColor: colors.surface,
   },
 });

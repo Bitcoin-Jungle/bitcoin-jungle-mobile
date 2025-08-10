@@ -20,6 +20,7 @@ import { Screen } from "../../components/screen"
 import { translate } from "../../i18n"
 import { ContactStackParamList } from "../../navigation/stack-param-lists"
 import { color } from "../../theme"
+import { useThemeColor } from "../../theme/useThemeColor"
 import { ScreenType } from "../../types/jsx"
 import { toastShow } from "../../utils/toast"
 import useToken from "../../utils/use-token"
@@ -30,72 +31,82 @@ const SafeSearchBar = SearchBar as unknown as React.FC<
 
 const filteredContactNames = ["BitcoinJungleMarketing"]
 
-const styles = EStyleSheet.create({
-  activityIndicatorContainer: {
-    alignItems: "center",
-    flex: 1,
-    justifyContent: "center",
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    activityIndicatorContainer: {
+      alignItems: "center",
+      flex: 1,
+      justifyContent: "center",
+    },
 
-  emptyListNoContacts: {
-    marginHorizontal: 12,
-    marginTop: 32,
-  },
+    emptyListNoContacts: {
+      marginHorizontal: 12,
+      marginTop: 32,
+    },
 
-  emptyListNoMatching: {
-    marginHorizontal: 26,
-    marginTop: 8,
-  },
+    emptyListNoMatching: {
+      marginHorizontal: 26,
+      marginTop: 8,
+    },
 
-  emptyListText: {
-    fontSize: 18,
-    marginTop: 30,
-    textAlign: "center",
-  },
+    emptyListText: {
+      color: colors.text,
+      fontSize: 18,
+      marginTop: 30,
+      textAlign: "center",
+    },
 
-  emptyListTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
+    emptyListTitle: {
+      color: colors.text,
+      fontSize: 24,
+      fontWeight: "bold",
+      textAlign: "center",
+    },
 
-  item: {
-    marginHorizontal: 32,
-    marginVertical: 8,
-  },
+    item: {
+      marginHorizontal: 32,
+      marginVertical: 8,
+    },
 
-  itemContainer: { borderRadius: 8 },
+    itemContainer: { 
+      backgroundColor: colors.surface,
+      borderRadius: 8 
+    },
 
-  listContainer: { flexGrow: 1 },
+    listContainer: { flexGrow: 1 },
 
-  searchBarContainer: {
-    backgroundColor: color.palette.lighterGrey,
-    borderBottomWidth: 0,
-    borderTopWidth: 0,
-    marginHorizontal: 26,
-    marginVertical: 8,
-    paddingTop: 8,
-  },
+    searchBarContainer: {
+      backgroundColor: colors.background,
+      borderBottomWidth: 0,
+      borderTopWidth: 0,
+      marginHorizontal: 26,
+      marginVertical: 8,
+      paddingTop: 8,
+    },
 
-  searchBarInputContainerStyle: {
-    backgroundColor: color.palette.white,
-  },
+    searchBarInputContainerStyle: {
+      backgroundColor: colors.surface,
+    },
 
-  searchBarRightIconStyle: {
-    padding: 8,
-  },
+    searchBarRightIconStyle: {
+      padding: 8,
+    },
 
-  searchBarText: {
-    color: color.palette.black,
-    textDecorationLine: "none",
-  },
-})
+    searchBarText: {
+      color: colors.text,
+      textDecorationLine: "none",
+    },
+  })
+}
 
 type Props = {
   navigation: StackNavigationProp<ContactStackParamList, "Contacts">
 }
 
 export const ContactsScreen: ScreenType = ({ navigation }: Props) => {
+  const colors = useThemeColor()
+  const styles = useStyles()
   const { hasToken } = useToken()
   const [matchingContacts, setMatchingContacts] = useState([])
   const [searchText, setSearchText] = useState("")
@@ -208,7 +219,7 @@ export const ContactsScreen: ScreenType = ({ navigation }: Props) => {
   } else if (loading) {
     listEmptyContent = (
       <View style={styles.activityIndicatorContainer}>
-        <ActivityIndicator size="large" color={color.palette.midGrey} />
+        <ActivityIndicator size="large" color={colors.textSecondary} />
       </View>
     )
   } else {
@@ -225,7 +236,7 @@ export const ContactsScreen: ScreenType = ({ navigation }: Props) => {
   }
 
   return (
-    <Screen backgroundColor={color.palette.lighterGrey}>
+    <Screen backgroundColor={colors.background}>
       {searchBarContent}
       <FlatList
         contentContainerStyle={styles.listContainer}
@@ -234,15 +245,15 @@ export const ContactsScreen: ScreenType = ({ navigation }: Props) => {
         renderItem={({ item }) => (
           <ListItem
             key={item.username}
-            underlayColor={color.palette.lighterGrey}
+            underlayColor={colors.background}
             activeOpacity={0.7}
             style={styles.item}
             containerStyle={styles.itemContainer}
             onPress={() => navigation.navigate("contactDetail", { contact: item })}
           >
-            <Icon name={"person-outline"} size={24} color={color.palette.green} type="ionicon" />
+            <Icon name={"person-outline"} size={24} color={colors.success} type="ionicon" />
             <ListItem.Content>
-              <ListItem.Title>{item.alias}</ListItem.Title>
+              <ListItem.Title style={{ color: colors.text }}>{item.alias}</ListItem.Title>
             </ListItem.Content>
           </ListItem>
         )}

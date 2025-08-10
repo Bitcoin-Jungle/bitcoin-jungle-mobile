@@ -2441,7 +2441,11 @@
     "csvTransactionsError": "Unable to export transactions to csv. Something went wrong. If issue persists please contact support.",
     "lnurlNoUsername": "To generate an lnurl address you must first set a username.  Do you want to set a username now?",
     "copyClipboardLnurl": "Lnurl address has been copied in the clipboard",
-    "programNfcTag": "Program New NFC Tag"
+    "programNfcTag": "Program New NFC Tag",
+    "theme": "Theme",
+    "lightMode": "Light",
+    "darkMode": "Dark",
+    "systemMode": "System"
   },
   "AdvancedFeaturesScreen": {
     "title": "Advanced Features",

@@ -2465,7 +2465,11 @@
     "csvTransactionsError": "No se pueden exportar transacciones a csv. Algo salió mal. Si el problema persiste, póngase en contacto con el soporte.",
     "lnurlNoUsername": "Para generar una dirección lnurl primero debe establecer un nombre de usuario. ¿Desea establecer un nombre de usuario ahora?",
     "copyClipboardLnurl": "La dirección de Lnurl se ha copiado en el portapapeles",
-    "programNfcTag": "Programar nueva tag NFC"
+    "programNfcTag": "Programar nueva tag NFC",
+    "theme": "Tema",
+    "lightMode": "Claro",
+    "darkMode": "Oscuro",
+    "systemMode": "Sistema"
   },
   "AdvancedFeaturesScreen": {
     "title": "Funciones Avanzadas",

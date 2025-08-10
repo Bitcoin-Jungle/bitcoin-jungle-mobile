@@ -8,6 +8,7 @@ import { StackNavigationProp } from "@react-navigation/stack"
 import { Screen } from "../../../components/screen"
 import { translate } from "../../../i18n"
 import { palette } from "../../../theme/palette"
+import { useThemeColor } from "../../../theme/useThemeColor"
 import { RootStackParamList } from "../../../navigation/stack-param-lists"
 import { BOLT_CARDS_QUERY, BOLT_CARD_DISABLE_MUTATION } from "../../../graphql/query"
 import { formatDate } from "../../../utils/date"
@@ -18,9 +19,11 @@ type BoltCardsScreenProps = {
 }
 
 export const BoltCardsScreen: React.FC<BoltCardsScreenProps> = ({ navigation }) => {
+  const colors = useThemeColor()
   const { data, loading, error, refetch } = useQuery(BOLT_CARDS_QUERY)
   const [disableCard] = useMutation(BOLT_CARD_DISABLE_MUTATION)
   const [refreshing, setRefreshing] = useState(false)
+  const styles = useStyles()
 
   useEffect(() => {
     const unsubscribe = navigation.addListener("focus", () => {
@@ -75,11 +78,12 @@ export const BoltCardsScreen: React.FC<BoltCardsScreenProps> = ({ navigation }) 
       <ListItem
         onPress={() => navigation.navigate("boltCardDetail", { cardId: item.id })}
         bottomDivider
+        containerStyle={{ backgroundColor: colors.surface }}
       >
         <Icon
           name={item.enabled ? "credit-card-outline" : "credit-card-off-outline"}
           type="material-community"
-          color={item.enabled ? palette.darkGrey : palette.lightGrey}
+          color={item.enabled ? colors.text : colors.textSecondary}
         />
         <ListItem.Content>
           <ListItem.Title style={item.enabled ? styles.cardTitle : styles.cardTitleDisabled}>
@@ -103,7 +107,7 @@ export const BoltCardsScreen: React.FC<BoltCardsScreenProps> = ({ navigation }) 
           name="card-outline"
           type="material-community"
           size={64}
-          color={palette.lightGrey}
+          color={colors.textSecondary}
         />
         <Text style={styles.emptyText}>{translate("BoltCardScreen.noCards")}</Text>
       </View>
@@ -119,7 +123,7 @@ export const BoltCardsScreen: React.FC<BoltCardsScreenProps> = ({ navigation }) 
           name="alert-circle-outline"
           type="material-community"
           size={64}
-          color={palette.red}
+          color={colors.error}
         />
         <Text style={styles.errorText}>{translate("common.error")}</Text>
         <Text style={styles.errorMessage}>{error.message}</Text>
@@ -142,10 +146,10 @@ export const BoltCardsScreen: React.FC<BoltCardsScreenProps> = ({ navigation }) 
             onRefresh={handleRefresh}
           />
           <Divider style={styles.divider} />
-          <ListItem onPress={() => navigation.navigate("boltCardRegister")}>
-            <Icon name="plus-circle-outline" type="material-community" color={palette.darkGrey} />
+          <ListItem onPress={() => navigation.navigate("boltCardRegister")} containerStyle={{ backgroundColor: colors.surface }}>
+            <Icon name="plus-circle-outline" type="material-community" color={colors.iconDefault} />
             <ListItem.Content>
-              <ListItem.Title>{translate("BoltCardScreen.registerNewCard")}</ListItem.Title>
+              <ListItem.Title style={{ color: colors.text }}>{translate("BoltCardScreen.registerNewCard")}</ListItem.Title>
             </ListItem.Content>
           </ListItem>
         </>
@@ -154,57 +158,60 @@ export const BoltCardsScreen: React.FC<BoltCardsScreenProps> = ({ navigation }) 
   )
 }
 
-const styles = StyleSheet.create({
-  divider: {
-    backgroundColor: palette.lighterGrey,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: palette.darkGrey,
-  },
-  cardTitleDisabled: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: palette.lightGrey,
-  },
-  cardSubtitle: {
-    fontSize: 12,
-    color: palette.midGrey,
-  },
-  actionButtons: {
-    flexDirection: "row",
-  },
-  actionButton: {
-    marginHorizontal: 5,
-  },
-  emptyContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 40,
-  },
-  emptyText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: palette.midGrey,
-    textAlign: "center",
-  },
-  errorContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 40,
-  },
-  errorText: {
-    marginTop: 16,
-    fontSize: 18,
-    fontWeight: "bold",
-    color: palette.red,
-    textAlign: "center",
-  },
-  errorMessage: {
-    marginTop: 8,
-    fontSize: 14,
-    color: palette.midGrey,
-    textAlign: "center",
-  },
-}) 
+const useStyles = () => {
+  const colors = useThemeColor()
+  return StyleSheet.create({
+    divider: {
+      backgroundColor: colors.border,
+    },
+    cardTitle: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: colors.text,
+    },
+    cardTitleDisabled: {
+      fontSize: 16,
+      fontWeight: "bold",
+      color: colors.textSecondary,
+    },
+    cardSubtitle: {
+      fontSize: 12,
+      color: colors.textSecondary,
+    },
+    actionButtons: {
+      flexDirection: "row",
+    },
+    actionButton: {
+      marginHorizontal: 5,
+    },
+    emptyContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 40,
+    },
+    emptyText: {
+      marginTop: 16,
+      fontSize: 16,
+      color: colors.textSecondary,
+      textAlign: "center",
+    },
+    errorContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 40,
+    },
+    errorText: {
+      marginTop: 16,
+      fontSize: 18,
+      fontWeight: "bold",
+      color: colors.error,
+      textAlign: "center",
+    },
+    errorMessage: {
+      marginTop: 8,
+      fontSize: 14,
+      color: colors.textSecondary,
+      textAlign: "center",
+    },
+  })
+} 

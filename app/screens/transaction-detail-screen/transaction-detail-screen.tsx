@@ -15,6 +15,7 @@ import { translate } from "../../i18n"
 import type { ScreenType } from "../../types/jsx"
 import type { RootStackParamList } from "../../navigation/stack-param-lists"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import moment from "moment"
 import { formatUsdAmount } from "../../hooks"
 // import Icon from "react-native-vector-icons/Ionicons"
@@ -24,60 +25,63 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 const viewInExplorer = (hash: string): Promise<Linking> =>
   Linking.openURL(BLOCKCHAIN_EXPLORER_URL + hash)
 
-const styles = EStyleSheet.create({
-  amount: {
-    color: palette.white,
-    fontSize: "32rem",
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    amount: {
+      color: palette.white,
+      fontSize: "32rem",
+    },
 
-  amountSecondary: {
-    color: palette.white,
-    fontSize: "16rem",
-  },
+    amountSecondary: {
+      color: palette.white,
+      fontSize: "16rem",
+    },
 
-  amountText: {
-    color: palette.white,
-    fontSize: "18rem",
-    marginVertical: "6rem",
-  },
+    amountText: {
+      color: palette.white,
+      fontSize: "18rem",
+      marginVertical: "6rem",
+    },
 
-  amountView: {
-    alignItems: "center",
-    paddingBottom: "24rem",
-    paddingTop: "48rem",
-  },
+    amountView: {
+      alignItems: "center",
+      paddingBottom: "24rem",
+      paddingTop: "48rem",
+    },
 
-  description: {
-    marginVertical: 12,
-  },
+    description: {
+      marginVertical: 12,
+    },
 
-  divider: {
-    backgroundColor: palette.midGrey,
-    marginVertical: "12rem",
-  },
+    divider: {
+      backgroundColor: colors.border,
+      marginVertical: "12rem",
+    },
 
-  entry: {
-    color: palette.midGrey,
-    marginBottom: "6rem",
-  },
+    entry: {
+      color: colors.textSecondary,
+      marginBottom: "6rem",
+    },
 
-  transactionDetailText: {
-    color: palette.darkGrey,
-    fontSize: "18rem",
-    fontWeight: "bold",
-  },
+    transactionDetailText: {
+      color: colors.text,
+      fontSize: "18rem",
+      fontWeight: "bold",
+    },
 
-  transactionDetailView: {
-    marginHorizontal: "24rem",
-    marginVertical: "24rem",
-  },
+    transactionDetailView: {
+      marginHorizontal: "24rem",
+      marginVertical: "24rem",
+    },
 
-  value: {
-    color: palette.darkGrey,
-    fontSize: "14rem",
-    fontWeight: "bold",
-  },
-})
+    value: {
+      color: colors.text,
+      fontSize: "14rem",
+      fontWeight: "bold",
+    },
+  })
+}
 
 const Row = ({
   entry,
@@ -90,6 +94,8 @@ const Row = ({
   type?: SettlementViaType
   navigation: StackNavigationProp<RootStackParamList, "transactionDetail">
 }) => {
+  const colors = useThemeColor()
+  const styles = useStyles()
   const bbOrderNbr = value.match(/Order (\d+)/)?.[1]
 
   return (
@@ -97,13 +103,11 @@ const Row = ({
       <Text style={styles.entry}>
         {entry + " "}
         {type === "SettlementViaOnChain" && (
-          <Icon name="open-outline" size={18} type="ionicon" color={palette.darkGrey} />
+          <Icon name="open-outline" size={18} type="ionicon" color={colors.iconDefault} />
         )}
         {bbOrderNbr && (
-          <Icon name="info-outline" size={18} color={palette.darkGrey} onPress={() => {
-            navigation.navigate("sinpeScreen", {
-              orderNbr: bbOrderNbr,
-            })
+          <Icon name="info-outline" size={18} color={colors.iconDefault} onPress={() => {
+            navigation.navigate("sinpeScreen")
           }} />
         )}
       </Text>
@@ -131,6 +135,8 @@ const typeDisplay = (type: SettlementViaType) => {
 }
 
 export const TransactionDetailScreen: ScreenType = ({ route, navigation }: Props) => {
+  const colors = useThemeColor()
+  const styles = useStyles()
   const {
     id,
     description,
@@ -171,8 +177,8 @@ export const TransactionDetailScreen: ScreenType = ({ route, navigation }: Props
   })
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: palette.white }}>
-      <Screen backgroundColor={palette.white} unsafe preset="scroll">
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+      <Screen backgroundColor={colors.background} unsafe preset="scroll">
         <View
           style={[
             styles.amountView,

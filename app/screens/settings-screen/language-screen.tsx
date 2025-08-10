@@ -6,17 +6,23 @@ import EStyleSheet from "react-native-extended-stylesheet"
 // import Icon from "react-native-vector-icons/Ionicons"
 import { Screen } from "../../components/screen"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import type { ScreenType } from "../../types/jsx"
 import useToken from "../../utils/use-token"
 import useMainQuery from "@app/hooks/use-main-query"
 
-const styles = EStyleSheet.create({
-  screenStyle: {
-    marginHorizontal: 48,
-  },
-})
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    screenStyle: {
+      marginHorizontal: 48,
+    },
+  })
+}
 
 export const LanguageScreen: ScreenType = () => {
+  const colors = useThemeColor()
+  const styles = useStyles()
   const { tokenUid } = useToken()
   const { userPreferredLanguage, refetch: refetchMain } = useMainQuery()
   const [updateLanguage] = useMutation(
@@ -46,6 +52,7 @@ export const LanguageScreen: ScreenType = () => {
         <ListItem
           key={language}
           bottomDivider
+          containerStyle={{ backgroundColor: colors.surface }}
           onPress={() => {
             if (language !== userPreferredLanguage) {
               updateLanguage({
@@ -66,7 +73,7 @@ export const LanguageScreen: ScreenType = () => {
             }
           }}
         >
-          <ListItem.Title>{translate(`Languages.${language}`)}</ListItem.Title>
+          <ListItem.Title style={{ color: colors.text }}>{translate(`Languages.${language}`)}</ListItem.Title>
           {userPreferredLanguage === language && (
             <Icon name="checkmark-circle" size={18} color={palette.green} type="ionicon" />
           )}

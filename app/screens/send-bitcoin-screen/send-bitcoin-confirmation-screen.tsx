@@ -18,6 +18,7 @@ import { StackNavigationProp } from "@react-navigation/stack"
 import { PaymentConfirmationInformation } from "./payment-confirmation-information"
 import useFee from "./use-fee"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import useMainQuery from "@app/hooks/use-main-query"
 
 export const LN_PAY = gql`
@@ -83,6 +84,7 @@ export const SendBitcoinConfirmationScreen = ({
   navigation,
   route,
 }: SendBitcoinConfirmationScreenProps): JSX.Element => {
+  const styles = useStyles()
   const client = useApolloClient()
   const { convertCurrencyAmount, formatCurrencyAmount } = useMySubscription()
   const { walletId: myDefaultWalletId, satBalance, loading } = useWalletBalance()
@@ -499,52 +501,55 @@ export const SendBitcoinConfirmationScreen = ({
   )
 }
 
-const styles = EStyleSheet.create({
-  bottomContainer: {
-    flex: 4,
-    flexDirection: "column",
-    justifyContent: "flex-end",
-    marginBottom: "24rem",
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    bottomContainer: {
+      flex: 4,
+      flexDirection: "column",
+      justifyContent: "flex-end",
+      marginBottom: "24rem",
+    },
 
-  buttonStyle: {
-    backgroundColor: color.primary,
-    marginHorizontal: "12rem",
-    marginTop: "12rem",
-  },
+    buttonStyle: {
+      backgroundColor: colors.primary,
+      marginHorizontal: "12rem",
+      marginTop: "12rem",
+    },
 
-  confirmationText: {
-    color: palette.darkGrey,
-    fontSize: "18rem",
-    textAlign: "center",
-  },
+    confirmationText: {
+      color: colors.text,
+      fontSize: "18rem",
+      textAlign: "center",
+    },
 
-  confirmationTextContainer: {
-    alignItems: "center",
-  },
+    confirmationTextContainer: {
+      alignItems: "center",
+    },
 
-  errorContainer: {
-    alignItems: "center",
-    flex: 2,
-  },
+    errorContainer: {
+      alignItems: "center",
+      flex: 2,
+    },
 
-  errorText: {
-    color: color.error,
-    textAlign: "center",
-  },
+    errorText: {
+      color: colors.error,
+      textAlign: "center",
+    },
 
-  mainView: {
-    flex: 6,
-    flexDirection: "column",
-    paddingHorizontal: "24rem",
-  },
+    mainView: {
+      flex: 6,
+      flexDirection: "column",
+      paddingHorizontal: "24rem",
+    },
 
-  paymentInformationContainer: {
-    flex: 2,
-  },
+    paymentInformationContainer: {
+      flex: 2,
+    },
 
-  paymentLottieContainer: {
-    alignItems: "center",
-    flex: 2,
-  },
-})
+    paymentLottieContainer: {
+      alignItems: "center",
+      flex: 2,
+    },
+  })
+}

@@ -7,62 +7,68 @@ import { Icon } from 'react-native-elements'
 import Tooltip from "react-native-walkthrough-tooltip"
 import { translate } from "../../i18n"
 import { palette } from "../../theme/palette"
+import { useThemeColor } from "../../theme/useThemeColor"
 import { TextCurrency } from "../text-currency/text-currency"
 import { useIsFocused } from "@react-navigation/native"
 import { useWalletBalance, useHiddenBalanceToolTip, useHideBalance } from "../../hooks"
 import { saveHiddenBalanceToolTip } from "../../graphql/client-only-query"
 import { useApolloClient } from "@apollo/client"
 
-const styles = EStyleSheet.create({
-  amount: {
-    alignItems: "center",
-    flexDirection: "column",
-    height: 42, // FIXME should be dynamic?
-    position: "absolute",
-    top: "25rem",
-    width: "250rem",
-  },
+const useStyles = () => {
+  const colors = useThemeColor()
+  return EStyleSheet.create({
+    amount: {
+      alignItems: "center",
+      flexDirection: "column",
+      height: 42, // FIXME should be dynamic?
+      position: "absolute",
+      top: "25rem",
+      width: "250rem",
+    },
 
-  balanceText: {
-    color: palette.midGrey,
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 8,
-  },
+    balanceText: {
+      color: colors.textSecondary,
+      fontSize: 16,
+      fontWeight: "bold",
+      marginBottom: 8,
+    },
 
-  container: {
-    alignItems: "flex-end",
-    flexDirection: "row",
-  },
+    container: {
+      alignItems: "flex-end",
+      flexDirection: "row",
+    },
 
-  header: {
-    alignItems: "center",
-    marginBottom: "12rem",
-    marginTop: "32rem",
-    minHeight: "75rem",
-  },
+    header: {
+      alignItems: "center",
+      marginBottom: "12rem",
+      marginTop: "32rem",
+      minHeight: "75rem",
+    },
 
-  hiddenBalanceContainer: {
-    alignItems: "center",
-    flexGrow: 1,
-    justifyContent: "center",
-  },
+    hiddenBalanceContainer: {
+      alignItems: "center",
+      flexGrow: 1,
+      justifyContent: "center",
+    },
 
-  hiddenBalanceIcon: {
-    fontSize: "25rem",
-  },
+    hiddenBalanceIcon: {
+      fontSize: "25rem",
+      color: colors.text,
+    },
 
-  subCurrencyText: {
-    color: palette.darkGrey,
-    fontSize: "16rem",
-  },
+    subCurrencyText: {
+      color: colors.textSecondary,
+      fontSize: "16rem",
+    },
 
-  text: {
-    color: palette.darkGrey,
-    fontSize: 32,
-  },
-  touchableHighlightColor: "#ffffff00",
-})
+    text: {
+      color: colors.text,
+      fontSize: 32,
+      fontWeight: "600",
+    },
+    touchableHighlightColor: "#ffffff00",
+  })
+}
 
 export interface BalanceHeaderProps {
   showSecondaryCurrency?: boolean
@@ -70,24 +76,28 @@ export interface BalanceHeaderProps {
   style?: StyleProp<ViewStyle>
 }
 
-const Loader = () => (
-  <ContentLoader
-    height={40}
-    width={120}
-    speed={1.2}
-    backgroundColor="#f3f3f3"
-    foregroundColor="#ecebeb"
-  >
-    <Rect x="0" y="12" rx="4" ry="4" width="120" height="28" />
-    {/* <Rect x="30" y="35" rx="4" ry="4" width="60" height="10" /> */}
-  </ContentLoader>
-)
+const Loader = () => {
+  const colors = useThemeColor()
+  return (
+    <ContentLoader
+      height={40}
+      width={120}
+      speed={1.2}
+      backgroundColor={colors.surfaceElevated}
+      foregroundColor={colors.surface}
+    >
+      <Rect x="0" y="12" rx="4" ry="4" width="120" height="28" />
+      {/* <Rect x="30" y="35" rx="4" ry="4" width="60" height="10" /> */}
+    </ContentLoader>
+  )
+}
 
 export const BalanceHeader: React.FC<BalanceHeaderProps> = ({
   showSecondaryCurrency = true,
   loading = false,
   style,
 }: BalanceHeaderProps) => {
+  const styles = useStyles()
   return (
     <View style={[styles.header, style]}>
       <Text style={styles.balanceText}>{translate("BalanceHeader.currentBalance")}</Text>
@@ -103,6 +113,8 @@ export const BalanceHeader: React.FC<BalanceHeaderProps> = ({
 export const BalanceHeaderDisplay: React.FC<BalanceHeaderProps> = ({
   showSecondaryCurrency = true,
 }: BalanceHeaderProps) => {
+  const styles = useStyles()
+  const colors = useThemeColor()
   const client = useApolloClient()
   const { satBalance, usdBalance } = useWalletBalance()
   const hideBalance = useHideBalance()
@@ -159,7 +171,7 @@ export const BalanceHeaderDisplay: React.FC<BalanceHeaderProps> = ({
             }}
             style={styles.hiddenBalanceTouchableHighlight}
           >
-            <Icon style={styles.hiddenBalanceIcon} name="eye" type="ionicon" />
+            <Icon style={styles.hiddenBalanceIcon} name="eye" type="ionicon" color={colors.text} />
           </TouchableHighlight>
         </Tooltip>
       </>
