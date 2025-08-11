@@ -379,6 +379,11 @@ export const WelcomePhoneInputScreen: ScreenType = ({
                   </Text>
                 </Pressable>
                 <CheckBox
+                  tintColors={{
+                    true: colors.primary,
+                    false: colors.text
+                  }}
+                  style={{marginLeft: 8}}
                   value={whatsapp}
                   onValueChange={(newValue) => setWhatsApp(newValue)}
                 />

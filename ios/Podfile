@@ -21,7 +21,6 @@ target 'BitcoinJungle' do
   )
 
   # Third-party pods
-  pod 'XCDYouTubeKit', '~> 2.8'
   pod 'RNVectorIcons', :path => '../node_modules/react-native-vector-icons'
   pod 'react-native-webview', :path => '../node_modules/react-native-webview'
   pod 'RNFBApp', :path => '../node_modules/@react-native-firebase/app', :modular_headers => true

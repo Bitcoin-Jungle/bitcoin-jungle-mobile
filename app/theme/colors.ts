@@ -4,7 +4,7 @@ export const lightColors = {
   palette,
   transparent: "rgba(0, 0, 0, 0)",
   background: palette.lighterGrey,
-  backgroundSecondary: palette.white,
+  backgroundSecondary: palette.offWhite,
   surface: palette.white,
   surfaceElevated: palette.offWhite,
   primary: palette.blue,

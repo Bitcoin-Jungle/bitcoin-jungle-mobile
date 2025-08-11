@@ -3,12 +3,12 @@ import { useApolloClient } from "@apollo/client"
 import PushNotificationIOS from "@react-native-community/push-notification-ios"
 import messaging from "@react-native-firebase/messaging"
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
-import { CardStyleInterpolators, createStackNavigator } from "@react-navigation/stack"
+import { CardStyleInterpolators, TransitionPresets, createStackNavigator } from "@react-navigation/stack"
 import i18n from "i18n-js"
 import "node-libs-react-native/globals" // needed for Buffer?
 import * as React from "react"
 import { useCallback, useEffect } from "react"
-import { AppState } from "react-native"
+import { AppState, Platform } from "react-native"
 import EStyleSheet from "react-native-extended-stylesheet"
 import * as RNLocalize from "react-native-localize"
 import { Icon } from 'react-native-elements'
@@ -276,7 +276,7 @@ export const RootStack: NavigatorType = () => {
   return (
     <RootNavigator.Navigator
       screenOptions={{
-        gestureEnabled: false,
+        gestureEnabled: true, // Enable swipe gestures on iOS
         headerBackTitle: translate("common.back"),
         headerStyle: {
           backgroundColor: colors.headerBackground,
@@ -285,6 +285,55 @@ export const RootStack: NavigatorType = () => {
         cardStyle: {
           backgroundColor: colors.background,
         },
+        // Platform-specific transitions
+        ...(Platform.OS === "ios" 
+          ? {} 
+          : {
+              // Use Material Design transition on Android
+              ...TransitionPresets.SlideFromRightIOS,
+              cardStyleInterpolator: ({ current, next, layouts }) => {
+                return {
+                  cardStyle: {
+                    transform: [
+                      {
+                        translateX: current.progress.interpolate({
+                          inputRange: [0, 1],
+                          outputRange: [layouts.screen.width, 0],
+                        }),
+                      },
+                    ],
+                    backgroundColor: colors.background,
+                  },
+                };
+              },
+              cardOverlayEnabled: false,
+              // Snappier animation timing
+              transitionSpec: {
+                open: {
+                  animation: 'spring',
+                  config: {
+                    stiffness: 1000,
+                    damping: 500,
+                    mass: 3,
+                    overshootClamping: true,
+                    restDisplacementThreshold: 0.01,
+                    restSpeedThreshold: 0.01,
+                  },
+                },
+                close: {
+                  animation: 'spring',
+                  config: {
+                    stiffness: 1000,
+                    damping: 500,
+                    mass: 3,
+                    overshootClamping: true,
+                    restDisplacementThreshold: 0.01,
+                    restSpeedThreshold: 0.01,
+                  },
+                },
+              },
+            }
+        ),
       }}
       initialRouteName={token ? "authenticationCheck" : "getStarted"}
     >
@@ -294,27 +343,42 @@ export const RootStack: NavigatorType = () => {
         options={{
           headerShown: false,
           animationEnabled: false,
+          gestureEnabled: false, // Disable swipe for auth screens
         }}
       />
       <RootNavigator.Screen
         name="welcomeFirst"
         component={WelcomeFirstScreen}
-        options={{ headerShown: false }}
+        options={{ 
+          headerShown: false,
+          gestureEnabled: false, // Disable swipe for onboarding
+        }}
       />
       <RootNavigator.Screen
         name="authenticationCheck"
         component={AuthenticationCheckScreen}
-        options={{ headerShown: false, animationEnabled: false }}
+        options={{ 
+          headerShown: false, 
+          animationEnabled: false,
+          gestureEnabled: false, // Disable swipe for auth screens
+        }}
       />
       <RootNavigator.Screen
         name="authentication"
         component={AuthenticationScreen}
-        options={{ headerShown: false, animationEnabled: false }}
+        options={{ 
+          headerShown: false, 
+          animationEnabled: false,
+          gestureEnabled: false, // Disable swipe for auth screens
+        }}
       />
       <RootNavigator.Screen
         name="pin"
         component={PinScreen}
-        options={{ headerShown: false }}
+        options={{ 
+          headerShown: false,
+          gestureEnabled: false, // Disable swipe for PIN screen
+        }}
       />
       <RootNavigator.Screen
         name="Primary"
@@ -355,7 +419,10 @@ export const RootStack: NavigatorType = () => {
       <StackMoveMoney.Screen
         name="sinpeScreen"
         component={SinpeScreen}
-        options={{title: "SINPE Móvil"}}
+        options={{
+          title: "SINPE Móvil",
+          gestureEnabled: false, // We'll handle gestures manually in the component
+        }}
       />
       <StackMoveMoney.Screen
         name="sendBitcoin"
@@ -602,6 +669,7 @@ export const PrimaryNavigator: NavigatorType = () => {
   return (
     <Tab.Navigator
       initialRouteName="MoveMoney"
+      sceneContainerStyle={{ backgroundColor: colors.background }}
       screenOptions={{
         tabBarActiveTintColor:
           tokenNetwork === "mainnet" ? colors.tabBarActive : palette.orange,
