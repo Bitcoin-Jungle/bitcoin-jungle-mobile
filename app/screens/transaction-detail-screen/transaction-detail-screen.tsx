@@ -107,7 +107,9 @@ const Row = ({
         )}
         {bbOrderNbr && (
           <Icon name="info-outline" size={18} color={colors.iconDefault} onPress={() => {
-            navigation.navigate("sinpeScreen")
+            navigation.navigate("sinpeScreen", {
+              orderNbr: bbOrderNbr,
+            })
           }} />
         )}
       </Text>

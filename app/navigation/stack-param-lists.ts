@@ -61,7 +61,7 @@ export type RootStackParamList = {
   sinpe: {
     orderNbr?: string
   }
-  sinpeScreen: undefined
+  sinpeScreen: { orderNbr?: string }
   transactionStats: undefined
   advancedFeatures: undefined
   boltCards: undefined
