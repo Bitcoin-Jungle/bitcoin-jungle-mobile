@@ -2,14 +2,12 @@ import React, { useEffect, useState } from "react"
 import { View, Text, ActivityIndicator, ScrollView, StyleSheet, TouchableOpacity, Alert, Platform } from "react-native"
 import { gql, useLazyQuery } from "@apollo/client"
 import { Screen } from "../../components/screen"
-import { palette } from "../../theme/palette"
 import { useThemeColor } from "../../theme/useThemeColor"
 import { translate } from "../../i18n"
 import useMainQuery from "@app/hooks/use-main-query"
 import crashlytics from "@react-native-firebase/crashlytics"
 import Share from "react-native-share"
 import * as currency_fmt from "currency.js"
-import { select } from "@storybook/addon-knobs"
 import RNFS from "react-native-fs"
 
 const GET_CSV_TRANSACTIONS = gql`
@@ -26,6 +24,7 @@ const GET_CSV_TRANSACTIONS = gql`
 
 export const TransactionStatsScreen: React.FC = () => {
   const colors = useThemeColor()
+  const styles = useStyles()
   const [stats, setStats] = useState<{
     totalReceiveFiat: number
     totalSendFiat: number
@@ -189,39 +188,39 @@ export const TransactionStatsScreen: React.FC = () => {
   if (csvError) {
     return (
       <Screen preset="scroll">
-        <Text style={useStyles().errorText}>{translate("common.error")}</Text>
+        <Text style={styles.errorText}>{translate("common.error")}</Text>
       </Screen>
     )
   }
 
   return (
     <Screen preset="scroll">
-      <ScrollView contentContainerStyle={useStyles().container}>
-        <Text style={useStyles().title}>{translate("TransactionStatsScreen.title")}</Text>
-        <View style={useStyles().filterButtons}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>{translate("TransactionStatsScreen.title")}</Text>
+        <View style={styles.filterButtons}>
           <TouchableOpacity
-            style={[useStyles().filterButton, selectedFilter === 'week' && useStyles().selectedFilter]}
+            style={[styles.filterButton, selectedFilter === 'week' && styles.selectedFilter]}
             onPress={() => handleFilterChange('week')}
           >
-            <Text style={selectedFilter === 'week' ? useStyles().selectedFilterButtonText : useStyles().filterButtonText}>Week</Text>
+            <Text style={selectedFilter === 'week' ? styles.selectedFilterButtonText : styles.filterButtonText}>Week</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.filterButton, selectedFilter === 'month' && styles.selectedFilter]}
             onPress={() => handleFilterChange('month')}
           >
-            <Text style={selectedFilter === 'month' ? useStyles().selectedFilterButtonText : useStyles().filterButtonText}>Month</Text>
+            <Text style={selectedFilter === 'month' ? styles.selectedFilterButtonText : styles.filterButtonText}>Month</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.filterButton, selectedFilter === 'year' && styles.selectedFilter]}
             onPress={() => handleFilterChange('year')}
           >
-            <Text style={selectedFilter === 'year' ? useStyles().selectedFilterButtonText : useStyles().filterButtonText}>Year</Text>
+            <Text style={selectedFilter === 'year' ? styles.selectedFilterButtonText : styles.filterButtonText}>Year</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.filterButton, selectedFilter === 'all' && styles.selectedFilter]}
             onPress={() => handleFilterChange('all')}
           >
-            <Text style={selectedFilter === 'all' ? useStyles().selectedFilterButtonText : useStyles().filterButtonText}>All</Text>
+            <Text style={selectedFilter === 'all' ? styles.selectedFilterButtonText : styles.filterButtonText}>All</Text>
           </TouchableOpacity>
         </View>
         {stats && (
@@ -268,8 +267,8 @@ export const TransactionStatsScreen: React.FC = () => {
             />
           </>
         )}
-        <TouchableOpacity style={useStyles().exportButton} onPress={handleExportCsv} disabled={loadingCsvTransactions}>
-          <Text style={useStyles().exportButtonText}>
+        <TouchableOpacity style={styles.exportButton} onPress={handleExportCsv} disabled={loadingCsvTransactions}>
+          <Text style={styles.exportButtonText}>
             {loadingCsvTransactions
               ? translate("common.loading")
               : translate("common.csvExport")}
