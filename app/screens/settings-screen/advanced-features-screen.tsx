@@ -4,9 +4,7 @@ import { Divider, Icon, ListItem } from "react-native-elements"
 import { translate } from "../../i18n"
 import { palette } from "../../theme/palette"
 import { useThemeColor } from "../../theme/useThemeColor"
-import { readNfcTag, writeNfcTag } from "../../utils/nfc"
-import { validPayment } from "../../utils/parsing"
-import { getParams, LNURLPayParams, LNURLWithdrawParams } from "js-lnurl"
+import { writeNfcTag } from "../../utils/nfc"
 import useToken from "../../utils/use-token"
 import useMainQuery from "@app/hooks/use-main-query"
 import { GALOY_PAY_DOMAIN } from "../../constants/support"
@@ -65,90 +63,7 @@ export const AdvancedFeaturesScreen: React.FC<AdvancedFeaturesScreenProps> = ({ 
     }
   }
 
-  const handleScanNfc = async () => {
-    try {
-      const nfcTagReadResult = await readNfcTag()
-
-      if (nfcTagReadResult.success) {
-        await decodeInvoice(nfcTagReadResult.data)
-      } else if (nfcTagReadResult.errorMessage !== "UserCancel") {
-        Alert.alert(
-          translate("common.error"),
-          translate(`nfc.${nfcTagReadResult.errorMessage}`),
-          [
-            {
-              text: translate("common.ok"),
-            },
-          ],
-        )
-      }
-    } catch (err) {
-      Alert.alert(translate("common.error"), err.toString())
-    }
-  }
-
-  const decodeInvoice = async (data) => {
-    try {
-      const { valid, lnurl } = validPayment(data, tokenNetwork, myPubKey, username)
-      if (valid && lnurl) {
-        const lnurlParams = await getParams(lnurl)
-
-        if ("reason" in lnurlParams) {
-          throw lnurlParams.reason
-        }
-
-        switch (lnurlParams.tag) {
-          case "payRequest":
-            navigation.navigate("sendBitcoin", {
-              payment: data,
-              lnurlParams: lnurlParams as LNURLPayParams,
-            })
-            break
-          case "withdrawRequest":
-            navigation.navigate("receiveBitcoin", {
-              payment: data,
-              lnurlParams: lnurlParams as LNURLWithdrawParams,
-            })
-            break
-          default:
-            Alert.alert(
-              translate("ScanningQRCodeScreen.invalidTitle"),
-              translate("ScanningQRCodeScreen.invalidContentLnurl", {
-                found: lnurlParams.tag,
-              }),
-              [
-                {
-                  text: translate("common.ok"),
-                },
-              ],
-            )
-            break
-        }
-      } else {
-        Alert.alert(
-          translate("ScanningQRCodeScreen.invalidTitle"),
-          translate("ScanningQRCodeScreen.invalidContent", { found: data.toString() }),
-          [
-            {
-              text: translate("common.ok"),
-            },
-          ],
-        )
-      }
-    } catch (err) {
-      Alert.alert(err.toString())
-    }
-  }
-
   const featureList: FeatureRow[] = [
-    {
-      category: translate("AdvancedFeaturesScreen.scanNfcTag"),
-      icon: "scan-outline",
-      id: "scan-nfc",
-      action: handleScanNfc,
-      enabled: true,
-      greyed: false,
-    },
     {
       category: translate("SettingsScreen.programNfcTag"),
       icon: "pencil",

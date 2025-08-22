@@ -1,7 +1,7 @@
 import { gql, useApolloClient, useMutation } from "@apollo/client"
 import { StackNavigationProp } from "@react-navigation/stack"
 import * as React from "react"
-import { useCallback, useMemo, useEffect, useState } from "react"
+import { useCallback, useMemo, useEffect, useState, useLayoutEffect } from "react"
 import { Alert, Keyboard, Platform, ScrollView, TextInput, View } from "react-native"
 import EStyleSheet from "react-native-extended-stylesheet"
 // import ScreenBrightness from "react-native-screen-brightness"
@@ -19,6 +19,9 @@ import { useThemeColor } from "../../theme/useThemeColor"
 import { ScreenType } from "../../types/jsx"
 import { isIos } from "../../utils/helper"
 import QRView from "./qr-view"
+import { validPayment } from "../../utils/parsing"
+import { getParams, LNURLPayParams, LNURLWithdrawParams } from "js-lnurl"
+import { readNfcTag } from "../../utils/nfc"
 import {
   useMoneyAmount,
   useMyCurrencies,
@@ -159,7 +162,7 @@ export const ReceiveBitcoinScreen: ScreenType = ({ navigation, route }: Props) =
   const colors = useThemeColor()
   const styles = useStyles()
   const client = useApolloClient()
-  const { hasToken } = useToken()
+  const { hasToken, tokenNetwork } = useToken()
 
   const { primaryCurrency, secondaryCurrency, toggleCurrency } = useMyCurrencies()
 
@@ -183,7 +186,7 @@ export const ReceiveBitcoinScreen: ScreenType = ({ navigation, route }: Props) =
   const [swiperIndex, setSwiperIndex] = useState<integer>(0)
   const swiperRef = React.createRef()
 
-  const { btcWalletId } = useMainQuery()
+  const { btcWalletId, myPubKey, username } = useMainQuery()
 
   const [lnurlError, setLnurlError] = useState("")
   const [lnurlWithdraw, setLnurlWithdraw] = useState<LnurlParams>({
@@ -506,6 +509,112 @@ export const ReceiveBitcoinScreen: ScreenType = ({ navigation, route }: Props) =
       error: "",
     }
   }
+
+  const decodeInvoice = async (data) => {
+    try {
+      const { valid, lnurl } = validPayment(data, tokenNetwork, myPubKey, username)
+      if (valid && lnurl) {
+        const lnurlParams = await getParams(lnurl)
+
+        if ("reason" in lnurlParams) {
+          throw lnurlParams.reason
+        }
+
+        switch (lnurlParams.tag) {
+          case "payRequest":
+            navigation.navigate("sendBitcoin", {
+              payment: data,
+              lnurlParams: lnurlParams as LNURLPayParams,
+            })
+            break
+          case "withdrawRequest": {
+            const parsed = setLnurlParams({ params: lnurlParams as any })
+            setLnurlWithdraw({ ...parsed })
+            if (parsed.defaultDescription) {
+              setMemo(parsed.defaultDescription)
+            }
+            if (parsed.minWithdrawable == parsed.maxWithdrawable) {
+              setTimeout(() => {
+                if (primaryAmount.currency === "USD") {
+                  const btcValue = parsed.minWithdrawable
+                  setSecondaryAmount({ currency: "BTC", value: btcValue })
+                  const usdValue = convertCurrencyAmount({ amount: btcValue, from: "BTC", to: "USD" })
+                  setPrimaryAmountValue(usdValue)
+                } else {
+                  const btcValue = parsed.minWithdrawable
+                  setPrimaryAmountValue(btcValue)
+                  const usdValue = convertCurrencyAmount({ amount: btcValue, from: "BTC", to: "USD" })
+                  setSecondaryAmount({ currency: "USD", value: usdValue })
+                }
+              }, 100)
+            }
+            break
+          }
+          default:
+            Alert.alert(
+              translate("ScanningQRCodeScreen.invalidTitle"),
+              translate("ScanningQRCodeScreen.invalidContentLnurl", {
+                found: lnurlParams.tag,
+              }),
+              [
+                {
+                  text: translate("common.ok"),
+                },
+              ],
+            )
+            break
+        }
+      } else {
+        Alert.alert(
+          translate("ScanningQRCodeScreen.invalidTitle"),
+          translate("ScanningQRCodeScreen.invalidContent", { found: data.toString() }),
+          [
+            {
+              text: translate("common.ok"),
+            },
+          ],
+        )
+      }
+    } catch (err) {
+      Alert.alert(err.toString())
+    }
+  }
+
+  const handleScanNfc = async () => {
+    try {
+      const nfcTagReadResult = await readNfcTag()
+
+      if (nfcTagReadResult.success) {
+        await decodeInvoice(nfcTagReadResult.data)
+      } else if (nfcTagReadResult.errorMessage !== "UserCancel") {
+        Alert.alert(
+          translate("common.error"),
+          translate(`nfc.${nfcTagReadResult.errorMessage}`),
+          [
+            {
+              text: translate("common.ok"),
+            },
+          ],
+        )
+      }
+    } catch (err) {
+      Alert.alert(translate("common.error"), err.toString())
+    }
+  }
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <Icon 
+          name="nfc" 
+          type="material-community" 
+          color={colors.headerText} 
+          onPress={handleScanNfc}
+          containerStyle={{ paddingRight: 16 }}
+        />
+      ),
+    })
+  }, [navigation, colors.headerText, handleScanNfc])
 
   return (
     <Screen backgroundColor={colors.background} style={styles.screen} preset="fixed">
