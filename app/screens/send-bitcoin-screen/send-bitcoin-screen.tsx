@@ -396,7 +396,7 @@ export const SendBitcoinScreen: ScreenType = ({
       const url = new URL(lnurlPay.callback)
       url.searchParams.append('amount', satAmount.toString())
       url.searchParams.append('comment', memo)
-      const lnurlInvoice = await fetchInvoice(url.toString())
+      const lnurlInvoice = await fetchInvoice(url.toString().replace(/\/\?/, '?'))
 
       if (lnurlInvoice.status && lnurlInvoice.status === "ERROR") {
         setLnurlError(lnurlInvoice.reason)
