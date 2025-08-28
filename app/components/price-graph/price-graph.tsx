@@ -20,7 +20,7 @@ import {
   VictoryVoronoiContainer,
 } from "victory-native"
 import * as currency_fmt from "currency.js"
-import { parseDate } from "../../utils/date"
+import { parseDate, formatDate } from "../../utils/date"
 import { color } from "../../theme"
 import { palette } from "../../theme/palette"
 import { translate } from "../../i18n"
@@ -140,6 +140,10 @@ export const PriceGraph: ComponentType = ({
     | null
   >(null)
 
+  React.useEffect(() => {
+    setSelectedPoint(null)
+  }, [graphRange])
+
   const formatPrice = (price: number) => {
     return currency_fmt
       .default(price, { precision: 2, symbol: "₡", separator: ".", decimal: "," })
@@ -211,7 +215,7 @@ export const PriceGraph: ComponentType = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.topContainer}>
+      <Pressable style={styles.topContainer} onPress={() => setSelectedPoint(null)}>
         {!selectedPoint && (
           <View style={styles.headerWrapper}>
             <View style={styles.priceRow}>
@@ -233,7 +237,7 @@ export const PriceGraph: ComponentType = ({
         {selectedPoint && (
           <View style={styles.headerWrapper}>
             <Text style={styles.selectedMeta}>
-              {parseDate(selectedPoint.timestamp).toDateString()}
+              {formatDate({ createdAt: selectedPoint.timestamp, showFullDate: true })}
             </Text>
             <Text style={styles.selectedPrice}>
               {formatPrice(
@@ -244,7 +248,7 @@ export const PriceGraph: ComponentType = ({
             </Text>
           </View>
         )}
-      </View>
+      </Pressable>
       <View style={styles.chartContainer}>
         <VictoryChart
           width={Dimensions.get("window").width}
@@ -261,7 +265,8 @@ export const PriceGraph: ComponentType = ({
                   })
                 }
               }}
-              onDeactivated={() => setSelectedPoint(null)}
+              // Keep selection after touch end; do not clear on deactivate
+              onDeactivated={() => {}}
             />
           }
         >
@@ -338,7 +343,7 @@ const styles = EStyleSheet.create({
 
   chartContainer: {
     width: '100%',
-    height: Dimensions.get("window").height * 0.55,
+    height: Dimensions.get("window").height * 0.35,
   },
 
   delta: {

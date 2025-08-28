@@ -360,7 +360,7 @@ export const EarnMapScreen: React.FC<IEarnMapScreen> = ({
     )
   })
 
-  const scrollViewRef: React.MutableRefObject<ScrollView> = React.useRef()
+  const scrollViewRef: React.MutableRefObject<ScrollView | null> = React.useRef(null)
 
   React.useEffect(() => {
     scrollViewRef.current.scrollToEnd()
@@ -387,7 +387,7 @@ export const EarnMapScreen: React.FC<IEarnMapScreen> = ({
   }
 
   const onPanGestureEvent = (event) => {
-    if (event.nativeEvent.translationY > 50) {
+    if (event.nativeEvent.translationY > 20) {
       setIsChatOpen(false);
     }
   };
@@ -444,11 +444,17 @@ export const EarnMapScreen: React.FC<IEarnMapScreen> = ({
             onGestureEvent={onPanGestureEvent}
             onHandlerStateChange={({ nativeEvent }) => {
               if (nativeEvent.oldState === State.ACTIVE) {
-                if (nativeEvent.translationY > 50) {
+                if (nativeEvent.translationY > 20) {
                   setIsChatOpen(false);
                 }
               }
             }}
+            activeOffsetX={[-50, 50]}
+            failOffsetY={[-15, 15]}
+            activeOffsetY={[-5, 5]}
+            minPointers={1}
+            maxPointers={1}
+            shouldCancelWhenOutside={false}
           >
             <View style={styles.modalContent}>
               <View style={styles.dragIndicator} />

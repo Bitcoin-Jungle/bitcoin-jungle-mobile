@@ -287,6 +287,7 @@ export const MoveMoneyScreen: ScreenType = ({
   const colors = useThemeColor()
   const styles = useStyles()
   const [modalVisible, setModalVisible] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
   const [bannerData, setBannerData] = useState<BannerData>({
     show: false,
     imageUrl: '',
@@ -333,6 +334,17 @@ export const MoveMoneyScreen: ScreenType = ({
       console.log({ err }, "error app link on link")
       // handle error
     })
+
+  const handleRefresh = async () => {
+    setRefreshing(true)
+    try {
+      await refetch()
+    } catch (error) {
+      console.error('Refresh failed:', error)
+    } finally {
+      setRefreshing(false)
+    }
+  }
   
   const fetchBannerData = async () => {
     try {
@@ -398,7 +410,8 @@ export const MoveMoneyScreen: ScreenType = ({
     <GestureHandlerRootView style={{ flex: 1 }}>
       <PanGestureHandler
         onEnded={onGestureEvent}
-        activeOffsetX={[-20, 20]}
+        activeOffsetX={[-50, 50]}
+        failOffsetY={[-10, 10]}
       >
         <View style={{ flex: 1 }}>
           <Screen style={styles.screenStyle}>
@@ -514,7 +527,15 @@ export const MoveMoneyScreen: ScreenType = ({
                 ...(recentTRansactionsData ? [recentTRansactionsData] : []),
               ].filter((item): item is NonNullable<typeof item> => item !== undefined && !item.hidden)}
               style={styles.listContainer}
-              refreshControl={<RefreshControl refreshing={loading} onRefresh={refetch} />}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                  tintColor={colors.primary}
+                  colors={[colors.primary]}
+                  progressBackgroundColor={colors.surface}
+                />
+              }
               renderItem={({ item }) =>
                 item && (
                   <>
