@@ -21,6 +21,7 @@ import { translate } from "../../i18n"
 import { MoveMoneyStackParamList } from "../../navigation/stack-param-lists"
 import { palette } from "../../theme/palette"
 import { useThemeColor } from "../../theme/useThemeColor"
+import { useTheme } from "../../theme/theme-context"
 import {
   getFullUri as getFullUriUtil,
   TYPE_LIGHTNING,
@@ -66,6 +67,7 @@ export const QRView = ({
   err,
 }: Props): JSX.Element => {
   const colors = useThemeColor()
+  const { isDark } = useTheme()
   const styles = useStyles()
   const isReady = !err && (type === TYPE_LIGHTNING ? !loading && data !== "" : true)
 
@@ -161,17 +163,19 @@ export const QRView = ({
     if (!completed && isReady) {
       return (
         <Pressable onPress={copyToClipboard}>
-          <QRCode
-            size={280}
-            value={getFullUri({ input: data, uppercase: true })}
-            logoBackgroundColor="white"
-            ecl={configByType[type].ecl}
-            // __DEV__ workaround for https://github.com/facebook/react-native/issues/26705
-            logo={
-              // !__DEV__ &&
-              Icon.getImageSourceSync(configByType[type].icon, 28, palette.orange)
-            }
-          />
+          <View style={isDark ? styles.qrWhitePadding : undefined}>
+            <QRCode
+              size={280}
+              value={getFullUri({ input: data, uppercase: true })}
+              logoBackgroundColor="white"
+              ecl={configByType[type].ecl}
+              // __DEV__ workaround for https://github.com/facebook/react-native/issues/26705
+              logo={
+                // !__DEV__ &&
+                Icon.getImageSourceSync(configByType[type].icon, 28, palette.orange)
+              }
+            />
+          </View>
         </Pressable>
       )
     }
@@ -258,6 +262,12 @@ const useStyles = () => {
 
     qr: {
       alignItems: "center",
+    },
+
+    qrWhitePadding: {
+      backgroundColor: "#ffffff",
+      padding: 16,
+      borderRadius: 16,
     },
   })
 }
