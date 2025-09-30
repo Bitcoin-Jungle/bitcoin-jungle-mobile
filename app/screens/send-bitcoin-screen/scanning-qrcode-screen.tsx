@@ -1,7 +1,7 @@
 import { useIsFocused, useNavigationState } from "@react-navigation/native"
 import * as React from "react"
-import { Alert, Dimensions, Pressable, View, ViewStyle } from "react-native"
-import { RNCamera } from "react-native-camera"
+import { Alert, Dimensions, Pressable, View, ViewStyle, Platform, PermissionsAndroid } from "react-native"
+import { Camera, CameraType } from "react-native-camera-kit"
 import EStyleSheet from "react-native-extended-stylesheet"
 import { launchImageLibrary } from "react-native-image-picker"
 import Svg, { Circle, Path } from "react-native-svg"
@@ -76,8 +76,41 @@ export const ScanningQRCodeScreen: ScreenType = ({
 }: ScanningQRCodeScreenProps) => {
   const index = useNavigationState((state) => state.index)
   const [pending, setPending] = React.useState(false)
+  const [hasPermission, setHasPermission] = React.useState(false)
   const { tokenNetwork } = useToken()
   const { myPubKey, username } = useMainQuery()
+
+  React.useEffect(() => {
+    const requestCameraPermission = async () => {
+      if (Platform.OS === 'android') {
+        try {
+          const granted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.CAMERA,
+            {
+              title: translate("ScanningQRCodeScreen.permissionTitle"),
+              message: translate("ScanningQRCodeScreen.permissionMessage"),
+              buttonNeutral: translate("common.later"),
+              buttonNegative: translate("common.cancel"),
+              buttonPositive: translate("common.ok"),
+            }
+          )
+          setHasPermission(granted === PermissionsAndroid.RESULTS.GRANTED)
+          if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+            navigation.goBack()
+          }
+        } catch (err) {
+          console.warn(err)
+          setHasPermission(false)
+          navigation.goBack()
+        }
+      } else {
+        // iOS permissions are handled automatically by the system using Info.plist
+        setHasPermission(true)
+      }
+    }
+
+    requestCameraPermission()
+  }, [])
   const decodeInvoice = async (data) => {
     if (pending) {
       return
@@ -206,16 +239,20 @@ export const ScanningQRCodeScreen: ScreenType = ({
 
   return (
     <Screen unsafe>
-      {useIsFocused() && (
-        <RNCamera
-          style={CAMERA}
-          captureAudio={false}
-          onBarCodeRead={(event) => {
-            const qr = event.data
-            decodeInvoice(qr)
-          }}
-          onTap={(r) => console.log({ r })}
-        >
+      {useIsFocused() && hasPermission && (
+        <>
+          <Camera
+            style={CAMERA}
+            cameraType={CameraType.Back}
+            scanBarcode={true}
+            onReadCode={(event) => {
+              const qr = event.nativeEvent.codeStringValue
+              if (qr) {
+                decodeInvoice(qr)
+              }
+            }}
+            showFrame={false}
+          />
           <View style={styles.rectangleContainer}>
             <View style={styles.rectangle} />
           </View>
@@ -223,7 +260,7 @@ export const ScanningQRCodeScreen: ScreenType = ({
             <View style={styles.close}>
               <Svg viewBox="0 0 100 100">
                 <Circle cx={50} cy={50} r={50} fill={palette.white} opacity={0.5} />
-                <Path 
+                <Path
                   d="M30 30 L70 70 M70 30 L30 70"
                   stroke="black"
                   strokeWidth="8"
@@ -252,7 +289,7 @@ export const ScanningQRCodeScreen: ScreenType = ({
               style={{ opacity: 0.8 }}
             />
           </Pressable>
-        </RNCamera>
+        </>
       )}
     </Screen>
   )

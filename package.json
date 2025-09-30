@@ -84,7 +84,7 @@
     "react-dom": "^17.0.1",
     "react-inspector": "^6.0.0",
     "react-native": "0.78.3",
-    "react-native-camera": "^4.2.1",
+    "react-native-camera-kit": "^16.1.2",
     "react-native-crypto": "^2.2.0",
     "react-native-device-info": "^8.4.8",
     "react-native-elements": "^3.4.2",

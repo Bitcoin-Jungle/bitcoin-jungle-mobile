@@ -14717,12 +14717,10 @@ react-native-animatable@1.4.0:
   dependencies:
     prop-types "^15.8.1"
 
-react-native-camera@^4.2.1:
-  version "4.2.1"
-  resolved "https://registry.yarnpkg.com/react-native-camera/-/react-native-camera-4.2.1.tgz#caf74081f055e89d7e9b0cd5108965d808c60e90"
-  integrity sha512-+Vkql24PFYQfsPRznJCvPwJQfyzCnjlcww/iZ4Ej80bgivKjL9eU0IMQIXp4yi6XCrKi4voWXxIDPMupQZKeIQ==
-  dependencies:
-    prop-types "^15.6.2"
+react-native-camera-kit@^16.1.2:
+  version "16.1.2"
+  resolved "https://registry.yarnpkg.com/react-native-camera-kit/-/react-native-camera-kit-16.1.2.tgz#2362b64838c2e49abbc9cabd1f5c1a370b0882cf"
+  integrity sha512-FkjowBYnCnltWkiaHozJ+8tzlYuss2GpMy79s5rtoWfSB7ey0fzUFCVLAqPgE7BI7wQ11faEnjaaogRuxxJLqg==
 
 react-native-country-picker-modal@^2.0.0:
   version "2.0.0"
