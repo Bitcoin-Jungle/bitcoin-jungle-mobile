@@ -46,25 +46,6 @@ const styles = EStyleSheet.create({
     top: screenHeight - 96,
     width: 128,
   },
-
-  // eslint-disable-next-line react-native/no-color-literals
-  rectangle: {
-    backgroundColor: "transparent",
-    borderColor: palette.blue,
-    borderWidth: 2,
-    height: screenWidth * 0.65,
-    width: screenWidth * 0.65,
-  },
-
-  rectangleContainer: {
-    alignItems: "center",
-    bottom: 0,
-    justifyContent: "center",
-    left: 0,
-    position: "absolute",
-    right: 0,
-    top: 0,
-  },
 })
 
 type ScanningQRCodeScreenProps = {
@@ -251,11 +232,13 @@ export const ScanningQRCodeScreen: ScreenType = ({
                 decodeInvoice(qr)
               }
             }}
-            showFrame={false}
+            showFrame={true}
+            zoomMode="on"
+            zoom={undefined}
+            maxZoom={10.0}
+            resizeMode="cover"
+            barcodeFrameSize={{width: 300, height: 300}}
           />
-          <View style={styles.rectangleContainer}>
-            <View style={styles.rectangle} />
-          </View>
           <Pressable onPress={navigation.goBack}>
             <View style={styles.close}>
               <Svg viewBox="0 0 100 100">

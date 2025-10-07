@@ -84,9 +84,23 @@ android {
         applicationId "app.bitcoinjungle.mobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 437
-        versionName "1.4.4"
+        versionCode 443
+        versionName "1.4.5"
         missingDimensionStrategy 'react-native-camera', 'general' // React native camera
+
+        // Declare support for 16 KB page sizes
+        buildFeatures.buildConfig true
+        buildConfigField "boolean", "SUPPORTS_16KB_PAGE_SIZE", "true"
+
+        // Enable support for 16 KB page sizes
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+        }
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON"
+            }
+        }
 
         // LEE WORKAROUND
         // 1.9.0 doesnt work with android sdk 32
@@ -143,7 +157,7 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
     implementation 'com.google.code.gson:gson:2.10.1'
- 
+
     if (hermesEnabled.toBoolean()) {
         implementation("com.facebook.react:hermes-android")
     } else {

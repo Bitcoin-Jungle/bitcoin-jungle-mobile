@@ -1,4 +1,4 @@
-import {randomBytes} from 'crypto';
+import {randomBytes as rnRandomBytes} from 'react-native-randombytes';
 import {Platform} from 'react-native';
 
 /**
@@ -9,31 +9,23 @@ import {Platform} from 'react-native';
 export const generateSecureRandomHex = (length: number): Promise<string> => {
   // Calculate number of bytes needed (2 hex chars per byte)
   const byteLength = Math.ceil(length / 2);
-  
+
   return new Promise((resolve, reject) => {
-    try {
-      // Handle potential issues with randomBytes
-      if (typeof randomBytes !== 'function') {
-        console.error('randomBytes is not a function');
-        // Fallback to a less secure method if randomBytes is not available
-        // Use Math.random as a last resort
-        let result = '';
-        const characters = '0123456789abcdef';
-        for (let i = 0; i < length; i++) {
-          result += characters.charAt(Math.floor(Math.random() * characters.length));
-        }
-        resolve(result);
+    rnRandomBytes(byteLength, (error: Error | null, bytes: Uint8Array) => {
+      if (error) {
+        console.error('Error generating secure random hex:', error);
+        reject(error);
         return;
       }
-      
-      // Use the secure randomBytes function
-      const bytes = randomBytes(byteLength);
-      const hexString = bytes.toString('hex').slice(0, length);
+
+      // Convert Uint8Array to hex string
+      const hexString = Array.from(bytes)
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('')
+        .slice(0, length);
+
       resolve(hexString);
-    } catch (error) {
-      console.error('Error generating secure random hex:', error);
-      reject(error);
-    }
+    });
   });
 }
 

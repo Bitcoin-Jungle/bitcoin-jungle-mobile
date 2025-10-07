@@ -1,6 +1,6 @@
 import {Platform} from 'react-native';
 import NfcManager, {NfcTech, Ndef} from 'react-native-nfc-manager';
-import {randomBytes} from 'crypto';
+import {randomBytes} from 'react-native-randombytes';
 import crc from 'crc';
 import errorCodes, {
   isoSelectErrorCodes,
@@ -10,6 +10,19 @@ import errorCodes, {
 
 var CryptoJS = require('./Cmac');
 var AES = require('crypto-js/aes');
+
+// Promisify randomBytes for easier use
+const randomBytesAsync = (size) => {
+  return new Promise((resolve, reject) => {
+    randomBytes(size, (error, bytes) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(bytes);
+      }
+    });
+  });
+};
 
 var Ntag424 = NfcManager;
 Ntag424.ti = null;
@@ -177,8 +190,8 @@ Ntag424.AuthEv2First = async function (keyNo, pKey) {
         aesEncryptOption,
       );
       const RndB = CryptoJS.enc.Hex.stringify(RndBDec);
-      const RndABytes = randomBytes(16);
-      const RndA = bytesToHex(RndABytes);
+      const RndABytes = await randomBytesAsync(16);
+      const RndA = bytesToHex(Array.from(RndABytes));
       const RndBRotlBytes = leftRotate(hexToBytes(RndB));
       const RndBRotl = bytesToHex(RndBRotlBytes);
 
@@ -294,8 +307,8 @@ Ntag424.AuthEv2NonFirst = async (keyNo, pKey) => {
       aesEncryptOption,
     );
     const RndB = CryptoJS.enc.Hex.stringify(RndBDec);
-    const RndABytes = randomBytes(16);
-    const RndA = bytesToHex(RndABytes);
+    const RndABytes = await randomBytesAsync(16);
+    const RndA = bytesToHex(Array.from(RndABytes));
     const RndBRotlBytes = leftRotate(hexToBytes(RndB));
     const RndBRotl = bytesToHex(RndBRotlBytes);
 

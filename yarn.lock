@@ -14717,10 +14717,10 @@ react-native-animatable@1.4.0:
   dependencies:
     prop-types "^15.8.1"
 
-react-native-camera-kit@^16.1.2:
-  version "16.1.2"
-  resolved "https://registry.yarnpkg.com/react-native-camera-kit/-/react-native-camera-kit-16.1.2.tgz#2362b64838c2e49abbc9cabd1f5c1a370b0882cf"
-  integrity sha512-FkjowBYnCnltWkiaHozJ+8tzlYuss2GpMy79s5rtoWfSB7ey0fzUFCVLAqPgE7BI7wQ11faEnjaaogRuxxJLqg==
+react-native-camera-kit@16.1.3:
+  version "16.1.3"
+  resolved "https://registry.yarnpkg.com/react-native-camera-kit/-/react-native-camera-kit-16.1.3.tgz#71a3005688f37cfad16b89bc85addf56921498df"
+  integrity sha512-mqOgFY8wON6YGaZVSP1eaH+fbcxIbUSgAaFlt5yLTz3H8Lc1Hl0IvQ4FlcC1lG5AbyqCyNqvK60kkgq5dWFnag==
 
 react-native-country-picker-modal@^2.0.0:
   version "2.0.0"
@@ -14734,7 +14734,7 @@ react-native-country-picker-modal@^2.0.0:
     prop-types "15.7.2"
     react-async-hook "3.6.1"
 
-react-native-crypto@^2.0.1, react-native-crypto@^2.2.0:
+react-native-crypto@^2.0.1:
   version "2.2.1"
   resolved "https://registry.yarnpkg.com/react-native-crypto/-/react-native-crypto-2.2.1.tgz#f4e2045f481f566f5aac4cf54ab51620128e908e"
   integrity sha512-ltiPUK9zFoiSltwYVxGanmdZbrhzCTejK6/cmWBfPn8btyRRJqK21i5eraFP9rqJeU7KfeVNV8gA014wQLnQYg==
@@ -14835,11 +14835,6 @@ react-native-is-edge-to-edge@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/react-native-is-edge-to-edge/-/react-native-is-edge-to-edge-1.2.1.tgz#64e10851abd9d176cbf2b40562f751622bde3358"
   integrity sha512-FLbPWl/MyYQWz+KwqOZsSyj2JmLKglHatd3xLZWskXOpRaio4LfEDEz8E/A6uD8QoTHW6Aobw1jbEwK7KMgR7Q==
-
-react-native-keychain@^8.0.0:
-  version "8.2.0"
-  resolved "https://registry.yarnpkg.com/react-native-keychain/-/react-native-keychain-8.2.0.tgz#aea82df37aacbb04f8b567a8e0e6d7292025610a"
-  integrity sha512-SkRtd9McIl1Ss2XSWNLorG+KMEbgeVqX+gV+t3u1EAAqT8q2/OpRmRbxpneT2vnb/dMhiU7g6K/pf3nxLUXRvA==
 
 react-native-localize@^2.1.5:
   version "2.2.6"

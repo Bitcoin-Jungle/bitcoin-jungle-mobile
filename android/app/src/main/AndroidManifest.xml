@@ -22,7 +22,8 @@
       android:roundIcon="@mipmap/ic_launcher"
       android:allowBackup="false"
       android:theme="@style/AppTheme"
-      android:supportsRtl="true">
+      android:supportsRtl="true"
+      android:allowNativeHeapPointerTagging="false">
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"
