@@ -16,6 +16,7 @@ import type { ScreenType } from "../../types/jsx"
 import { PinScreenPurpose } from "../../utils/enum"
 import { sleep } from "../../utils/sleep"
 import { showModalClipboardIfValidPayment } from "../../utils/clipboard"
+import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 import { RootStackParamList } from "../../navigation/stack-param-lists"
 import { StackNavigationProp } from "@react-navigation/stack"
 import { RouteProp } from "@react-navigation/native"
@@ -150,6 +151,10 @@ export const PinScreen: ScreenType = ({ route, navigation }: Props) => {
 
   const handleCompletedPinForAuthenticatePin = async (newEnteredPIN: string) => {
     if (newEnteredPIN === (await KeyStoreWrapper.getPinOrEmptyString())) {
+      ReactNativeHapticFeedback.trigger("notificationSuccess", {
+        enableVibrateFallback: true,
+        ignoreAndroidSystemSettings: false,
+      })
       KeyStoreWrapper.resetPinAttempts()
       navigation.reset({
         index: 0,
@@ -163,6 +168,10 @@ export const PinScreen: ScreenType = ({ route, navigation }: Props) => {
           username,
         })
     } else {
+      ReactNativeHapticFeedback.trigger("notificationError", {
+        enableVibrateFallback: true,
+        ignoreAndroidSystemSettings: false,
+      })
       if (pinAttempts < MAX_PIN_ATTEMPTS - 1) {
         const newPinAttempts = pinAttempts + 1
         KeyStoreWrapper.setPinAttempts(newPinAttempts.toString())
@@ -198,6 +207,10 @@ export const PinScreen: ScreenType = ({ route, navigation }: Props) => {
 
   const addDigit = (digit: string) => {
     if (enteredPIN.length < 4) {
+      ReactNativeHapticFeedback.trigger("selection", {
+        enableVibrateFallback: true,
+        ignoreAndroidSystemSettings: false,
+      })
       const newEnteredPIN = enteredPIN + digit
       setEnteredPIN(newEnteredPIN)
 
@@ -226,6 +239,10 @@ export const PinScreen: ScreenType = ({ route, navigation }: Props) => {
   }
 
   const returnToSetPin = () => {
+    ReactNativeHapticFeedback.trigger("notificationError", {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    })
     setPreviousPIN("")
     setHelperText(translate("PinScreen.setPinFailedMatch"))
     setEnteredPIN("")

@@ -27,6 +27,7 @@ import {
   TYPE_LIGHTNING,
   TYPE_BITCOIN,
 } from "../../utils/wallet"
+import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 
 import successLottie from "../send-bitcoin-screen/success_lottie.json"
 
@@ -78,6 +79,10 @@ export const QRView = ({
   )
 
   const copyToClipboard = useCallback(() => {
+    ReactNativeHapticFeedback.trigger("impactLight", {
+      enableVibrateFallback: true,
+      ignoreAndroidSystemSettings: false,
+    })
     Clipboard.setString(getFullUri({ input: data, prefix: false }))
 
     if (Platform.OS === "ios") {

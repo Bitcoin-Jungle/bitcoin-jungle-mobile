@@ -20,6 +20,7 @@ import { StackNavigationProp } from "@react-navigation/stack"
 import useToken from "../../utils/use-token"
 import useMainQuery from "@app/hooks/use-main-query"
 import Clipboard from "@react-native-clipboard/clipboard"
+import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 
 const CAMERA: ViewStyle = {
   width: "100%",
@@ -99,6 +100,10 @@ export const ScanningQRCodeScreen: ScreenType = ({
     try {
       const { valid, lnurl } = validPayment(data, tokenNetwork, myPubKey, username)
       if (valid) {
+        ReactNativeHapticFeedback.trigger("notificationSuccess", {
+          enableVibrateFallback: true,
+          ignoreAndroidSystemSettings: false,
+        })
         if (lnurl) {
           setPending(true)
           const lnurlParams = await getParams(lnurl)

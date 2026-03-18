@@ -22,6 +22,7 @@ import QRView from "./qr-view"
 import { validPayment } from "../../utils/parsing"
 import { getParams, LNURLPayParams, LNURLWithdrawParams } from "js-lnurl"
 import { readNfcTag } from "../../utils/nfc"
+import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 import {
   useMoneyAmount,
   useMyCurrencies,
@@ -437,6 +438,15 @@ export const ReceiveBitcoinScreen: ScreenType = ({ navigation, route }: Props) =
 
   const invoicePaid =
     lnUpdate?.paymentHash === invoice?.paymentHash && lnUpdate?.status === "PAID"
+
+  useEffect(() => {
+    if (invoicePaid) {
+      ReactNativeHapticFeedback.trigger("notificationSuccess", {
+        enableVibrateFallback: true,
+        ignoreAndroidSystemSettings: false,
+      })
+    }
+  }, [invoicePaid])
 
   useEffect(() => {
     let lnurlErrorStr = ""
