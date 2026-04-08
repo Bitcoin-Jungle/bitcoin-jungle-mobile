@@ -18,6 +18,7 @@ import { useMySubscription } from "../../hooks/user-hooks"
 import Share from "react-native-share"
 import RNFS from 'react-native-fs'
 import { useSafeAreaInsets } from "react-native-safe-area-context"
+import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 // import analytics from "@react-native-firebase/analytics"
 
 import { translate } from "../../i18n"
@@ -381,6 +382,8 @@ export const SinpeScreen: ScreenType = ({route, navigation}: SinpeScreenProps) =
                 'x-bj-wallet': "true",
               },
             }}
+            mediaCapturePermissionGrantType="grant"
+            allowsInlineMediaPlayback={true}
             onMessage={async (event) => {
               const data = JSON.parse(event.nativeEvent.data)
 
@@ -422,6 +425,14 @@ export const SinpeScreen: ScreenType = ({route, navigation}: SinpeScreenProps) =
 
                 case "downloadFile":
                   await downloadFile(data.data, data.filename, data.mimeType)
+                  break;
+
+                case "haptic":
+                  const hapticMap = { nudge: "selection", light: "impactLight", medium: "impactMedium" }
+                  ReactNativeHapticFeedback.trigger(hapticMap[data.preset] || "selection", {
+                    enableVibrateFallback: true,
+                    ignoreAndroidSystemSettings: false,
+                  })
                   break;
 
                 case "shareImage":
