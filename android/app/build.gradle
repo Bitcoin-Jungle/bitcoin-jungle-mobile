@@ -84,8 +84,8 @@ android {
         applicationId "app.bitcoinjungle.mobile"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 447 
-        versionName "1.4.7"
+        versionCode 448
+        versionName "1.4.8"
         missingDimensionStrategy 'react-native-camera', 'general' // React native camera
 
         // Declare support for 16 KB page sizes
