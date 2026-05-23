@@ -1,6 +1,6 @@
-import { useMutation, gql } from "@apollo/client"
+import { useMutation } from "@apollo/client"
 import * as React from "react"
-import { View } from "react-native"
+import { Alert, View } from "react-native"
 import { Input, Text, Icon } from "react-native-elements"
 import EStyleSheet from "react-native-extended-stylesheet"
 // import Icon from "react-native-vector-icons/Ionicons"
@@ -17,6 +17,10 @@ import { RouteProp } from "@react-navigation/native"
 import type { ScreenType } from "../../types/jsx"
 import { ContactTransactionsDataInjected } from "./contact-transactions"
 import useMainQuery from "@app/hooks/use-main-query"
+import { USER_CONTACT_UPDATE_ALIAS, USER_CONTACT_DELETE } from "../../graphql/contacts"
+import { contactIdentityInput } from "./contact-display"
+import { toastShow } from "../../utils/toast"
+import * as UsernameValidation from "../../utils/validation"
 // import { SafeAreaView } from "react-native-safe-area-context"
 
 const useStyles = () => {
@@ -96,30 +100,80 @@ export const ContactsDetailScreenJSX: ScreenType = ({
   navigation,
   refetchMain,
 }: ContactDetailScreenProps) => {
-  const [contactName, setContactName] = React.useState(contact.alias)
+  const [contactName, setContactName] = React.useState(contact.alias ?? "")
   const styles = useStyles()
   const colors = useThemeColor()
 
-  const UPDATE_NAME = gql`
-    mutation userContactUpdateAlias($input: UserContactUpdateAliasInput!) {
-      userContactUpdateAlias(input: $input) {
-        errors {
-          message
-        }
-      }
-    }
-  `
+  const contactLabel = contact.username ?? contact.lightningAddress ?? contact.id
 
-  const [updateNameMutation] = useMutation(UPDATE_NAME, {
+  const [updateNameMutation] = useMutation(USER_CONTACT_UPDATE_ALIAS, {
+    onCompleted: () => refetchMain(),
+  })
+
+  const [deleteContactMutation] = useMutation(USER_CONTACT_DELETE, {
+    refetchQueries: ["contacts"],
     onCompleted: () => refetchMain(),
   })
 
   const updateName = async () => {
-    // TODO: need optimistic updates
-    // FIXME this one doesn't work
-    await updateNameMutation({
-      variables: { input: { username: contact.username, alias: contactName } },
-    })
+    const trimmed = contactName.trim()
+
+    // The field auto-saves on blur, so skip no-op saves: blank, or unchanged from
+    // what's already stored (avoids re-submitting an existing alias that may itself
+    // predate the ContactAlias rules, e.g. an auto-added lightning address).
+    if (trimmed.length === 0 || trimmed === (contact.alias ?? "").trim()) {
+      return
+    }
+
+    // ContactAlias: starts with a letter, letters/spaces/hyphens/apostrophes, min 4.
+    if (!UsernameValidation.isValidContactAlias(trimmed)) {
+      toastShow(translate("ContactDetailsScreen.invalidAlias"))
+      setContactName(contact.alias ?? "")
+      return
+    }
+
+    try {
+      const { data } = await updateNameMutation({
+        variables: { input: { ...contactIdentityInput(contact), alias: trimmed } },
+      })
+      const errors = data?.userContactUpdateAlias?.errors
+      if (errors && errors.length > 0) {
+        toastShow(errors[0].message)
+        setContactName(contact.alias ?? "")
+      }
+    } catch (err) {
+      toastShow(err.message)
+      setContactName(contact.alias ?? "")
+    }
+  }
+
+  const deleteContact = () => {
+    Alert.alert(
+      translate("ContactDetailsScreen.deleteTitle"),
+      translate("ContactDetailsScreen.deleteMessage", { name: contactName || contactLabel }),
+      [
+        { text: translate("common.cancel"), style: "cancel" },
+        {
+          text: translate("common.delete"),
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const { data } = await deleteContactMutation({
+                variables: { input: contactIdentityInput(contact) },
+              })
+              const errors = data?.userContactDelete?.errors
+              if (errors && errors.length > 0) {
+                toastShow(errors[0].message)
+                return
+              }
+              navigation.goBack()
+            } catch (err) {
+              toastShow(err.message)
+            }
+          },
+        },
+      ],
+    )
   }
 
   return (
@@ -142,31 +196,40 @@ export const ContactsDetailScreenJSX: ScreenType = ({
               onBlur={updateName}
               returnKeyType="done"
             >
-              {contact.alias}
+              {contactName}
             </Input>
           </View>
-          <Text style={styles.amountSecondary}>{`${translate("common.username")}: ${
-            contact.username
-          }`}</Text>
+          <Text style={styles.amountSecondary}>{`${translate(
+            contact.username ? "common.username" : "common.lightningAddress",
+          )}: ${contactLabel}`}</Text>
         </View>
         <View style={styles.transactionsView}>
           <Text style={styles.screenTitle}>
             {translate("ContactDetailsScreen.title", {
-              input: contact.alias,
+              input: contactName || contactLabel,
             })}
           </Text>
-          <ContactTransactionsDataInjected
-            navigation={navigation}
-            contactUsername={contact.username}
-          />
+          {contact.username ? (
+            <ContactTransactionsDataInjected
+              navigation={navigation}
+              contactUsername={contact.username}
+            />
+          ) : null}
         </View>
         <View style={styles.actionsContainer}>
           <LargeButton
             title={translate("MoveMoneyScreen.send")}
             icon={<IconTransaction isReceive={false} size={32} />}
             onPress={() =>
-              navigation.navigate("sendBitcoin", { username: contact.username })
+              navigation.navigate("sendBitcoin", {
+                username: contact.username ?? contact.lightningAddress,
+              })
             }
+          />
+          <LargeButton
+            title={translate("ContactDetailsScreen.deleteContact")}
+            icon={<Icon name="trash-outline" size={32} color={colors.error} type="ionicon" />}
+            onPress={deleteContact}
           />
         </View>
         <CloseCross color={palette.white} onPress={navigation.goBack} />

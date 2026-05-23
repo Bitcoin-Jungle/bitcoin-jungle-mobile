@@ -57,3 +57,10 @@ export const isValid = (username: string): boolean => {
   const checkedUsername = validateUsername(username)
   return !(checkedUsername instanceof InvalidUsernameError)
 }
+
+// Mirrors the backend ContactAlias scalar: must start with a letter, then only
+// letters / spaces / hyphens / apostrophes, minimum 4 characters total.
+const CONTACT_ALIAS_REGEX = /^[a-zA-Z][a-zA-Z\s'-]{3,}$/
+
+export const isValidContactAlias = (alias: string): boolean =>
+  CONTACT_ALIAS_REGEX.test(alias.trim())

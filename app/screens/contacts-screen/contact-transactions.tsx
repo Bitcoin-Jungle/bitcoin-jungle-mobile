@@ -80,6 +80,7 @@ export const ContactTransactionsDataInjected: ScreenType = ({
 
   const { error, data, refetch } = useQuery(TRANSACTIONS_LIST_FOR_CONTACT, {
     variables: { username: contactUsername, first: TRANSACTIONS_PER_PAGE, after: null },
+    skip: !contactUsername,
   })
 
   const prefCurrency = useReactiveVar(prefCurrencyVar)

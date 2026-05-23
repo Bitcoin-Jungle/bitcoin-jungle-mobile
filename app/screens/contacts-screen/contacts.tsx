@@ -1,8 +1,8 @@
-import { gql, useQuery } from "@apollo/client"
+import { useQuery } from "@apollo/client"
 import { StackNavigationProp } from "@react-navigation/stack"
 import * as React from "react"
 import { useCallback, useMemo, useState } from "react"
-import { ActivityIndicator, Text, View } from "react-native"
+import { ActivityIndicator, Text, TouchableOpacity, View } from "react-native"
 import {
   ListItem,
   SearchBar,
@@ -24,6 +24,8 @@ import { useThemeColor } from "../../theme/useThemeColor"
 import { ScreenType } from "../../types/jsx"
 import { toastShow } from "../../utils/toast"
 import useToken from "../../utils/use-token"
+import { CONTACTS } from "../../graphql/contacts"
+import { contactDisplayName } from "./contact-display"
 // TODO: get rid of this wrapper once SearchBar props are figured out ref: https://github.com/react-native-elements/react-native-elements/issues/3089
 const SafeSearchBar = SearchBar as unknown as React.FC<
   SearchBarBaseProps | SearchBarDefaultProps | SearchBarAndroidProps | SearchBarIosProps
@@ -38,6 +40,25 @@ const useStyles = () => {
       alignItems: "center",
       flex: 1,
       justifyContent: "center",
+    },
+
+    addButton: {
+      alignItems: "center",
+      flexDirection: "row",
+    },
+
+    addButtonText: {
+      color: colors.primary,
+      fontSize: 16,
+      marginLeft: 4,
+    },
+
+    headerRow: {
+      alignItems: "center",
+      flexDirection: "row",
+      justifyContent: "flex-end",
+      marginHorizontal: 26,
+      marginTop: 12,
     },
 
     emptyListNoContacts: {
@@ -111,24 +132,10 @@ export const ContactsScreen: ScreenType = ({ navigation }: Props) => {
   const [matchingContacts, setMatchingContacts] = useState([])
   const [searchText, setSearchText] = useState("")
 
-  const { loading, data, error } = useQuery(
-    gql`
-      query contacts {
-        me {
-          id
-          contacts {
-            username
-            alias
-            transactionsCount
-          }
-        }
-      }
-    `,
-    {
-      skip: !hasToken,
-      fetchPolicy: "cache-and-network",
-    },
-  )
+  const { loading, data, error } = useQuery(CONTACTS, {
+    skip: !hasToken,
+    fetchPolicy: "cache-and-network",
+  })
 
   if (error) {
     toastShow(error.message)
@@ -137,7 +144,7 @@ export const ContactsScreen: ScreenType = ({ navigation }: Props) => {
   const contacts: Contact[] = useMemo(() => {
     return (
       data?.me?.contacts.filter((contact) => {
-        return !filteredContactNames.includes(contact.username)
+        return !filteredContactNames.includes(contact.username ?? "")
       }) ?? []
     )
   }, [data])
@@ -147,7 +154,7 @@ export const ContactsScreen: ScreenType = ({ navigation }: Props) => {
   }, [contacts])
 
   // This implementation of search will cause a match if any word in the search text
-  // matches the contacts name or prettyName.
+  // matches the contact's username, lightning address, or alias.
   const updateMatchingContacts = useCallback(
     (newSearchText: string) => {
       setSearchText(newSearchText)
@@ -167,21 +174,10 @@ export const ContactsScreen: ScreenType = ({ navigation }: Props) => {
   )
 
   const wordMatchesContact = (searchWord: string, contact: Contact): boolean => {
-    let contactPrettyNameMatchesSearchWord
-
-    const contactNameMatchesSearchWord = contact.username
-      .toLowerCase()
-      .includes(searchWord.toLowerCase())
-
-    if (contact.alias === null) {
-      contactPrettyNameMatchesSearchWord = false
-    } else {
-      contactPrettyNameMatchesSearchWord = contact.alias
-        .toLowerCase()
-        .includes(searchWord.toLowerCase())
-    }
-
-    return contactNameMatchesSearchWord || contactPrettyNameMatchesSearchWord
+    const word = searchWord.toLowerCase()
+    return [contact.username, contact.lightningAddress, contact.alias].some(
+      (field) => field != null && field.toLowerCase().includes(word),
+    )
   }
 
   let searchBarContent: JSX.Element
@@ -237,6 +233,17 @@ export const ContactsScreen: ScreenType = ({ navigation }: Props) => {
 
   return (
     <Screen backgroundColor={colors.background}>
+      <View style={styles.headerRow}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate("addContact")}
+        >
+          <Icon name="add" size={28} color={colors.primary} type="ionicon" />
+          <Text style={styles.addButtonText}>
+            {translate("ContactsScreen.addContact")}
+          </Text>
+        </TouchableOpacity>
+      </View>
       {searchBarContent}
       <FlatList
         contentContainerStyle={styles.listContainer}
@@ -244,7 +251,7 @@ export const ContactsScreen: ScreenType = ({ navigation }: Props) => {
         ListEmptyComponent={() => listEmptyContent}
         renderItem={({ item }) => (
           <ListItem
-            key={item.username}
+            key={item.id}
             underlayColor={colors.background}
             activeOpacity={0.7}
             style={styles.item}
@@ -253,11 +260,13 @@ export const ContactsScreen: ScreenType = ({ navigation }: Props) => {
           >
             <Icon name={"person-outline"} size={24} color={colors.success} type="ionicon" />
             <ListItem.Content>
-              <ListItem.Title style={{ color: colors.text }}>{item.alias}</ListItem.Title>
+              <ListItem.Title style={{ color: colors.text }}>
+                {contactDisplayName(item)}
+              </ListItem.Title>
             </ListItem.Content>
           </ListItem>
         )}
-        keyExtractor={(item) => item.username}
+        keyExtractor={(item) => item.id}
       />
     </Screen>
   )
