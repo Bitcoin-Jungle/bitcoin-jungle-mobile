@@ -2447,7 +2447,9 @@
     "success": "Payment has been sent successfully",
     "title": "Send Bitcoin",
     "usernameNotFound": "A user matching the entered username could not be found.",
-    "sendLockEnabled": "Send lock is enabled on this device"
+    "sendLockEnabled": "Send lock is enabled on this device",
+    "firstTimeRecipientTitle": "First time sending to this user",
+    "firstTimeRecipientMessage": "You haven't sent to {{username}} before. Double-check the username is correct — payments cannot be reversed."
   },
   "SettingsScreen": {
     "activate": "Tap to activate",

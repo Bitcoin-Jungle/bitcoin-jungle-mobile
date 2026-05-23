@@ -1,10 +1,10 @@
 /* eslint-disable react-native/no-inline-styles */
-import { gql, useApolloClient, useLazyQuery } from "@apollo/client"
+import { gql, useApolloClient, useLazyQuery, useMutation, useQuery } from "@apollo/client"
 import { StackNavigationProp } from "@react-navigation/stack"
 import { RouteProp } from "@react-navigation/native"
 import * as React from "react"
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { ActivityIndicator, ScrollView, Text, View } from "react-native"
+import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native"
 import { Button, Icon } from "react-native-elements"
 import EStyleSheet from "react-native-extended-stylesheet"
 // import Icon from "react-native-vector-icons/Ionicons"
@@ -29,6 +29,7 @@ import { useMyCurrencies, useMySubscription } from "../../hooks/user-hooks"
 import { toastShow } from "../../utils/toast"
 import useMainQuery from "@app/hooks/use-main-query"
 import KeyStoreWrapper from "../../utils/storage/secureStorage"
+import { CONTACTS, USER_CONTACT_ADD } from "../../graphql/contacts"
 
 export const PRICE_CHECK_INTERVAL = 10000
 
@@ -58,7 +59,16 @@ export const SendBitcoinScreen: ScreenType = ({
   route,
 }: SendBitcoinScreenProps) => {
   const client = useApolloClient()
-  const { tokenNetwork } = useToken()
+  const { tokenNetwork, hasToken } = useToken()
+
+  const { data: contactsData } = useQuery(CONTACTS, {
+    skip: !hasToken,
+    fetchPolicy: "cache-first",
+  })
+
+  const [userContactAddMutation] = useMutation(USER_CONTACT_ADD, {
+    refetchQueries: [{ query: CONTACTS }],
+  })
 
   const { formatCurrencyAmount } = useMySubscription()
   const { satBalance } = useWalletBalance()
@@ -393,42 +403,109 @@ export const SendBitcoinScreen: ScreenType = ({
         satAmount = Math.round(secondaryAmount.value) * 1000
       }
 
-      const url = new URL(lnurlPay.callback)
-      url.searchParams.append('amount', satAmount.toString())
-      url.searchParams.append('comment', memo)
-      const lnurlInvoice = await fetchInvoice(url.toString().replace(/\/\?/, '?'))
+      const proceedWithLnurlPayment = async () => {
+        const url = new URL(lnurlPay.callback)
+        url.searchParams.append('amount', satAmount.toString())
+        url.searchParams.append('comment', memo)
+        const lnurlInvoice = await fetchInvoice(url.toString().replace(/\/\?/, '?'))
 
-      if (lnurlInvoice.status && lnurlInvoice.status === "ERROR") {
-        setLnurlError(lnurlInvoice.reason)
-      } else {
+        if (lnurlInvoice.status && lnurlInvoice.status === "ERROR") {
+          setLnurlError(lnurlInvoice.reason)
+        } else {
+          navigation.navigate("sendBitcoinConfirmation", {
+            address,
+            amountless,
+            invoice: lnurlInvoice.pr,
+            lnurlSuccessAction: lnurlInvoice.successAction,
+            memo,
+            paymentType,
+            primaryCurrency,
+            referenceAmount,
+            sameNode,
+            username: null,
+            recipientDefaultWalletId: null,
+          })
+        }
+      }
+
+      if (isStaticLnurlIdentifier) {
+        const lightningAddress = destination
+          .replace(/^lightning:(\/\/)?/i, "")
+          .trim()
+          .toLowerCase()
+        const isKnownContact = contactsData?.me?.contacts?.some(
+          (c) => c.lightningAddress?.toLowerCase() === lightningAddress,
+        )
+
+        if (lightningAddress && !isKnownContact) {
+          Alert.alert(
+            translate("SendBitcoinScreen.firstTimeRecipientTitle"),
+            translate("SendBitcoinScreen.firstTimeRecipientMessage", {
+              username: lightningAddress,
+            }),
+            [
+              { text: translate("common.cancel"), style: "cancel" },
+              {
+                text: translate("common.confirm"),
+                onPress: async () => {
+                  try {
+                    await userContactAddMutation({
+                      variables: { input: { lightningAddress } },
+                    })
+                  } catch (err) {
+                    // saving the contact is best-effort; never block the payment
+                  }
+                  proceedWithLnurlPayment()
+                },
+              },
+            ],
+          )
+          return
+        }
+      }
+
+      proceedWithLnurlPayment()
+    } else {
+      const navigateToConfirmation = () =>
         navigation.navigate("sendBitcoinConfirmation", {
           address,
           amountless,
-          invoice: lnurlInvoice.pr,
-          lnurlSuccessAction: lnurlInvoice.successAction,
+          invoice,
           memo,
           paymentType,
           primaryCurrency,
           referenceAmount,
           sameNode,
-          username: null,
-          recipientDefaultWalletId: null,
+          username: paymentType === "username" ? destination : null,
+          recipientDefaultWalletId:
+            paymentType === "username" ? dataUserDefaultWalletId.userDefaultWalletId : null,
         })
+
+      if (paymentType === "username") {
+        const contact = contactsData?.me?.contacts?.find(
+          (c) => c.username?.toLowerCase() === destination.toLowerCase(),
+        )
+        const isFirstTimeRecipient = !contact || contact.transactionsCount < 1
+
+        if (isFirstTimeRecipient) {
+          Alert.alert(
+            translate("SendBitcoinScreen.firstTimeRecipientTitle"),
+            translate("SendBitcoinScreen.firstTimeRecipientMessage", {
+              username: destination,
+            }),
+            [
+              { text: translate("common.cancel"), style: "cancel" },
+              {
+                text: translate("common.confirm"),
+                onPress: navigateToConfirmation,
+              },
+            ],
+          )
+          return
+        }
       }
-    } else {
-      navigation.navigate("sendBitcoinConfirmation", {
-        address,
-        amountless,
-        invoice,
-        memo,
-        paymentType,
-        primaryCurrency,
-        referenceAmount,
-        sameNode,
-        username: paymentType === "username" ? destination : null,
-        recipientDefaultWalletId:
-          paymentType === "username" ? dataUserDefaultWalletId.userDefaultWalletId : null,
-      })
+
+      navigateToConfirmation()
     }
   }, [
     paymentType,
@@ -447,6 +524,9 @@ export const SendBitcoinScreen: ScreenType = ({
     referenceAmount,
     sameNode,
     dataUserDefaultWalletId,
+    contactsData,
+    isStaticLnurlIdentifier,
+    userContactAddMutation,
   ])
 
   return (

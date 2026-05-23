@@ -2473,7 +2473,9 @@
     "success": "El pago se ha enviado correctamente.",
     "title": "Enviar Bitcoin",
     "totalExceed": "total excede su saldo",
-    "sendLockEnabled": "El bloqueo de envío está habilitado en este dispositivo"
+    "sendLockEnabled": "El bloqueo de envío está habilitado en este dispositivo",
+    "firstTimeRecipientTitle": "Primera vez que envías a este usuario",
+    "firstTimeRecipientMessage": "No le has enviado a {{username}} antes. Verifica que el nombre de usuario sea correcto: los pagos no se pueden revertir."
   },
   "SettingsScreen": {
     "activated": "Activada",
