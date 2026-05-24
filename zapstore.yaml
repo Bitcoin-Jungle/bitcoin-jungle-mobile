@@ -1,6 +1,6 @@
+# Migrated from zapstore-cli format
+
 repository: https://github.com/Bitcoin-Jungle/bitcoin-jungle-mobile
-assets:
-  - .*.apk
-remote_metadata:
-  - playstore
-  - github
+match: ".*.apk"
+
+metadata_sources: [playstore, github]

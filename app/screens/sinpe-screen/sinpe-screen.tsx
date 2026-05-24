@@ -450,7 +450,6 @@ export const SinpeScreen: ScreenType = ({route, navigation}: SinpeScreenProps) =
                         filename: data.filename,
                         failOnCancel: false,
                         showAppsToView: true,
-                        saveToFiles: true,
                       });
                       
                       // Clean up temp file
@@ -465,7 +464,6 @@ export const SinpeScreen: ScreenType = ({route, navigation}: SinpeScreenProps) =
                         filename: data.filename,
                         failOnCancel: false,
                         showAppsToView: true,
-                        saveToFiles: true,
                       });
                     }
                   } catch (error) {
