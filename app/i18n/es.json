@@ -38,13 +38,31 @@
     "title": "Transferencia bancaria"
   },
   "ContactsScreen": {
+    "addContact": "Agregar contacto",
     "noContactsTitle": "No se encontraron contactos",
     "noContactsYet": "Envíe o reciba un pago utilizando un nombre de usuario y los contactos se agregarán automáticamente aquí",
     "noMatchingContacts": "No se encontraron coincidencias para su búsqueda.",
     "title": "Contactos"
   },
   "ContactDetailsScreen": {
-    "title": "Transacciones con %{input}"
+    "title": "Transacciones con %{input}",
+    "deleteContact": "Eliminar contacto",
+    "deleteTitle": "Eliminar contacto",
+    "deleteMessage": "¿Está seguro de que desea eliminar %{name}?",
+    "invalidAlias": "El nombre debe comenzar con una letra y usar solo letras, espacios, guiones y apóstrofes (al menos 4 caracteres)."
+  },
+  "AddContactScreen": {
+    "title": "Agregar un contacto",
+    "identifierLabel": "Nombre de usuario o dirección lightning",
+    "identifierPlaceholder": "alice o bob@strike.me",
+    "identifierRequired": "Ingrese un nombre de usuario o dirección lightning",
+    "invalidIdentifier": "Eso no parece un nombre de usuario o dirección lightning válidos",
+    "invalidAlias": "El nombre debe comenzar con una letra y usar solo letras, espacios, guiones y apóstrofes (al menos 4 caracteres).",
+    "usernameNotFound": "No se encontró ningún usuario activo de Bitcoin Jungle con ese nombre de usuario.",
+    "addFailed": "No se pudo agregar este contacto. Verifique los datos e intente de nuevo.",
+    "aliasLabel": "Nombre (opcional)",
+    "aliasPlaceholder": "Alice",
+    "save": "Guardar contacto"
   },
   "DateOfBirthScreen": {
     "title": "Fecha de nacimiento"
@@ -2455,7 +2473,9 @@
     "success": "El pago se ha enviado correctamente.",
     "title": "Enviar Bitcoin",
     "totalExceed": "total excede su saldo",
-    "sendLockEnabled": "El bloqueo de envío está habilitado en este dispositivo"
+    "sendLockEnabled": "El bloqueo de envío está habilitado en este dispositivo",
+    "firstTimeRecipientTitle": "Primera vez que envías a este usuario",
+    "firstTimeRecipientMessage": "No le has enviado a {{username}} antes. Verifica que el nombre de usuario sea correcto: los pagos no se pueden revertir."
   },
   "SettingsScreen": {
     "activated": "Activada",
@@ -2556,6 +2576,8 @@
     "confirm": "Confirmar",
     "csvExport": "Exportar transacciones (CSV)",
     "date": "Fecha ",
+    "delete": "Eliminar",
+    "lightningAddress": "Dirección Lightning",
     "description": "Descripción",
     "domain": "Dominio",
     "email": "Correo electrónico",

@@ -15,13 +15,31 @@
     "title": "Bank Transfer"
   },
   "ContactsScreen": {
+    "addContact": "Add Contact",
     "noContactsTitle": "No Contacts Found",
     "noContactsYet": "Send or receive a payment using a username and contacts will automatically be added here",
     "noMatchingContacts": "No contacts matching your search were found.",
     "title": "Contacts"
   },
   "ContactDetailsScreen": {
-    "title": "Transactions with %{input}"
+    "title": "Transactions with %{input}",
+    "deleteContact": "Delete Contact",
+    "deleteTitle": "Delete contact",
+    "deleteMessage": "Are you sure you want to delete %{name}?",
+    "invalidAlias": "Name must start with a letter and use only letters, spaces, hyphens and apostrophes (at least 4 characters)."
+  },
+  "AddContactScreen": {
+    "title": "Add a contact",
+    "identifierLabel": "Username or lightning address",
+    "identifierPlaceholder": "alice or bob@strike.me",
+    "identifierRequired": "Enter a username or lightning address",
+    "invalidIdentifier": "That doesn't look like a valid username or lightning address",
+    "invalidAlias": "Name must start with a letter and use only letters, spaces, hyphens and apostrophes (at least 4 characters).",
+    "usernameNotFound": "No active Bitcoin Jungle user found with that username.",
+    "addFailed": "Couldn't add this contact. Please check the details and try again.",
+    "aliasLabel": "Name (optional)",
+    "aliasPlaceholder": "Alice",
+    "save": "Save contact"
   },
   "DepositCashScreen": {
     "title": "Deposit Cash"
@@ -2429,7 +2447,9 @@
     "success": "Payment has been sent successfully",
     "title": "Send Bitcoin",
     "usernameNotFound": "A user matching the entered username could not be found.",
-    "sendLockEnabled": "Send lock is enabled on this device"
+    "sendLockEnabled": "Send lock is enabled on this device",
+    "firstTimeRecipientTitle": "First time sending to this user",
+    "firstTimeRecipientMessage": "You haven't sent to {{username}} before. Double-check the username is correct — payments cannot be reversed."
   },
   "SettingsScreen": {
     "activate": "Tap to activate",
@@ -2534,9 +2554,11 @@
     "connectionIssue": "No connection",
     "csvExport": "Export transactions as CSV",
     "date": "Date",
+    "delete": "Delete",
     "description": "Description",
     "domain": "Domain",
     "email": "Email",
+    "lightningAddress": "Lightning Address",
     "error": "Error",
     "fatal": "Fatal",
     "fee": "fee",

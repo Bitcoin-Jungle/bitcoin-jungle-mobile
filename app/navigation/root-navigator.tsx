@@ -22,7 +22,7 @@ import {
   AuthenticationCheckScreen,
 } from "../screens/authentication-screen"
 import { PinScreen } from "../screens/authentication-screen/pin-screen"
-import { ContactsScreen, ContactsDetailScreen } from "../screens/contacts-screen"
+import { ContactsScreen, ContactsDetailScreen, AddContactScreen } from "../screens/contacts-screen"
 import { DebugScreen } from "../screens/debug-screen"
 import { EarnMapDataInjected } from "../screens/earns-map-screen"
 import { EarnQuiz, EarnSection } from "../screens/earns-screen"
@@ -603,6 +603,11 @@ export const ContactNavigator: NavigatorType = () => (
     <StackContacts.Screen
       name="contactDetail"
       component={ContactsDetailScreen}
+      options={{ headerShown: false }}
+    />
+    <StackContacts.Screen
+      name="addContact"
+      component={AddContactScreen}
       options={{ headerShown: false }}
     />
   </StackContacts.Navigator>
