@@ -29,6 +29,8 @@ import { EarnQuiz, EarnSection } from "../screens/earns-screen"
 import { SectionCompleted } from "../screens/earns-screen/section-completed"
 import { GetStartedScreen } from "../screens/get-started-screen"
 import { MapScreen } from "../screens/map-screen/map-screen"
+import { AddLocationScreen } from "../screens/map-screen/add-location-screen"
+import { VerifyLocationScreen } from "../screens/map-screen/verify-location-screen"
 import { RouteLnurlScreen } from "../screens/route-lnurl-screen/route-lnurl-screen"
 import { SinpeScreen } from "../screens/sinpe-screen/sinpe-screen"
 import { MoveMoneyScreenDataInjected } from "../screens/move-money-screen"
@@ -497,6 +499,16 @@ export const RootStack: NavigatorType = () => {
         name="pointOfSale"
         component={PointOfSaleScreen}
         options={{ title: translate("PointOfSaleScreen.title") }}
+      />
+      <RootNavigator.Screen
+        name="addLocation"
+        component={AddLocationScreen}
+        options={{ title: translate("MapScreen.addLocationTitle") }}
+      />
+      <RootNavigator.Screen
+        name="verifyLocation"
+        component={VerifyLocationScreen}
+        options={{ title: translate("MapScreen.verifyTitle") }}
       />
       <RootNavigator.Screen
         name="lnurl"

@@ -88,7 +88,7 @@ export const LocationPrePrompt: React.FC<Props> = ({
           {translate("MapScreen.locationPermissionMessage")}
         </Text>
         <Text style={styles.privacy}>
-          Your location stays on your device. It is never sent to a server.
+          {translate("MapScreen.locationPrivacyNote")}
         </Text>
         <View style={styles.buttonRow}>
           <Button

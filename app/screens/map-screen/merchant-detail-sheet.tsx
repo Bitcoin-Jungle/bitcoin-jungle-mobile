@@ -4,15 +4,15 @@ import { Button, Icon } from "react-native-elements"
 import Modal from "react-native-modal"
 
 import useMainQuery from "@app/hooks/use-main-query"
-import { openWhatsApp } from "@app/utils/external"
-import { WHATSAPP_CONTACT_NUMBER } from "../../constants/support"
 import { translate } from "../../i18n"
 import { useThemeColor } from "../../theme/useThemeColor"
 import { BtcMapPlace } from "../../types/btcmap"
 import {
   directionsUrl,
+  formatPhone,
   localized,
   paymentMethods,
+  phoneTelHref,
   verificationStatus,
 } from "../../utils/btcmap"
 
@@ -21,6 +21,8 @@ type Props = {
   onClose: () => void
   currentView: "map" | "list"
   onViewOnMap: (p: BtcMapPlace) => void
+  onVerify: (p: BtcMapPlace) => void
+  onReport: (p: BtcMapPlace) => void
 }
 
 
@@ -77,8 +79,9 @@ const useStyles = () => {
     statusUnverified: { backgroundColor: colors.error },
     statusText: { color: colors.textSecondary, fontSize: 12 },
     ctaRow: { flexDirection: "row", gap: 12, marginTop: 12 },
-    ctaPrimary: { flex: 1, backgroundColor: colors.primary },
-    ctaSecondary: { flex: 1, backgroundColor: colors.buttonSecondary },
+    ctaFlex: { flex: 1 },
+    ctaPrimary: { backgroundColor: colors.primary },
+    ctaSecondary: { backgroundColor: colors.buttonSecondary },
     ctaSecondaryText: { color: colors.buttonSecondaryText },
   })
 }
@@ -88,6 +91,8 @@ export const MerchantDetailSheet: React.FC<Props> = ({
   onClose,
   currentView,
   onViewOnMap,
+  onVerify,
+  onReport,
 }) => {
   const styles = useStyles()
   const colors = useThemeColor()
@@ -106,12 +111,11 @@ export const MerchantDetailSheet: React.FC<Props> = ({
     if (typeof lat !== "number" || typeof lon !== "number") return
     Linking.openURL(directionsUrl(lat, lon, name, Platform.OS === "ios" ? "ios" : "android"))
   }
-  const openPhone = () => place.phone && Linking.openURL(`tel:${place.phone}`)
-  const openWebsite = () => place.website && Linking.openURL(place.website)
-  const openReport = () => {
-    const message = `Hi Bitcoin Jungle, I'd like to report an issue with this merchant:\n\nName: ${name}\nBTC Map ID: ${place.id}\nCoords: ${lat}, ${lon}\n\nIssue: `
-    openWhatsApp(WHATSAPP_CONTACT_NUMBER, encodeURIComponent(message))
+  const openPhone = () => {
+    const href = phoneTelHref(place.phone)
+    if (href) Linking.openURL(href)
   }
+  const openWebsite = () => place.website && Linking.openURL(place.website)
 
   return (
     <Modal
@@ -146,10 +150,14 @@ export const MerchantDetailSheet: React.FC<Props> = ({
             />
             <Text style={styles.statusText}>
               {status === "fresh"
-                ? `Verified ${formatVerifiedAt(place.verified_at)}`
+                ? translate("MapScreen.verifiedOn", {
+                    date: formatVerifiedAt(place.verified_at),
+                  })
                 : status === "stale"
-                ? `Last verified ${formatVerifiedAt(place.verified_at)} — may be out of date`
-                : "Not recently verified"}
+                ? translate("MapScreen.lastVerifiedStale", {
+                    date: formatVerifiedAt(place.verified_at),
+                  })
+                : translate("MapScreen.notRecentlyVerified")}
             </Text>
           </View>
 
@@ -170,8 +178,12 @@ export const MerchantDetailSheet: React.FC<Props> = ({
           {place.phone ? (
             <View style={styles.row}>
               <Icon name="call" type="ionicon" size={18} color={colors.iconDefault} containerStyle={styles.rowIcon} />
-              <Text style={[styles.rowText, styles.rowLink]} onPress={openPhone}>
-                {place.phone}
+              <Text
+                style={[styles.rowText, styles.rowLink]}
+                onPress={openPhone}
+                numberOfLines={1}
+              >
+                {formatPhone(place.phone)}
               </Text>
             </View>
           ) : null}
@@ -195,26 +207,44 @@ export const MerchantDetailSheet: React.FC<Props> = ({
           <View style={styles.ctaRow}>
             {currentView === "list" ? (
               <Button
-                title="View on Map"
+                title={translate("MapScreen.viewOnMap")}
                 icon={{ name: "map", type: "ionicon", color: "white", size: 16 }}
                 buttonStyle={styles.ctaPrimary}
+                containerStyle={styles.ctaFlex}
                 onPress={() => onViewOnMap(place)}
                 disabled={typeof lat !== "number" || typeof lon !== "number"}
               />
             ) : (
               <Button
-                title="Get Directions"
+                title={translate("MapScreen.getDirections")}
                 icon={{ name: "navigate", type: "ionicon", color: "white", size: 16 }}
                 buttonStyle={styles.ctaPrimary}
+                containerStyle={styles.ctaFlex}
                 onPress={openDirections}
                 disabled={typeof lat !== "number" || typeof lon !== "number"}
               />
             )}
+          </View>
+          <View style={styles.ctaRow}>
+            <Button
+              title={translate("MapScreen.verifyCta")}
+              icon={{
+                name: "checkmark-circle-outline",
+                type: "ionicon",
+                color: colors.buttonSecondaryText,
+                size: 16,
+              }}
+              buttonStyle={styles.ctaSecondary}
+              containerStyle={styles.ctaFlex}
+              titleStyle={styles.ctaSecondaryText}
+              onPress={() => onVerify(place)}
+            />
             <Button
               title={translate("MapScreen.reportModalTitle")}
               buttonStyle={styles.ctaSecondary}
+              containerStyle={styles.ctaFlex}
               titleStyle={styles.ctaSecondaryText}
-              onPress={openReport}
+              onPress={() => onReport(place)}
             />
           </View>
         </ScrollView>

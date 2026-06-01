@@ -2,7 +2,6 @@ import { StackNavigationProp } from "@react-navigation/stack"
 import * as React from "react"
 import {
   ActivityIndicator,
-  Linking,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -15,7 +14,7 @@ import RNMapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps"
 
 import { Screen } from "../../components/screen"
 import { translate } from "../../i18n"
-import { PrimaryStackParamList } from "../../navigation/stack-param-lists"
+import { PrimaryStackParamList, RootStackParamList } from "../../navigation/stack-param-lists"
 import { useThemeColor } from "../../theme/useThemeColor"
 import { ScreenType } from "../../types/jsx"
 import { BtcMapPlace, MerchantCategory } from "../../types/btcmap"
@@ -38,8 +37,6 @@ const COSTA_RICA_REGION = {
   latitudeDelta: 3.2,
   longitudeDelta: 3.2,
 }
-
-const ADD_LOCATION_URL = "https://btcmap.org/add-location"
 
 const useStyles = () => {
   const colors = useThemeColor()
@@ -132,9 +129,11 @@ type Props = {
   navigation: StackNavigationProp<PrimaryStackParamList, "Map">
 }
 
-export const MapScreen: ScreenType = (_props: Props) => {
+export const MapScreen: ScreenType = ({ navigation }: Props) => {
   const styles = useStyles()
   const colors = useThemeColor()
+  // addLocation/verifyLocation live on the root stack, not the Primary tabs.
+  const rootNav = navigation as unknown as StackNavigationProp<RootStackParamList>
   const { userPreferredLanguage } = useMainQuery()
   const { places, loading, lastSync } = useBtcMapPlaces()
   const { coords: userCoords, status: locationStatus, request: requestLocation } =
@@ -238,7 +237,17 @@ export const MapScreen: ScreenType = (_props: Props) => {
     }
   }, [locationStatus, userCoords])
 
-  const onAddMerchant = () => Linking.openURL(ADD_LOCATION_URL)
+  const onAddMerchant = () => rootNav.navigate("addLocation")
+
+  const onVerify = (p: BtcMapPlace) => {
+    setSelected(null)
+    rootNav.navigate("verifyLocation", { place: p, current: true })
+  }
+
+  const onReport = (p: BtcMapPlace) => {
+    setSelected(null)
+    rootNav.navigate("verifyLocation", { place: p, current: false })
+  }
 
   const onViewOnMap = (p: BtcMapPlace) => {
     if (typeof p.lat !== "number" || typeof p.lon !== "number") return
@@ -279,7 +288,7 @@ export const MapScreen: ScreenType = (_props: Props) => {
             color={view === "map" ? colors.primary : colors.iconDefault}
           />
           <Text style={[styles.toggleText, view === "map" && styles.toggleTextActive]}>
-            Map
+            {translate("MapScreen.viewMap")}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -296,7 +305,7 @@ export const MapScreen: ScreenType = (_props: Props) => {
             color={view === "list" ? colors.primary : colors.iconDefault}
           />
           <Text style={[styles.toggleText, view === "list" && styles.toggleTextActive]}>
-            List
+            {translate("MapScreen.viewList")}
           </Text>
         </TouchableOpacity>
       </View>
@@ -331,17 +340,18 @@ export const MapScreen: ScreenType = (_props: Props) => {
           {focusedPlace ? (
             <View style={styles.focusBanner}>
               <Text style={styles.focusBannerText} numberOfLines={1}>
-                {localized(focusedPlace, "name", userPreferredLanguage) || "Merchant"}
+                {localized(focusedPlace, "name", userPreferredLanguage) ||
+                  translate("MapScreen.merchantFallback")}
               </Text>
               <TouchableOpacity onPress={() => setFocusedId(null)}>
-                <Text style={styles.focusBannerBtn}>Show all</Text>
+                <Text style={styles.focusBannerBtn}>{translate("MapScreen.showAll")}</Text>
               </TouchableOpacity>
             </View>
           ) : null}
           {loading && places.length === 0 ? (
             <View style={styles.loadingOverlay}>
               <ActivityIndicator size="small" color={colors.primary} />
-              <Text style={styles.loadingText}>Loading merchants…</Text>
+              <Text style={styles.loadingText}>{translate("MapScreen.loadingMerchants")}</Text>
             </View>
           ) : null}
           <View style={styles.fabContainer} pointerEvents="box-none">
@@ -374,6 +384,8 @@ export const MapScreen: ScreenType = (_props: Props) => {
         onClose={() => setSelected(null)}
         currentView={view}
         onViewOnMap={onViewOnMap}
+        onVerify={onVerify}
+        onReport={onReport}
       />
     </Screen>
   )

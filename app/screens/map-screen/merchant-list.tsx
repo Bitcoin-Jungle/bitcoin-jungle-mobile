@@ -3,9 +3,11 @@ import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native
 import { Icon } from "react-native-elements"
 
 import useMainQuery from "@app/hooks/use-main-query"
+import { translate } from "../../i18n"
 import { useThemeColor } from "../../theme/useThemeColor"
 import { BtcMapPlace } from "../../types/btcmap"
 import {
+  categoryLabelKey,
   distanceKm,
   inferCategory,
   localized,
@@ -82,13 +84,15 @@ export const MerchantList: React.FC<Props> = ({ places, userCoords, onSelect, la
   }, [places, userCoords, userPreferredLanguage])
 
   const freshnessLabel = React.useMemo(() => {
-    if (!lastSync) return "Loading…"
+    if (!lastSync) return translate("MapScreen.loading")
     try {
       const age = (Date.now() - Date.parse(lastSync)) / 1000
-      if (age < 60) return "Updated just now"
-      if (age < 3600) return `Updated ${Math.round(age / 60)}m ago`
-      if (age < 86400) return `Updated ${Math.round(age / 3600)}h ago`
-      return `Updated ${Math.round(age / 86400)}d ago`
+      if (age < 60) return translate("MapScreen.updatedJustNow")
+      if (age < 3600)
+        return translate("MapScreen.updatedMinutes", { count: Math.round(age / 60) })
+      if (age < 86400)
+        return translate("MapScreen.updatedHours", { count: Math.round(age / 3600) })
+      return translate("MapScreen.updatedDays", { count: Math.round(age / 86400) })
     } catch {
       return ""
     }
@@ -97,7 +101,7 @@ export const MerchantList: React.FC<Props> = ({ places, userCoords, onSelect, la
   if (places.length === 0) {
     return (
       <View style={styles.empty}>
-        <Text style={styles.emptyText}>No merchants match your filters.</Text>
+        <Text style={styles.emptyText}>{translate("MapScreen.noMerchants")}</Text>
       </View>
     )
   }
@@ -106,7 +110,7 @@ export const MerchantList: React.FC<Props> = ({ places, userCoords, onSelect, la
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerText}>
-          {sorted.length} merchants · {freshnessLabel}
+          {translate("MapScreen.merchantsCount", { count: sorted.length })} · {freshnessLabel}
         </Text>
       </View>
       <FlatList
@@ -133,7 +137,7 @@ export const MerchantList: React.FC<Props> = ({ places, userCoords, onSelect, la
                   {localized(p, "name", userPreferredLanguage) || "—"}
                 </Text>
                 <Text style={styles.meta} numberOfLines={1}>
-                  {capitalize(cat)}
+                  {translate(categoryLabelKey(cat))}
                   {methodsLabel ? ` · ${methodsLabel}` : ""}
                 </Text>
               </View>
@@ -171,10 +175,6 @@ function iconForCategory(c: ReturnType<typeof inferCategory>): string {
     case "transport": return "car-outline"
     default: return "pin-outline"
   }
-}
-
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
 function formatDistance(km: number): string {

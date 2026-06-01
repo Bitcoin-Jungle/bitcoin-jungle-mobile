@@ -2,8 +2,10 @@ import * as React from "react"
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import { Icon } from "react-native-elements"
 
+import { translate } from "../../i18n"
 import { useThemeColor } from "../../theme/useThemeColor"
 import { MerchantCategory } from "../../types/btcmap"
+import { categoryLabelKey } from "../../utils/btcmap"
 
 type Props = {
   query: string
@@ -13,16 +15,16 @@ type Props = {
   onClearFilters: () => void
 }
 
-const CATEGORIES: { key: MerchantCategory; label: string; icon: string }[] = [
-  { key: "restaurant", label: "Food", icon: "restaurant-outline" },
-  { key: "cafe", label: "Cafe", icon: "cafe-outline" },
-  { key: "hotel", label: "Lodging", icon: "bed-outline" },
-  { key: "retail", label: "Retail", icon: "bag-outline" },
-  { key: "tourism", label: "Tourism", icon: "compass-outline" },
-  { key: "health", label: "Health", icon: "medkit-outline" },
-  { key: "services", label: "Services", icon: "briefcase-outline" },
-  { key: "transport", label: "Transport", icon: "car-outline" },
-  { key: "other", label: "Other", icon: "pin-outline" },
+const CATEGORIES: { key: MerchantCategory; icon: string }[] = [
+  { key: "restaurant", icon: "restaurant-outline" },
+  { key: "cafe", icon: "cafe-outline" },
+  { key: "hotel", icon: "bed-outline" },
+  { key: "retail", icon: "bag-outline" },
+  { key: "tourism", icon: "compass-outline" },
+  { key: "health", icon: "medkit-outline" },
+  { key: "services", icon: "briefcase-outline" },
+  { key: "transport", icon: "car-outline" },
+  { key: "other", icon: "pin-outline" },
 ]
 
 const useStyles = () => {
@@ -86,7 +88,7 @@ export const SearchFilterBar: React.FC<Props> = ({
         <Icon name="search" type="ionicon" size={18} color={colors.iconDefault} />
         <TextInput
           style={styles.searchInput}
-          placeholder="Search merchants…"
+          placeholder={translate("MapScreen.searchPlaceholder")}
           placeholderTextColor={colors.placeholder}
           value={query}
           onChangeText={onQueryChange}
@@ -120,14 +122,14 @@ export const SearchFilterBar: React.FC<Props> = ({
                 color={active ? colors.buttonPrimaryText : colors.buttonSecondaryText}
               />
               <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                {c.label}
+                {translate(categoryLabelKey(c.key))}
               </Text>
             </TouchableOpacity>
           )
         })}
         {hasFilters ? (
           <TouchableOpacity style={styles.clearChip} onPress={onClearFilters}>
-            <Text style={styles.clearChipText}>Clear</Text>
+            <Text style={styles.clearChipText}>{translate("MapScreen.clearFilters")}</Text>
           </TouchableOpacity>
         ) : null}
       </ScrollView>

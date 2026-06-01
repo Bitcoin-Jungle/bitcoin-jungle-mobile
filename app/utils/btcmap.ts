@@ -87,6 +87,12 @@ export function inferCategory(p: BtcMapPlace): MerchantCategory {
   return "other"
 }
 
+// i18n key for a category's display label. Shared by the filter chips and the
+// list-row meta so both render the same localized name.
+export function categoryLabelKey(c: MerchantCategory): string {
+  return `MapScreen.category${c.charAt(0).toUpperCase()}${c.slice(1)}`
+}
+
 export function paymentMethods(p: BtcMapPlace): PaymentMethod[] {
   const out: PaymentMethod[] = []
   if (p["osm:payment:lightning"] === "yes") out.push("lightning")
@@ -137,6 +143,37 @@ export function distanceKm(
   const sinDLon = Math.sin(dLon / 2)
   const h = sinDLat * sinDLat + Math.cos(lat1) * Math.cos(lat2) * sinDLon * sinDLon
   return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)))
+}
+
+// Normalize the messy OSM `phone` tag for display. OSM values are free-form:
+// "+506 7148-1874", "50688889999", "+50 6 8888 9999", "+1-786-351-8388",
+// "+506 2231-3996 & 5664" (multiple numbers). We show the first number,
+// formatted as "+506 XXXX XXXX" for Costa Rica, lightly cleaned otherwise.
+export function formatPhone(raw: string | undefined): string | undefined {
+  if (!raw) return undefined
+  const first = raw.split(/[,;/&]| y | and /i)[0].trim()
+  if (!first) return undefined
+  const hadPlus = first.startsWith("+")
+  const digits = first.replace(/\D/g, "")
+  // Costa Rica: country code 506 + 8 national digits.
+  if (digits.startsWith("506") && digits.length === 11) {
+    const n = digits.slice(3)
+    return `+506 ${n.slice(0, 4)} ${n.slice(4)}`
+  }
+  // Bare 8-digit national number — assume Costa Rica.
+  if (!hadPlus && digits.length === 8) {
+    return `+506 ${digits.slice(0, 4)} ${digits.slice(4)}`
+  }
+  // Otherwise keep the user's value, collapsing stray whitespace.
+  return first.replace(/\s+/g, " ")
+}
+
+// A `tel:` href for the first number in a free-form phone tag.
+export function phoneTelHref(raw: string | undefined): string | undefined {
+  if (!raw) return undefined
+  const first = raw.split(/[,;/&]| y | and /i)[0].trim()
+  const cleaned = first.replace(/[^\d+]/g, "")
+  return cleaned ? `tel:${cleaned}` : undefined
 }
 
 // Build a platform-appropriate directions URL.

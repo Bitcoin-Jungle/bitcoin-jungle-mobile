@@ -1,6 +1,7 @@
 import { LNURLPayParams, LNURLPaySuccessAction, LNURLWithdrawParams } from "js-lnurl"
 import { AccountType, AuthenticationScreenPurpose, PinScreenPurpose } from "../utils/enum"
 import { IPaymentType } from "../utils/parsing"
+import { BtcMapPlace } from "../types/btcmap"
 
 type TransactionDetail = WalletTransaction & {
   usdAmount: number
@@ -67,6 +68,8 @@ export type RootStackParamList = {
   boltCardDetail: { cardId: string }
   boltCardRegister: undefined
   boltCardPair: { cardId: string, cardUID: string }
+  addLocation: { lat?: number; long?: number } | undefined
+  verifyLocation: { place: BtcMapPlace; current: boolean }
 }
 
 export type ContactStackParamList = {
