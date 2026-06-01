@@ -1,7 +1,7 @@
 import { RouteProp } from "@react-navigation/native"
 import { StackNavigationProp } from "@react-navigation/stack"
 import * as React from "react"
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native"
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import { Button, Icon } from "react-native-elements"
 import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 
@@ -25,8 +25,23 @@ const useStyles = () => {
     content: { padding: 20 },
     name: { color: colors.text, fontSize: 22, fontWeight: "700", marginBottom: 6 },
     intro: { color: colors.textSecondary, fontSize: 14, lineHeight: 20, marginBottom: 20 },
-    question: { color: colors.text, fontSize: 16, fontWeight: "600", marginBottom: 20 },
+    question: { color: colors.text, fontSize: 16, fontWeight: "600", marginBottom: 12 },
     label: { color: colors.text, fontSize: 14, fontWeight: "600", marginBottom: 8 },
+    pillRow: { flexDirection: "row", gap: 12, marginBottom: 20 },
+    pill: {
+      flex: 1,
+      paddingVertical: 12,
+      paddingHorizontal: 8,
+      borderRadius: 10,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.buttonSecondary,
+      borderWidth: 2,
+      borderColor: "transparent",
+    },
+    pillActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+    pillText: { color: colors.buttonSecondaryText, fontSize: 13, fontWeight: "600", textAlign: "center" },
+    pillTextActive: { color: colors.buttonPrimaryText },
     input: {
       color: colors.text,
       backgroundColor: colors.inputBackground,
@@ -71,7 +86,12 @@ export const VerifyLocationScreen: ScreenType = ({ navigation, route }: Props) =
 
   const name = localized(place, "name", userPreferredLanguage) || "—"
 
+  // verify mode: null = unanswered, true = still accepts, false = outdated/wrong
+  const [current, setCurrent] = React.useState<boolean | null>(null)
+  const [outdated, setOutdated] = React.useState("")
+  // report mode
   const [description, setDescription] = React.useState("")
+
   const [error, setError] = React.useState<string | null>(null)
   const [submitting, setSubmitting] = React.useState(false)
   const [submitted, setSubmitted] = React.useState(false)
@@ -85,18 +105,25 @@ export const VerifyLocationScreen: ScreenType = ({ navigation, route }: Props) =
     })
   }, [navigation, mode])
 
+  const canSubmit = mode === "report" ? description.trim().length > 0 : current !== null
+
   const handleSubmit = async () => {
     setError(null)
-    if (mode === "report" && !description.trim()) {
-      setError(translate("MapScreen.formReportRequired"))
+    if (mode === "report") {
+      if (!description.trim()) {
+        setError(translate("MapScreen.formReportRequired"))
+        return
+      }
+    } else if (current === null) {
       return
     }
+
     setSubmitting(true)
     try {
       if (mode === "report") {
         await reportPlace(place.id, description.trim())
       } else {
-        await verifyPlace(place.id, true)
+        await verifyPlace(place.id, current as boolean, current === false ? outdated.trim() || undefined : undefined)
       }
       ReactNativeHapticFeedback.trigger("notificationSuccess", {
         ignoreAndroidSystemSettings: false,
@@ -150,22 +177,49 @@ export const VerifyLocationScreen: ScreenType = ({ navigation, route }: Props) =
             <Text style={styles.question}>
               {translate("MapScreen.verifyQuestion", { name })}
             </Text>
+            <View style={styles.pillRow}>
+              <TouchableOpacity
+                style={[styles.pill, current === true && styles.pillActive]}
+                onPress={() => setCurrent(true)}
+                activeOpacity={0.75}
+              >
+                <Text style={[styles.pillText, current === true && styles.pillTextActive]}>
+                  {translate("MapScreen.verifyYes")}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.pill, current === false && styles.pillActive]}
+                onPress={() => setCurrent(false)}
+                activeOpacity={0.75}
+              >
+                <Text style={[styles.pillText, current === false && styles.pillTextActive]}>
+                  {translate("MapScreen.verifyNo")}
+                </Text>
+              </TouchableOpacity>
+            </View>
+            {current === false ? (
+              <>
+                <Text style={styles.label}>{translate("MapScreen.verifyOutdatedLabel")}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={outdated}
+                  onChangeText={setOutdated}
+                  placeholder={translate("MapScreen.verifyOutdatedPlaceholder")}
+                  placeholderTextColor={colors.placeholder}
+                  multiline
+                />
+              </>
+            ) : null}
           </>
         )}
 
         {error ? <Text style={styles.inlineError}>{error}</Text> : null}
 
         <Button
-          title={
-            submitting
-              ? translate("MapScreen.formSubmitting")
-              : mode === "report"
-              ? translate("MapScreen.formSubmit")
-              : translate("MapScreen.verifyYes")
-          }
+          title={submitting ? translate("MapScreen.formSubmitting") : translate("MapScreen.formSubmit")}
           buttonStyle={styles.primaryBtn}
           onPress={handleSubmit}
-          disabled={submitting}
+          disabled={submitting || !canSubmit}
           loading={submitting}
         />
       </ScrollView>
