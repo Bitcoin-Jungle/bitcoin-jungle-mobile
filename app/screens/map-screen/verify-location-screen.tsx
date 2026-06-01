@@ -1,7 +1,7 @@
 import { RouteProp } from "@react-navigation/native"
 import { StackNavigationProp } from "@react-navigation/stack"
 import * as React from "react"
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
+import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native"
 import { Button, Icon } from "react-native-elements"
 import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 
@@ -12,8 +12,7 @@ import { RootStackParamList } from "../../navigation/stack-param-lists"
 import { useThemeColor } from "../../theme/useThemeColor"
 import { ScreenType } from "../../types/jsx"
 import { localized } from "../../utils/btcmap"
-import { CaptchaError, submitVerifyLocation } from "../../utils/btcmap-submit"
-import { CaptchaField, useCaptcha } from "./captcha-field"
+import { reportPlace, verifyPlace } from "../../utils/bj-maps-api"
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, "verifyLocation">
@@ -23,62 +22,12 @@ type Props = {
 const useStyles = () => {
   const colors = useThemeColor()
   return StyleSheet.create({
-    scroll: { flex: 1 },
     content: { padding: 20 },
-    name: {
-      color: colors.text,
-      fontSize: 22,
-      fontWeight: "700",
-      marginBottom: 6,
-    },
-    intro: {
-      color: colors.textSecondary,
-      fontSize: 14,
-      lineHeight: 20,
-      marginBottom: 20,
-    },
-    question: {
-      color: colors.text,
-      fontSize: 15,
-      fontWeight: "600",
-      marginBottom: 12,
-    },
-    pillRow: {
-      flexDirection: "row",
-      gap: 12,
-      marginBottom: 20,
-    },
-    pill: {
-      flex: 1,
-      paddingVertical: 12,
-      paddingHorizontal: 8,
-      borderRadius: 10,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: colors.buttonSecondary,
-      borderWidth: 2,
-      borderColor: "transparent",
-    },
-    pillActive: {
-      backgroundColor: colors.primary,
-      borderColor: colors.primary,
-    },
-    pillText: {
-      color: colors.buttonSecondaryText,
-      fontSize: 13,
-      fontWeight: "600",
-      textAlign: "center",
-    },
-    pillTextActive: {
-      color: colors.buttonPrimaryText,
-    },
-    outdatedLabel: {
-      color: colors.text,
-      fontSize: 14,
-      fontWeight: "600",
-      marginBottom: 8,
-    },
-    outdatedInput: {
+    name: { color: colors.text, fontSize: 22, fontWeight: "700", marginBottom: 6 },
+    intro: { color: colors.textSecondary, fontSize: 14, lineHeight: 20, marginBottom: 20 },
+    question: { color: colors.text, fontSize: 16, fontWeight: "600", marginBottom: 20 },
+    label: { color: colors.text, fontSize: 14, fontWeight: "600", marginBottom: 8 },
+    input: {
       color: colors.text,
       backgroundColor: colors.inputBackground,
       borderRadius: 8,
@@ -88,35 +37,13 @@ const useStyles = () => {
       paddingVertical: 10,
       fontSize: 14,
       lineHeight: 20,
-      minHeight: 90,
+      minHeight: 100,
       textAlignVertical: "top",
-      marginBottom: 20,
+      marginBottom: 16,
     },
-    divider: {
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: colors.divider,
-      marginBottom: 20,
-    },
-    inlineError: {
-      color: colors.error,
-      fontSize: 13,
-      marginBottom: 12,
-      marginTop: -8,
-    },
-    submitBtn: {
-      backgroundColor: colors.primary,
-      borderRadius: 10,
-      height: 50,
-    },
-    submitBtnDisabled: {
-      opacity: 0.55,
-    },
-    successContainer: {
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 32,
-    },
+    inlineError: { color: colors.error, fontSize: 13, marginBottom: 12 },
+    primaryBtn: { backgroundColor: colors.primary, height: 50, borderRadius: 10 },
+    successContainer: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
     successTitle: {
       color: colors.text,
       fontSize: 22,
@@ -132,84 +59,63 @@ const useStyles = () => {
       textAlign: "center",
       marginBottom: 32,
     },
-    successBtn: {
-      backgroundColor: colors.primary,
-      borderRadius: 10,
-      paddingHorizontal: 32,
-      height: 50,
-    },
+    successBtn: { backgroundColor: colors.primary, height: 50, borderRadius: 10, paddingHorizontal: 32 },
   })
 }
 
 export const VerifyLocationScreen: ScreenType = ({ navigation, route }: Props) => {
-  const { place, current: initialCurrent } = route.params
+  const { place, mode } = route.params
   const { userPreferredLanguage } = useMainQuery()
   const colors = useThemeColor()
   const styles = useStyles()
 
   const name = localized(place, "name", userPreferredLanguage) || "—"
 
-  const [current, setCurrent] = React.useState<boolean>(initialCurrent)
-  const [outdatedText, setOutdatedText] = React.useState("")
-  const [captchaAnswer, setCaptchaAnswer] = React.useState("")
-  const [captchaError, setCaptchaError] = React.useState<string | null>(null)
-  const [submitError, setSubmitError] = React.useState<string | null>(null)
+  const [description, setDescription] = React.useState("")
+  const [error, setError] = React.useState<string | null>(null)
   const [submitting, setSubmitting] = React.useState(false)
-  const [successIssue, setSuccessIssue] = React.useState<number | null>(null)
+  const [submitted, setSubmitted] = React.useState(false)
 
-  const captcha = useCaptcha()
+  React.useEffect(() => {
+    navigation.setOptions({
+      title:
+        mode === "report"
+          ? translate("MapScreen.reportModalTitle")
+          : translate("MapScreen.verifyTitle"),
+    })
+  }, [navigation, mode])
 
-  const handleSubmit = React.useCallback(async () => {
-    // Validate captcha
-    if (!captchaAnswer.trim()) {
-      setCaptchaError(translate("MapScreen.formCaptchaRequired"))
+  const handleSubmit = async () => {
+    setError(null)
+    if (mode === "report" && !description.trim()) {
+      setError(translate("MapScreen.formReportRequired"))
       return
     }
-    setCaptchaError(null)
-    setSubmitError(null)
     setSubmitting(true)
     try {
-      const issueNumber = await submitVerifyLocation({
-        captchaSecret: captcha.secret,
-        captchaTest: captchaAnswer.trim(),
-        place,
-        current,
-        outdated: outdatedText.trim() || "",
-      })
+      if (mode === "report") {
+        await reportPlace(place.id, description.trim())
+      } else {
+        await verifyPlace(place.id, true)
+      }
       ReactNativeHapticFeedback.trigger("notificationSuccess", {
         ignoreAndroidSystemSettings: false,
         enableVibrateFallback: true,
       })
-      setSuccessIssue(issueNumber)
-    } catch (err) {
-      if (err instanceof CaptchaError) {
-        setCaptchaError(translate("MapScreen.formCaptchaWrong"))
-        setCaptchaAnswer("")
-        captcha.refresh()
-      } else {
-        setSubmitError(translate("MapScreen.formError"))
-      }
-    } finally {
+      setSubmitted(true)
+    } catch {
+      setError(translate("MapScreen.formError"))
       setSubmitting(false)
     }
-  }, [captchaAnswer, captcha, place, current, outdatedText])
+  }
 
-  if (successIssue !== null) {
+  if (submitted) {
     return (
       <Screen preset="fixed">
         <View style={styles.successContainer}>
-          <Icon
-            name="checkmark-circle"
-            type="ionicon"
-            size={72}
-            color={colors.success}
-          />
-          <Text style={styles.successTitle}>
-            {translate("MapScreen.formSuccessTitle")}
-          </Text>
-          <Text style={styles.successBody}>
-            {translate("MapScreen.formSuccessBody", { number: String(successIssue) })}
-          </Text>
+          <Icon name="checkmark-circle" type="ionicon" size={72} color={colors.success} />
+          <Text style={styles.successTitle}>{translate("MapScreen.formSuccessTitle")}</Text>
+          <Text style={styles.successBody}>{translate("MapScreen.formSubmittedReview")}</Text>
           <Button
             title={translate("common.back")}
             buttonStyle={styles.successBtn}
@@ -222,85 +128,47 @@ export const VerifyLocationScreen: ScreenType = ({ navigation, route }: Props) =
 
   return (
     <Screen preset="scroll">
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.name}>{name}</Text>
-        <Text style={styles.intro}>{translate("MapScreen.verifyIntro")}</Text>
 
-        <Text style={styles.question}>
-          {translate("MapScreen.verifyQuestion", { name })}
-        </Text>
-
-        <View style={styles.pillRow}>
-          <TouchableOpacity
-            style={[styles.pill, current && styles.pillActive]}
-            onPress={() => setCurrent(true)}
-            activeOpacity={0.75}
-          >
-            <Text style={[styles.pillText, current && styles.pillTextActive]}>
-              {translate("MapScreen.verifyYes")}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.pill, !current && styles.pillActive]}
-            onPress={() => setCurrent(false)}
-            activeOpacity={0.75}
-          >
-            <Text style={[styles.pillText, !current && styles.pillTextActive]}>
-              {translate("MapScreen.verifyNo")}
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {!current ? (
+        {mode === "report" ? (
           <>
-            <Text style={styles.outdatedLabel}>
-              {translate("MapScreen.verifyOutdatedLabel")}
-            </Text>
+            <Text style={styles.intro}>{translate("MapScreen.reportModalText", { name })}</Text>
+            <Text style={styles.label}>{translate("MapScreen.problemDescription")}</Text>
             <TextInput
-              style={styles.outdatedInput}
-              value={outdatedText}
-              onChangeText={setOutdatedText}
+              style={styles.input}
+              value={description}
+              onChangeText={setDescription}
               placeholder={translate("MapScreen.verifyOutdatedPlaceholder")}
               placeholderTextColor={colors.placeholder}
               multiline
-              numberOfLines={4}
-              autoCorrect={false}
-              returnKeyType="default"
             />
           </>
-        ) : null}
+        ) : (
+          <>
+            <Text style={styles.intro}>{translate("MapScreen.verifyIntro")}</Text>
+            <Text style={styles.question}>
+              {translate("MapScreen.verifyQuestion", { name })}
+            </Text>
+          </>
+        )}
 
-        <View style={styles.divider} />
-
-        <CaptchaField
-          svg={captcha.svg}
-          loading={captcha.loading}
-          error={captcha.error}
-          value={captchaAnswer}
-          onChangeText={(v) => {
-            setCaptchaAnswer(v)
-            if (captchaError) setCaptchaError(null)
-          }}
-          onRefresh={captcha.refresh}
-        />
-
-        {captchaError ? (
-          <Text style={styles.inlineError}>{captchaError}</Text>
-        ) : null}
-
-        {submitError ? (
-          <Text style={styles.inlineError}>{submitError}</Text>
-        ) : null}
+        {error ? <Text style={styles.inlineError}>{error}</Text> : null}
 
         <Button
-          title={submitting ? translate("MapScreen.formSubmitting") : translate("MapScreen.formSubmit")}
-          buttonStyle={styles.submitBtn}
-          disabledStyle={styles.submitBtnDisabled}
+          title={
+            submitting
+              ? translate("MapScreen.formSubmitting")
+              : mode === "report"
+              ? translate("MapScreen.formSubmit")
+              : translate("MapScreen.verifyYes")
+          }
+          buttonStyle={styles.primaryBtn}
+          onPress={handleSubmit}
           disabled={submitting}
           loading={submitting}
-          onPress={handleSubmit}
         />
-      </View>
+      </ScrollView>
     </Screen>
   )
 }

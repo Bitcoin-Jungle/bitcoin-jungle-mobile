@@ -2,40 +2,42 @@ import { RouteProp } from "@react-navigation/native"
 import { StackNavigationProp } from "@react-navigation/stack"
 import * as React from "react"
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
-import { Button, CheckBox, Icon } from "react-native-elements"
+import { Button, Icon } from "react-native-elements"
 import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 
 import { Screen } from "../../components/screen"
 import { translate } from "../../i18n"
 import { RootStackParamList } from "../../navigation/stack-param-lists"
-import { ScreenType } from "../../types/jsx"
+import { MerchantCategory } from "../../types/btcmap"
 import { useThemeColor } from "../../theme/useThemeColor"
-import { CaptchaError, submitAddLocation } from "../../utils/btcmap-submit"
-import { CaptchaField, useCaptcha } from "./captcha-field"
+import { ScreenType } from "../../types/jsx"
+import { categoryLabelKey } from "../../utils/btcmap"
+import { submitPlace } from "../../utils/bj-maps-api"
 
 type Props = {
   navigation: StackNavigationProp<RootStackParamList, "addLocation">
   route: RouteProp<RootStackParamList, "addLocation">
 }
 
+const CATEGORIES: { key: MerchantCategory; icon: string }[] = [
+  { key: "restaurant", icon: "restaurant-outline" },
+  { key: "cafe", icon: "cafe-outline" },
+  { key: "hotel", icon: "bed-outline" },
+  { key: "retail", icon: "bag-outline" },
+  { key: "tourism", icon: "compass-outline" },
+  { key: "health", icon: "medkit-outline" },
+  { key: "services", icon: "briefcase-outline" },
+  { key: "transport", icon: "car-outline" },
+  { key: "other", icon: "pin-outline" },
+]
+
 const useStyles = () => {
   const colors = useThemeColor()
   return StyleSheet.create({
     scroll: { flex: 1 },
     content: { padding: 20, paddingBottom: 40 },
-    intro: {
-      color: colors.textSecondary,
-      fontSize: 14,
-      lineHeight: 20,
-      marginBottom: 20,
-    },
-    label: {
-      color: colors.text,
-      fontSize: 13,
-      fontWeight: "600",
-      marginBottom: 6,
-      marginTop: 4,
-    },
+    intro: { color: colors.textSecondary, fontSize: 14, lineHeight: 20, marginBottom: 20 },
+    label: { color: colors.text, fontSize: 13, fontWeight: "600", marginBottom: 6, marginTop: 4 },
     input: {
       color: colors.text,
       backgroundColor: colors.inputBackground,
@@ -60,19 +62,6 @@ const useStyles = () => {
       minHeight: 80,
       textAlignVertical: "top",
     },
-    checkboxContainer: {
-      backgroundColor: "transparent",
-      borderWidth: 0,
-      padding: 0,
-      marginLeft: 0,
-      marginRight: 0,
-      marginBottom: 4,
-    },
-    checkboxText: {
-      color: colors.text,
-      fontWeight: "400",
-      fontSize: 15,
-    },
     locationRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -85,20 +74,21 @@ const useStyles = () => {
       marginBottom: 16,
     },
     locationText: { flex: 1, color: colors.text, fontSize: 15, marginLeft: 10 },
-    methodsBlock: { marginBottom: 16 },
-    captchaSection: { marginBottom: 16 },
-    errorText: {
-      color: colors.error,
-      fontSize: 13,
-      marginBottom: 12,
-    },
-    submitBtn: { backgroundColor: colors.primary },
-    successContainer: {
-      flex: 1,
-      justifyContent: "center",
+    chipsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 16 },
+    chip: {
+      flexDirection: "row",
       alignItems: "center",
-      padding: 32,
+      paddingHorizontal: 12,
+      paddingVertical: 8,
+      borderRadius: 18,
+      backgroundColor: colors.buttonSecondary,
     },
+    chipActive: { backgroundColor: colors.primary },
+    chipText: { color: colors.buttonSecondaryText, fontSize: 13, marginLeft: 4 },
+    chipTextActive: { color: colors.buttonPrimaryText },
+    errorText: { color: colors.error, fontSize: 13, marginBottom: 12 },
+    submitBtn: { backgroundColor: colors.primary, height: 50, borderRadius: 10 },
+    successContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: 32 },
     successTitle: {
       color: colors.text,
       fontSize: 24,
@@ -114,49 +104,43 @@ const useStyles = () => {
       textAlign: "center",
       marginBottom: 32,
     },
-    backBtn: { backgroundColor: colors.primary, paddingHorizontal: 32 },
+    backBtn: { backgroundColor: colors.primary, paddingHorizontal: 32, height: 50, borderRadius: 10 },
   })
 }
 
 export const AddLocationScreen: ScreenType = ({ navigation, route }: Props) => {
   const styles = useStyles()
   const colors = useThemeColor()
-  const params = (route as Props["route"]).params
+  const params = route.params
 
-  // Form fields
   const [name, setName] = React.useState("")
-  const [address, setAddress] = React.useState("")
-  const [category, setCategory] = React.useState("")
-  const [lightning, setLightning] = React.useState(false)
-  const [onchain, setOnchain] = React.useState(false)
-  const [nfc, setNfc] = React.useState(false)
+  const [categories, setCategories] = React.useState<Set<MerchantCategory>>(new Set())
   const [website, setWebsite] = React.useState("")
   const [phone, setPhone] = React.useState("")
-  const [hours, setHours] = React.useState("")
-  const [notes, setNotes] = React.useState("")
-  const [contact, setContact] = React.useState("")
-  // Confirmed coordinates from the map picker (the source of truth for location).
+  const [description, setDescription] = React.useState("")
   const [picked, setPicked] = React.useState<{ latitude: number; longitude: number } | null>(null)
 
+  const [submitting, setSubmitting] = React.useState(false)
+  const [fieldError, setFieldError] = React.useState<string | null>(null)
+  const [submitted, setSubmitted] = React.useState(false)
+
   const openPicker = () => {
-    ;(navigation as Props["navigation"]).navigate("locationPicker", {
+    navigation.navigate("locationPicker", {
       initial: picked ?? params?.region,
       onPicked: setPicked,
     })
   }
 
-  // Captcha
-  const { svg, secret, loading: captchaLoading, error: captchaError, refresh } = useCaptcha()
-  const [captchaAnswer, setCaptchaAnswer] = React.useState("")
-
-  // Submit state
-  const [submitting, setSubmitting] = React.useState(false)
-  const [fieldError, setFieldError] = React.useState<string | null>(null)
-  const [successNumber, setSuccessNumber] = React.useState<number | null>(null)
+  const toggleCategory = (c: MerchantCategory) =>
+    setCategories((prev) => {
+      const next = new Set(prev)
+      if (next.has(c)) next.delete(c)
+      else next.add(c)
+      return next
+    })
 
   const handleSubmit = async () => {
     setFieldError(null)
-
     if (!name.trim()) {
       setFieldError(translate("MapScreen.formNameRequired"))
       return
@@ -165,70 +149,43 @@ export const AddLocationScreen: ScreenType = ({ navigation, route }: Props) => {
       setFieldError(translate("MapScreen.locationRequired"))
       return
     }
-    if (!captchaAnswer.trim()) {
-      setFieldError(translate("MapScreen.formCaptchaRequired"))
+    if (categories.size === 0) {
+      setFieldError(translate("MapScreen.formCategoryRequired"))
       return
     }
 
-    const methods: ("lightning" | "onchain" | "nfc")[] = []
-    if (lightning) methods.push("lightning")
-    if (onchain) methods.push("onchain")
-    if (nfc) methods.push("nfc")
-
     setSubmitting(true)
     try {
-      const issueNumber = await submitAddLocation({
-        captchaSecret: secret,
-        captchaTest: captchaAnswer,
+      await submitPlace({
         name: name.trim(),
-        address: address.trim() || undefined,
-        lat: picked.latitude,
-        long: picked.longitude,
-        category: category.trim() || undefined,
-        methods: methods.length > 0 ? methods : undefined,
-        website: website.trim() || undefined,
+        coordinates: picked,
+        categories: Array.from(categories),
         phone: phone.trim() || undefined,
-        hours: hours.trim() || undefined,
-        notes: notes.trim() || undefined,
-        contact: contact.trim() || undefined,
+        website: website.trim() || undefined,
+        description: description.trim() || undefined,
       })
       ReactNativeHapticFeedback.trigger("notificationSuccess", {
         ignoreAndroidSystemSettings: false,
         enableVibrateFallback: true,
       })
-      setSuccessNumber(issueNumber)
-    } catch (err) {
-      if (err instanceof CaptchaError) {
-        setFieldError(translate("MapScreen.formCaptchaWrong"))
-        setCaptchaAnswer("")
-        refresh()
-      } else {
-        setFieldError(translate("MapScreen.formError"))
-      }
+      setSubmitted(true)
+    } catch {
+      setFieldError(translate("MapScreen.formError"))
       setSubmitting(false)
     }
   }
 
-  if (successNumber !== null) {
+  if (submitted) {
     return (
       <Screen preset="fixed">
         <View style={styles.successContainer}>
-          <Icon
-            name="checkmark-circle"
-            type="ionicon"
-            size={72}
-            color={colors.success}
-          />
-          <Text style={styles.successTitle}>
-            {translate("MapScreen.formSuccessTitle")}
-          </Text>
-          <Text style={styles.successBody}>
-            {translate("MapScreen.formSuccessBody", { number: successNumber })}
-          </Text>
+          <Icon name="checkmark-circle" type="ionicon" size={72} color={colors.success} />
+          <Text style={styles.successTitle}>{translate("MapScreen.formSuccessTitle")}</Text>
+          <Text style={styles.successBody}>{translate("MapScreen.formSubmittedReview")}</Text>
           <Button
             title={translate("common.back")}
             buttonStyle={styles.backBtn}
-            onPress={() => (navigation as Props["navigation"]).goBack()}
+            onPress={() => navigation.goBack()}
           />
         </View>
       </Screen>
@@ -237,12 +194,13 @@ export const AddLocationScreen: ScreenType = ({ navigation, route }: Props) => {
 
   return (
     <Screen preset="fixed">
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.intro}>
-          {translate("MapScreen.addLocationIntro")}
-        </Text>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text style={styles.intro}>{translate("MapScreen.addLocationIntro")}</Text>
 
-        {/* Name (required) */}
         <Text style={styles.label}>{translate("MapScreen.fieldName")} *</Text>
         <TextInput
           style={styles.input}
@@ -253,18 +211,6 @@ export const AddLocationScreen: ScreenType = ({ navigation, route }: Props) => {
           returnKeyType="next"
         />
 
-        {/* Address */}
-        <Text style={styles.label}>{translate("MapScreen.fieldAddress")}</Text>
-        <TextInput
-          style={styles.input}
-          value={address}
-          onChangeText={setAddress}
-          placeholderTextColor={colors.placeholder}
-          autoCapitalize="words"
-          returnKeyType="next"
-        />
-
-        {/* Location (required, via map picker) */}
         <Text style={styles.label}>{translate("MapScreen.pickLocationTitle")} *</Text>
         <TouchableOpacity style={styles.locationRow} onPress={openPicker}>
           <Icon
@@ -281,60 +227,30 @@ export const AddLocationScreen: ScreenType = ({ navigation, route }: Props) => {
           <Icon name="chevron-forward" type="ionicon" size={18} color={colors.iconDefault} />
         </TouchableOpacity>
 
-        {/* Category */}
-        <Text style={styles.label}>{translate("MapScreen.fieldCategory")}</Text>
-        <TextInput
-          style={styles.input}
-          value={category}
-          onChangeText={setCategory}
-          placeholderTextColor={colors.placeholder}
-          autoCapitalize="words"
-          returnKeyType="next"
-        />
-
-        {/* Payment methods */}
-        <Text style={styles.label}>{translate("MapScreen.fieldPaymentMethods")}</Text>
-        <View style={styles.methodsBlock}>
-          <CheckBox
-            title={translate("MapScreen.payLightning")}
-            checked={lightning}
-            onPress={() => setLightning((v) => !v)}
-            containerStyle={styles.checkboxContainer}
-            textStyle={styles.checkboxText}
-            checkedColor={colors.primary}
-          />
-          <CheckBox
-            title={translate("MapScreen.payOnchain")}
-            checked={onchain}
-            onPress={() => setOnchain((v) => !v)}
-            containerStyle={styles.checkboxContainer}
-            textStyle={styles.checkboxText}
-            checkedColor={colors.primary}
-          />
-          <CheckBox
-            title={translate("MapScreen.payNfc")}
-            checked={nfc}
-            onPress={() => setNfc((v) => !v)}
-            containerStyle={styles.checkboxContainer}
-            textStyle={styles.checkboxText}
-            checkedColor={colors.primary}
-          />
+        <Text style={styles.label}>{translate("MapScreen.fieldCategory")} *</Text>
+        <View style={styles.chipsRow}>
+          {CATEGORIES.map((c) => {
+            const active = categories.has(c.key)
+            return (
+              <TouchableOpacity
+                key={c.key}
+                style={[styles.chip, active && styles.chipActive]}
+                onPress={() => toggleCategory(c.key)}
+              >
+                <Icon
+                  name={c.icon}
+                  type="ionicon"
+                  size={14}
+                  color={active ? colors.buttonPrimaryText : colors.buttonSecondaryText}
+                />
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                  {translate(categoryLabelKey(c.key))}
+                </Text>
+              </TouchableOpacity>
+            )
+          })}
         </View>
 
-        {/* Website */}
-        <Text style={styles.label}>{translate("MapScreen.fieldWebsite")}</Text>
-        <TextInput
-          style={styles.input}
-          value={website}
-          onChangeText={setWebsite}
-          placeholderTextColor={colors.placeholder}
-          keyboardType="url"
-          autoCapitalize="none"
-          autoCorrect={false}
-          returnKeyType="next"
-        />
-
-        {/* Phone */}
         <Text style={styles.label}>{translate("MapScreen.fieldPhone")}</Text>
         <TextInput
           style={styles.input}
@@ -345,58 +261,29 @@ export const AddLocationScreen: ScreenType = ({ navigation, route }: Props) => {
           returnKeyType="next"
         />
 
-        {/* Hours */}
-        <Text style={styles.label}>{translate("MapScreen.fieldHours")}</Text>
+        <Text style={styles.label}>{translate("MapScreen.fieldWebsite")}</Text>
         <TextInput
           style={styles.input}
-          value={hours}
-          onChangeText={setHours}
-          placeholderTextColor={colors.placeholder}
-          autoCapitalize="none"
-          returnKeyType="next"
-        />
-
-        {/* Notes */}
-        <Text style={styles.label}>{translate("MapScreen.fieldNotes")}</Text>
-        <TextInput
-          style={styles.inputMultiline}
-          value={notes}
-          onChangeText={setNotes}
-          placeholderTextColor={colors.placeholder}
-          multiline
-          numberOfLines={3}
-        />
-
-        {/* Contact */}
-        <Text style={styles.label}>{translate("MapScreen.fieldContact")}</Text>
-        <TextInput
-          style={styles.input}
-          value={contact}
-          onChangeText={setContact}
+          value={website}
+          onChangeText={setWebsite}
           placeholderTextColor={colors.placeholder}
           autoCapitalize="none"
           autoCorrect={false}
-          returnKeyType="done"
+          keyboardType="url"
+          returnKeyType="next"
         />
 
-        {/* Captcha */}
-        <View style={styles.captchaSection}>
-          <CaptchaField
-            svg={svg}
-            loading={captchaLoading}
-            error={captchaError}
-            value={captchaAnswer}
-            onChangeText={setCaptchaAnswer}
-            onRefresh={refresh}
-          />
-        </View>
+        <Text style={styles.label}>{translate("MapScreen.fieldNotes")}</Text>
+        <TextInput
+          style={styles.inputMultiline}
+          value={description}
+          onChangeText={setDescription}
+          placeholderTextColor={colors.placeholder}
+          multiline
+        />
 
-        {/* Inline error */}
-        {fieldError ? (
-          <Text style={styles.errorText}>{fieldError}</Text>
-        ) : null}
+        {fieldError ? <Text style={styles.errorText}>{fieldError}</Text> : null}
 
-        {/* Submit */}
         <Button
           title={submitting ? translate("MapScreen.formSubmitting") : translate("MapScreen.formSubmit")}
           buttonStyle={styles.submitBtn}

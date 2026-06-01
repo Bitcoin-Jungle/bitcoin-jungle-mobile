@@ -262,12 +262,12 @@ export const MapScreen: ScreenType = ({ navigation }: Props) => {
 
   const onVerify = (p: BtcMapPlace) => {
     setSelected(null)
-    rootNav.navigate("verifyLocation", { place: p, current: true })
+    rootNav.navigate("verifyLocation", { place: p, mode: "verify" })
   }
 
   const onReport = (p: BtcMapPlace) => {
     setSelected(null)
-    rootNav.navigate("verifyLocation", { place: p, current: false })
+    rootNav.navigate("verifyLocation", { place: p, mode: "report" })
   }
 
   const onViewOnMap = (p: BtcMapPlace) => {
