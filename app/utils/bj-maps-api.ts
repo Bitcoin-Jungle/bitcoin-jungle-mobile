@@ -10,9 +10,9 @@
 
 import { MerchantCategory } from "../types/btcmap"
 
-// Prod is maps-next.bitcoinjungle.app for now; once the old Netlify site is
-// retired, maps-next will redirect to maps.bitcoinjungle.app.
-const BASE = __DEV__ ? "http://10.0.2.2:8080" : "https://maps-next.bitcoinjungle.app"
+// maps-next.bitcoinjungle.app for now; once the old Netlify site is retired,
+// maps-next will redirect to maps.bitcoinjungle.app.
+const BASE = "https://maps-next.bitcoinjungle.app"
 
 async function post(path: string, body: object): Promise<number> {
   const res = await fetch(`${BASE}${path}`, {
