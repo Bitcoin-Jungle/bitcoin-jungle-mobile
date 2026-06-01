@@ -2,6 +2,9 @@
 #
 .DS_Store
 
+# Claude Code local artifacts
+.claude/
+
 # Xcode
 #
 build/
