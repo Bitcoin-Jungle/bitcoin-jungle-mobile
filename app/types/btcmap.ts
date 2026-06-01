@@ -37,6 +37,16 @@ export type BtcMapPlace = {
   [key: `osm:${string}`]: string | undefined
 }
 
+// Lightweight pin from the CDN snapshot (cdn.static.btcmap.org/api/v4/places.json).
+// Only enough to render a marker; full fields are hydrated separately.
+export type PlacePin = {
+  id: number
+  lat: number
+  lon: number
+  icon?: string
+  comments?: number
+}
+
 export type MerchantCategory =
   | "restaurant"
   | "cafe"

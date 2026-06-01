@@ -10,7 +10,7 @@ import {
 import { Icon } from "react-native-elements"
 import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 import ClusteredMapView from "react-native-map-clustering"
-import RNMapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps"
+import RNMapView, { PROVIDER_GOOGLE } from "react-native-maps"
 
 import { Screen } from "../../components/screen"
 import { translate } from "../../i18n"
@@ -27,6 +27,7 @@ import useMainQuery from "@app/hooks/use-main-query"
 import { LocationPrePrompt } from "./location-pre-prompt"
 import { MerchantDetailSheet } from "./merchant-detail-sheet"
 import { MerchantList } from "./merchant-list"
+import { MerchantMarker } from "./merchant-marker"
 import { SearchFilterBar } from "./search-filter-bar"
 import useBtcMapPlaces from "./use-btcmap-places"
 import useUserLocation from "./use-user-location"
@@ -135,7 +136,7 @@ export const MapScreen: ScreenType = ({ navigation }: Props) => {
   // addLocation/verifyLocation live on the root stack, not the Primary tabs.
   const rootNav = navigation as unknown as StackNavigationProp<RootStackParamList>
   const { userPreferredLanguage } = useMainQuery()
-  const { places, loading, lastSync } = useBtcMapPlaces()
+  const { places, pins, loading, lastSync } = useBtcMapPlaces()
   const { coords: userCoords, status: locationStatus, request: requestLocation } =
     useUserLocation()
 
@@ -148,6 +149,11 @@ export const MapScreen: ScreenType = ({ navigation }: Props) => {
   const [prePromptVisible, setPrePromptVisible] = React.useState(false)
   const [focusedId, setFocusedId] = React.useState<number | null>(null)
   const mapRef = React.useRef<RNMapView | null>(null)
+  // Current map center, fed to the add-merchant location picker as its start view.
+  const regionRef = React.useRef({
+    latitude: COSTA_RICA_REGION.latitude,
+    longitude: COSTA_RICA_REGION.longitude,
+  })
 
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -167,7 +173,21 @@ export const MapScreen: ScreenType = ({ navigation }: Props) => {
     () => (focusedId == null ? null : places.find((p) => p.id === focusedId) ?? null),
     [places, focusedId],
   )
-  const markers = focusedPlace ? [focusedPlace] : filtered
+  // Unified marker source: the focused place, else the filtered full places,
+  // else (cold start, before full fields load) the lightweight snapshot pins.
+  const mapPoints = React.useMemo(() => {
+    if (focusedPlace) {
+      return typeof focusedPlace.lat === "number" && typeof focusedPlace.lon === "number"
+        ? [{ id: focusedPlace.id, lat: focusedPlace.lat, lon: focusedPlace.lon, icon: focusedPlace.icon, full: focusedPlace }]
+        : []
+    }
+    if (places.length > 0) {
+      return filtered
+        .filter((p) => typeof p.lat === "number" && typeof p.lon === "number")
+        .map((p) => ({ id: p.id, lat: p.lat as number, lon: p.lon as number, icon: p.icon, full: p as BtcMapPlace | undefined }))
+    }
+    return pins.map((p) => ({ id: p.id, lat: p.lat, lon: p.lon, icon: p.icon, full: undefined as BtcMapPlace | undefined }))
+  }, [focusedPlace, places, filtered, pins])
 
   const toggleCategory = (c: MerchantCategory) => {
     setSelectedCategories((prev) => {
@@ -237,7 +257,8 @@ export const MapScreen: ScreenType = ({ navigation }: Props) => {
     }
   }, [locationStatus, userCoords])
 
-  const onAddMerchant = () => rootNav.navigate("addLocation")
+  const onAddMerchant = () =>
+    rootNav.navigate("addLocation", { region: { ...regionRef.current } })
 
   const onVerify = (p: BtcMapPlace) => {
     setSelected(null)
@@ -325,17 +346,18 @@ export const MapScreen: ScreenType = ({ navigation }: Props) => {
             showsMyLocationButton={false}
             clusterColor={colors.primary}
             radius={50}
+            onRegionChangeComplete={(r) => {
+              regionRef.current = { latitude: r.latitude, longitude: r.longitude }
+            }}
           >
-            {markers.map((p) =>
-              typeof p.lat === "number" && typeof p.lon === "number" ? (
-                <Marker
-                  key={p.id}
-                  coordinate={{ latitude: p.lat, longitude: p.lon }}
-                  onPress={() => onMarkerPress(p)}
-                  tracksViewChanges={false}
-                />
-              ) : null,
-            )}
+            {mapPoints.map((pt) => (
+              <MerchantMarker
+                key={pt.id}
+                coordinate={{ latitude: pt.lat, longitude: pt.lon }}
+                icon={pt.icon}
+                onPress={() => pt.full && onMarkerPress(pt.full)}
+              />
+            ))}
           </ClusteredMapView>
           {focusedPlace ? (
             <View style={styles.focusBanner}>

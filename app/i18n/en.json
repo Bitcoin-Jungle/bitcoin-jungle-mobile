@@ -2379,6 +2379,13 @@
     "verifyOutdatedLabel": "What's outdated?",
     "verifyOutdatedPlaceholder": "Tell us what changed (closed, no longer accepts bitcoin, wrong info…)",
     "verifyIntro": "Help keep the map fresh. Verifying updates the merchant's check date.",
+    "pickLocationTitle": "Set Location",
+    "pickLocationCta": "Set location on map",
+    "pickLocationHint": "Drag the map to center the pin on the merchant.",
+    "useMyLocation": "Use my location",
+    "confirmLocation": "Confirm location",
+    "locationSet": "Location set",
+    "locationRequired": "Please set the location on the map.",
   },
   "ModalClipboard": {
     "dismiss": "Dismiss",

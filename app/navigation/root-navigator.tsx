@@ -30,6 +30,7 @@ import { SectionCompleted } from "../screens/earns-screen/section-completed"
 import { GetStartedScreen } from "../screens/get-started-screen"
 import { MapScreen } from "../screens/map-screen/map-screen"
 import { AddLocationScreen } from "../screens/map-screen/add-location-screen"
+import { LocationPickerScreen } from "../screens/map-screen/location-picker-screen"
 import { VerifyLocationScreen } from "../screens/map-screen/verify-location-screen"
 import { RouteLnurlScreen } from "../screens/route-lnurl-screen/route-lnurl-screen"
 import { SinpeScreen } from "../screens/sinpe-screen/sinpe-screen"
@@ -509,6 +510,11 @@ export const RootStack: NavigatorType = () => {
         name="verifyLocation"
         component={VerifyLocationScreen}
         options={{ title: translate("MapScreen.verifyTitle") }}
+      />
+      <RootNavigator.Screen
+        name="locationPicker"
+        component={LocationPickerScreen}
+        options={{ title: translate("MapScreen.pickLocationTitle") }}
       />
       <RootNavigator.Screen
         name="lnurl"

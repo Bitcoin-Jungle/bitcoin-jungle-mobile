@@ -68,8 +68,12 @@ export type RootStackParamList = {
   boltCardDetail: { cardId: string }
   boltCardRegister: undefined
   boltCardPair: { cardId: string, cardUID: string }
-  addLocation: { lat?: number; long?: number } | undefined
+  addLocation: { region?: { latitude: number; longitude: number } } | undefined
   verifyLocation: { place: BtcMapPlace; current: boolean }
+  locationPicker: {
+    initial?: { latitude: number; longitude: number }
+    onPicked: (coords: { latitude: number; longitude: number }) => void
+  }
 }
 
 export type ContactStackParamList = {

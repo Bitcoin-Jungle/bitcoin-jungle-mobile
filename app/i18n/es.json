@@ -2393,6 +2393,13 @@
     "verifyOutdatedLabel": "¿Qué está desactualizado?",
     "verifyOutdatedPlaceholder": "Cuéntanos qué cambió (cerrado, ya no acepta bitcoin, información incorrecta…)",
     "verifyIntro": "Ayuda a mantener el mapa actualizado. Verificar actualiza la fecha de revisión del comercio.",
+    "pickLocationTitle": "Fijar ubicación",
+    "pickLocationCta": "Fijar ubicación en el mapa",
+    "pickLocationHint": "Arrastra el mapa para centrar el pin sobre el comercio.",
+    "useMyLocation": "Usar mi ubicación",
+    "confirmLocation": "Confirmar ubicación",
+    "locationSet": "Ubicación fijada",
+    "locationRequired": "Por favor fija la ubicación en el mapa.",
   },
   "ModalClipboard": {
     "dismiss": "Rechazar",

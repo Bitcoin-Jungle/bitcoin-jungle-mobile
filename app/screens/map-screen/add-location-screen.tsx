@@ -1,7 +1,7 @@
 import { RouteProp } from "@react-navigation/native"
 import { StackNavigationProp } from "@react-navigation/stack"
 import * as React from "react"
-import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native"
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native"
 import { Button, CheckBox, Icon } from "react-native-elements"
 import ReactNativeHapticFeedback from "react-native-haptic-feedback"
 
@@ -73,6 +73,18 @@ const useStyles = () => {
       fontWeight: "400",
       fontSize: 15,
     },
+    locationRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.inputBackground,
+      borderRadius: 8,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.inputBorder,
+      paddingHorizontal: 12,
+      height: 48,
+      marginBottom: 16,
+    },
+    locationText: { flex: 1, color: colors.text, fontSize: 15, marginLeft: 10 },
     methodsBlock: { marginBottom: 16 },
     captchaSection: { marginBottom: 16 },
     errorText: {
@@ -123,6 +135,15 @@ export const AddLocationScreen: ScreenType = ({ navigation, route }: Props) => {
   const [hours, setHours] = React.useState("")
   const [notes, setNotes] = React.useState("")
   const [contact, setContact] = React.useState("")
+  // Confirmed coordinates from the map picker (the source of truth for location).
+  const [picked, setPicked] = React.useState<{ latitude: number; longitude: number } | null>(null)
+
+  const openPicker = () => {
+    ;(navigation as Props["navigation"]).navigate("locationPicker", {
+      initial: picked ?? params?.region,
+      onPicked: setPicked,
+    })
+  }
 
   // Captcha
   const { svg, secret, loading: captchaLoading, error: captchaError, refresh } = useCaptcha()
@@ -138,6 +159,10 @@ export const AddLocationScreen: ScreenType = ({ navigation, route }: Props) => {
 
     if (!name.trim()) {
       setFieldError(translate("MapScreen.formNameRequired"))
+      return
+    }
+    if (!picked) {
+      setFieldError(translate("MapScreen.locationRequired"))
       return
     }
     if (!captchaAnswer.trim()) {
@@ -157,8 +182,8 @@ export const AddLocationScreen: ScreenType = ({ navigation, route }: Props) => {
         captchaTest: captchaAnswer,
         name: name.trim(),
         address: address.trim() || undefined,
-        lat: params?.lat,
-        long: params?.long,
+        lat: picked.latitude,
+        long: picked.longitude,
         category: category.trim() || undefined,
         methods: methods.length > 0 ? methods : undefined,
         website: website.trim() || undefined,
@@ -238,6 +263,23 @@ export const AddLocationScreen: ScreenType = ({ navigation, route }: Props) => {
           autoCapitalize="words"
           returnKeyType="next"
         />
+
+        {/* Location (required, via map picker) */}
+        <Text style={styles.label}>{translate("MapScreen.pickLocationTitle")} *</Text>
+        <TouchableOpacity style={styles.locationRow} onPress={openPicker}>
+          <Icon
+            name={picked ? "checkmark-circle" : "location-outline"}
+            type="ionicon"
+            size={20}
+            color={picked ? colors.success : colors.primary}
+          />
+          <Text style={styles.locationText}>
+            {picked
+              ? `${translate("MapScreen.locationSet")} (${picked.latitude.toFixed(5)}, ${picked.longitude.toFixed(5)})`
+              : translate("MapScreen.pickLocationCta")}
+          </Text>
+          <Icon name="chevron-forward" type="ionicon" size={18} color={colors.iconDefault} />
+        </TouchableOpacity>
 
         {/* Category */}
         <Text style={styles.label}>{translate("MapScreen.fieldCategory")}</Text>

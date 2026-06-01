@@ -1,6 +1,11 @@
-import { BtcMapPlace, MerchantCategory, PaymentMethod } from "../types/btcmap"
+import { BtcMapPlace, MerchantCategory, PaymentMethod, PlacePin } from "../types/btcmap"
 
 const BASE = "https://api.btcmap.org/v4"
+
+// CDN-cached static snapshot of all places (id, lat, lon, icon, comments).
+// ~2MB, sub-second, served from an edge node near the user. Used for an
+// instant first paint of the map on a cold start before full fields load.
+const SNAPSHOT_URL = "https://cdn.static.btcmap.org/api/v4/places.json"
 
 const PLACE_FIELDS = [
   "id",
@@ -54,6 +59,15 @@ export async function fetchPlaces(updatedSince?: string): Promise<BtcMapPlace[]>
   return res.json()
 }
 
+// Fetch the lightweight CDN snapshot of all pins. Filter to CR with inCostaRica.
+export async function fetchSnapshot(): Promise<PlacePin[]> {
+  const res = await fetch(SNAPSHOT_URL)
+  if (!res.ok) {
+    throw new Error(`BTC Map snapshot returned ${res.status}`)
+  }
+  return res.json()
+}
+
 // Costa Rica bounding box (rough country-wide).
 export const CR_BBOX = {
   north: 11.22,
@@ -91,6 +105,42 @@ export function inferCategory(p: BtcMapPlace): MerchantCategory {
 // list-row meta so both render the same localized name.
 export function categoryLabelKey(c: MerchantCategory): string {
   return `MapScreen.category${c.charAt(0).toUpperCase()}${c.slice(1)}`
+}
+
+// Map BTC Map's `icon` field (Material Symbols names) to an ionicon name for
+// map markers. We use ionicons (not the raw Material names) because the app
+// already ships that font and many Material Symbols names aren't in the bundled
+// classic MaterialIcons set. Unknown icons fall back to a generic pin.
+const ICON_TO_IONICON: Record<string, string> = {
+  restaurant: "restaurant", lunch_dining: "restaurant", local_pizza: "restaurant",
+  bakery_dining: "restaurant", tapas: "restaurant", icecream: "ice-cream",
+  local_cafe: "cafe", coffee: "cafe",
+  hotel: "bed", chalet: "bed", camping: "bonfire", luggage: "bed",
+  storefront: "storefront", local_grocery_store: "storefront", card_giftcard: "gift",
+  liquor: "wine", diamond: "diamond",
+  medical_services: "medkit", local_pharmacy: "medkit", dentistry: "medkit",
+  fitness_center: "barbell", spa: "flower", sauna: "flame", sports: "football",
+  sports_score: "football", sports_bar: "beer", sports_martial_arts: "fitness",
+  school: "school", science: "flask", business: "briefcase", group: "briefcase",
+  factory: "briefcase", warehouse: "cube", office: "briefcase",
+  palette: "color-palette", design_services: "color-palette", colorize: "color-palette",
+  architecture: "construct", photo_camera: "camera", content_cut: "cut",
+  local_florist: "flower", pets: "paw",
+  local_bar: "beer", local_atm: "cash", account_balance: "cash",
+  currency_exchange: "cash", balance: "cash",
+  home: "home", chair: "home", hardware: "hammer", construction: "construct",
+  directions_car: "car", car_repair: "car", local_car_wash: "car",
+  local_taxi: "car", local_parking: "car", two_wheeler: "bicycle", pedal_bike: "bicycle",
+  tour: "compass", beach_access: "umbrella", surfing: "compass", visibility: "eye",
+  computer: "laptop", smartphone: "phone-portrait", local_printshop: "print",
+  music_note: "musical-notes", mic: "mic", casino: "dice",
+  church: "business", directions_boat: "boat", volunteer_activism: "heart",
+  vaping_rooms: "cloud", bedroom_baby: "happy", info_outline: "information-circle",
+}
+
+export function markerIonicon(icon: string | undefined): string {
+  if (!icon) return "location"
+  return ICON_TO_IONICON[icon] ?? "location"
 }
 
 export function paymentMethods(p: BtcMapPlace): PaymentMethod[] {
