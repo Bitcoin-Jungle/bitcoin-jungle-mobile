@@ -20,6 +20,7 @@ import analytics from "@react-native-firebase/analytics"
 import { StackNavigationProp } from "@react-navigation/stack"
 import { RouteProp } from "@react-navigation/native"
 import CheckBox from '@react-native-community/checkbox';
+import Icon from "react-native-vector-icons/Ionicons"
 
 import { CloseCross } from "../../components/close-cross"
 import { Screen } from "../../components/screen"
@@ -347,6 +348,14 @@ export const WelcomePhoneInputScreen: ScreenType = ({
                 textContainerStyle={[styles.textContainer, { backgroundColor: colors.inputBackground }]}
                 codeTextStyle={{ marginLeft: -25, color: colors.text }}
                 flagButtonStyle={{ backgroundColor: colors.inputBackground }}
+                renderDropdownImage={
+                  <Icon
+                    name="caret-down"
+                    size={16}
+                    color={colors.text}
+                    style={{ marginLeft: 5 }}
+                  />
+                }
                 withDarkTheme={isDark}
                 defaultValue={phoneNumber}
                 defaultCode="CR"
@@ -363,6 +372,7 @@ export const WelcomePhoneInputScreen: ScreenType = ({
                 countryPickerProps={{
                   withFilter: true,
                   withFlag: true,
+                  withEmoji: true,
                   withCountryNameButton: false,
                   withAlphaFilter: false,
                   theme: isDark ? DARK_THEME : DEFAULT_THEME,
