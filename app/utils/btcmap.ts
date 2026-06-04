@@ -14,6 +14,7 @@ const PLACE_FIELDS = [
   "lon",
   "name",
   "icon",
+  "payment_provider",
   "address",
   "description",
   "opening_hours",
