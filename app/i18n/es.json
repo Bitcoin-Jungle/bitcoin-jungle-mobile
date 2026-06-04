@@ -2552,7 +2552,10 @@
     "placeholder": "Número de teléfono",
     "verify": "No soy un robot",
     "continue": "Continuar",
-    "whatsapp": "Enviar Por WhatsApp?"
+    "whatsapp": "Enviar Por WhatsApp?",
+    "sms": "SMS",
+    "whatsappShort": "WhatsApp",
+    "deliveryMethod": "¿Cómo enviamos tu código?"
   },
   "WelcomePhoneValidationScreen": {
     "errorLoggingIn": "Error al iniciar sesión. ¿Usó el código correcto?",

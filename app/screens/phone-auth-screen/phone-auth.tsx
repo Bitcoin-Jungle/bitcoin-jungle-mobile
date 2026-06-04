@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -16,10 +17,17 @@ import { Button, Input } from "react-native-elements"
 import { FetchResult, gql, useApolloClient, useMutation } from "@apollo/client"
 import EStyleSheet from "react-native-extended-stylesheet"
 import PhoneInput from "react-native-phone-number-input"
+import type { CountryCode } from "react-native-country-picker-modal"
+// Locally-bundled country-code -> base64 PNG flag map. react-native-country-picker-modal
+// only bundles EMOJI flags (which Android cannot render — it has no flag-emoji glyphs) and
+// fetches its image flags from a third-party gh-pages URL at runtime, which is unreliable
+// on a wallet's onboarding screen. We render the button flag ourselves from this map so it
+// always shows, offline, on every platform.
+import countryFlags from "./country-flags.json"
 import analytics from "@react-native-firebase/analytics"
 import { StackNavigationProp } from "@react-navigation/stack"
 import { RouteProp } from "@react-navigation/native"
-import CheckBox from '@react-native-community/checkbox';
+import Icon from "react-native-vector-icons/Ionicons"
 
 import { CloseCross } from "../../components/close-cross"
 import { Screen } from "../../components/screen"
@@ -181,12 +189,39 @@ const styles = EStyleSheet.create({
     textAlign: "center",
   },
 
-  whatsappRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: 'center',
-    paddingHorizontal: "50rem",
+  flagImage: {
+    height: "20rem",
+    marginLeft: "8rem",
+    width: "30rem",
+  },
+
+  deliveryMethodLabel: {
+    fontSize: "14rem",
+    marginHorizontal: "40rem",
+    marginTop: "8rem",
     textAlign: "center",
+  },
+
+  channelToggle: {
+    alignSelf: "center",
+    borderRadius: 999,
+    borderWidth: 1,
+    flexDirection: "row",
+    marginTop: "8rem",
+    overflow: "hidden",
+  },
+
+  channelOption: {
+    alignItems: "center",
+    justifyContent: "center",
+    minWidth: "110rem",
+    paddingHorizontal: "20rem",
+    paddingVertical: "8rem",
+  },
+
+  channelText: {
+    fontSize: "15rem",
+    fontWeight: "600",
   },
 })
 
@@ -339,6 +374,31 @@ export const WelcomePhoneInputScreen: ScreenType = ({
             captchaContent
           ) : (
             <KeyboardAvoidingView>
+              <Text style={[styles.deliveryMethodLabel, { color: colors.text }]}>
+                {translate("WelcomePhoneInputScreen.deliveryMethod")}
+              </Text>
+              <View style={[styles.channelToggle, { borderColor: colors.primary }]}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: !whatsapp }}
+                  style={[styles.channelOption, !whatsapp && { backgroundColor: colors.primary }]}
+                  onPress={() => setWhatsApp(false)}
+                >
+                  <Text style={[styles.channelText, { color: !whatsapp ? palette.white : colors.text }]}>
+                    {translate("WelcomePhoneInputScreen.sms")}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: whatsapp }}
+                  style={[styles.channelOption, whatsapp && { backgroundColor: colors.primary }]}
+                  onPress={() => setWhatsApp(true)}
+                >
+                  <Text style={[styles.channelText, { color: whatsapp ? palette.white : colors.text }]}>
+                    {translate("WelcomePhoneInputScreen.whatsappShort")}
+                  </Text>
+                </Pressable>
+              </View>
               <PhoneInput
                 ref={phoneInputRef}
                 value={phoneNumber}
@@ -347,6 +407,14 @@ export const WelcomePhoneInputScreen: ScreenType = ({
                 textContainerStyle={[styles.textContainer, { backgroundColor: colors.inputBackground }]}
                 codeTextStyle={{ marginLeft: -25, color: colors.text }}
                 flagButtonStyle={{ backgroundColor: colors.inputBackground }}
+                renderDropdownImage={
+                  <Icon
+                    name="caret-down"
+                    size={16}
+                    color={colors.text}
+                    style={{ marginLeft: 5 }}
+                  />
+                }
                 withDarkTheme={isDark}
                 defaultValue={phoneNumber}
                 defaultCode="CR"
@@ -363,6 +431,20 @@ export const WelcomePhoneInputScreen: ScreenType = ({
                 countryPickerProps={{
                   withFilter: true,
                   withFlag: true,
+                  // The phone-input lib hardcodes the button flag to an emoji
+                  // flag (invisible on Android). Override renderFlagButton to
+                  // render our own bundled PNG so it shows on every platform.
+                  // withEmoji:true keeps the modal LIST on the locally-bundled
+                  // emoji data (instant, offline) rather than the lib's remote
+                  // image fetch; list row flags are secondary to name + code.
+                  withEmoji: true,
+                  renderFlagButton: (props: { countryCode: CountryCode }) => (
+                    <Image
+                      source={{ uri: (countryFlags as Record<string, string>)[props.countryCode] }}
+                      resizeMode="contain"
+                      style={styles.flagImage}
+                    />
+                  ),
                   withCountryNameButton: false,
                   withAlphaFilter: false,
                   theme: isDark ? DARK_THEME : DEFAULT_THEME,
@@ -372,22 +454,6 @@ export const WelcomePhoneInputScreen: ScreenType = ({
                 }}
                 autoFocus
               />
-              <View style={styles.whatsappRow}>
-                <Pressable onPress={() => setWhatsApp(!whatsapp)}>
-                  <Text style={{ color: colors.text }}>
-                    {translate("WelcomePhoneInputScreen.whatsapp")}
-                  </Text>
-                </Pressable>
-                <CheckBox
-                  tintColors={{
-                    true: colors.primary,
-                    false: colors.text
-                  }}
-                  style={{marginLeft: 8}}
-                  value={whatsapp}
-                  onValueChange={(newValue) => setWhatsApp(newValue)}
-                />
-              </View>
           <ActivityIndicator animating={loadingRequestPhoneCode} size="large" color={colors.primary} style={{ marginTop: 32 }} />
             </KeyboardAvoidingView>
           )}

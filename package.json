@@ -34,7 +34,6 @@
     "@mdi/react": "^1.6.1",
     "@react-native-async-storage/async-storage": "^1.15.9",
     "@react-native-clipboard/clipboard": "^1.11.1",
-    "@react-native-community/checkbox": "^0.5.14",
     "@react-native-community/masked-view": "^0.1.7",
     "@react-native-community/netinfo": "^7.1.7",
     "@react-native-community/push-notification-ios": "^1.8.0",
