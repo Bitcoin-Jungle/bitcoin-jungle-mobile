@@ -2528,7 +2528,10 @@
     "placeholder": "Phone Number",
     "verify": "Click to Verify",
     "continue": "Continue",
-    "whatsapp": "Send Over WhatsApp?"
+    "whatsapp": "Send Over WhatsApp?",
+    "sms": "SMS",
+    "whatsappShort": "WhatsApp",
+    "deliveryMethod": "How should we send your code?"
   },
   "WelcomePhoneValidationScreen": {
     "errorLoggingIn": "Error logging in. Did you use the right code?",
