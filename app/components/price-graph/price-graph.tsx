@@ -157,11 +157,10 @@ export const PriceGraph: ComponentType = ({
     price =
       (currentPriceData.base / 10 ** currentPriceData.offset) *
       multiple(currentPriceData.currencyUnit)
-    delta =
-      (price -
-        (startPriceData.base / 10 ** startPriceData.offset) *
-          multiple(startPriceData.currencyUnit)) /
-      price
+    const startPrice =
+      (startPriceData.base / 10 ** startPriceData.offset) *
+      multiple(startPriceData.currencyUnit)
+    delta = (price - startPrice) / startPrice
     strokeColor = delta > 0 ? palette.green : palette.red
   } catch (err) {
     return <ActivityIndicator animating size="large" color={palette.lightBlue} />
