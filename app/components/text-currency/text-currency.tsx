@@ -10,7 +10,7 @@ type Props = {
 }
 
 export const TextCurrency: ComponentType = ({ amount, currency, style }: Props) => {
-  if (currency === "CRC") {
+  if (currency === "CRC" || currency === "USD") {
     const amountDisplay = Number.isNaN(amount)
       ? "..."
       : currency_fmt
