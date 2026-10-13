@@ -156,17 +156,21 @@ export const SendBitcoinScreen: ScreenType = ({
     }
   }, [lnurlPay])
 
-  const reset = useCallback(() => {
+  const resetDestination = useCallback(() => {
     setInvoiceError("")
     setAddress("")
     setPaymentType(undefined)
     setAmountless(false)
-    setPrimaryAmountValue(0)
     setDestination("")
     setInvoice("")
     setMemo("")
     setInteractive(true)
-  }, [setPrimaryAmountValue])
+  }, [])
+
+  const reset = useCallback(() => {
+    resetDestination()
+    setPrimaryAmountValue(0)
+  }, [resetDestination, setPrimaryAmountValue])
 
   useEffect(() => {
     if (primaryCurrency !== primaryAmount.currency) {
@@ -183,13 +187,18 @@ export const SendBitcoinScreen: ScreenType = ({
   ])
 
   useEffect(() => {
-    reset()
-    const { valid, username } = validPayment(
-      route.params?.payment,
-      tokenNetwork,
-      myPubKey,
-      myUsername,
-    )
+    const {
+      valid,
+      username,
+      paymentType: incomingPaymentType,
+      amountless: incomingAmountless,
+    } = validPayment(route.params?.payment, tokenNetwork, myPubKey, myUsername)
+    // keep an amount the user already typed when an amountless on-chain address is scanned
+    if (valid && incomingPaymentType === "onchain" && incomingAmountless) {
+      resetDestination()
+    } else {
+      reset()
+    }
     if (route.params?.username || username) {
       setInteractive(false)
       setDestination(route.params?.username || username)
