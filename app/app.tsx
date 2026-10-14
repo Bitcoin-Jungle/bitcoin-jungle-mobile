@@ -57,6 +57,16 @@ export const BUILD_VERSION = "build_version"
 export const { link: linkNetworkStatusNotifier, useApolloNetworkStatus } =
   createNetworkStatusNotifier()
 
+// Payment mutations must never be re-sent automatically: if the response is lost
+// (e.g. the phone gets locked) the first request may already have moved the funds,
+// and a retry books a second debit on the backend.
+const NO_RETRY_OPERATIONS = [
+  "lnInvoicePaymentSend",
+  "lnNoAmountInvoicePaymentSend",
+  "intraLedgerPaymentSend",
+  "onChainPaymentSend",
+]
+
 const entireScreenWidth = Dimensions.get("window").width
 EStyleSheet.build({
   $rem: entireScreenWidth / 380,
@@ -173,6 +183,7 @@ export const App = (): React.ReactElement => {
             console.log({ error }, "retry error")
             return (
               !!error &&
+              !NO_RETRY_OPERATIONS.includes(operation.operationName) &&
               !/onchain_pay|payKeysendUsername|payInvoice/.test(operation.operationName)
             )
           },

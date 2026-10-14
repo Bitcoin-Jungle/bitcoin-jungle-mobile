@@ -178,6 +178,10 @@ export const SendBitcoinConfirmationScreen = ({
       }
     } else if (status === "PENDING") {
       setStatus(Status.PENDING)
+    } else if (status === "ALREADY_PAID") {
+      // nothing was sent this time: the invoice had already been paid before
+      setStatus(Status.ERROR)
+      setErrs([{ message: translate("SendBitcoinScreen.alreadyPaid") }])
     } else {
       setStatus(Status.ERROR)
       if (errors && Array.isArray(errors)) {
@@ -195,6 +199,12 @@ export const SendBitcoinConfirmationScreen = ({
 
   const handlePaymentError = (error) => {
     setStatus(Status.ERROR)
+    if (error?.networkError) {
+      // the request may have reached the server before the connection dropped,
+      // so don't tell the user to just try again
+      setErrs([{ message: translate("SendBitcoinScreen.resultUnknown") }])
+      return
+    }
     // Todo: provide specific translated error messages in known cases
     setErrs([{ message: translate("errors.generic") + error }])
   }
