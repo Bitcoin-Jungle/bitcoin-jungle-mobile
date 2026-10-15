@@ -3,7 +3,7 @@ import { gql, useApolloClient, useLazyQuery, useMutation, useQuery } from "@apol
 import { StackNavigationProp } from "@react-navigation/stack"
 import { RouteProp } from "@react-navigation/native"
 import * as React from "react"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native"
 import { Button, Icon } from "react-native-elements"
 import EStyleSheet from "react-native-extended-stylesheet"
@@ -46,6 +46,8 @@ type SendBitcoinScreenProps = {
 }
 
 type LnurlParams = {
+  destination: string
+  requestId: number
   lnurl: string
   minSendable: number
   maxSendable: number
@@ -53,6 +55,18 @@ type LnurlParams = {
   callback: string
   commentAllowed: number
   error: string
+}
+
+const EMPTY_LNURL_PARAMS: LnurlParams = {
+  destination: "",
+  requestId: -1,
+  lnurl: "",
+  minSendable: 0,
+  maxSendable: 0,
+  domain: "",
+  callback: "",
+  commentAllowed: 0,
+  error: "",
 }
 
 export const SendBitcoinScreen: ScreenType = ({
@@ -85,20 +99,14 @@ export const SendBitcoinScreen: ScreenType = ({
   const { myPubKey, username: myUsername } = useMainQuery()
   const [invoiceError, setInvoiceError] = useState("")
   const [address, setAddress] = useState("")
-  const [lnurlPay, setLnurlPay] = useState<LnurlParams>({
-    lnurl: "",
-    minSendable: 0,
-    maxSendable: 0,
-    domain: "",
-    callback: "",
-    commentAllowed: 0,
-    error: "",
-  })
+  const [lnurlPay, setLnurlPay] = useState<LnurlParams>(EMPTY_LNURL_PARAMS)
   const [lnurlError, setLnurlError] = useState("")
 
   const [paymentType, setPaymentType] = useState<IPaymentType>(undefined)
   const [amountless, setAmountless] = useState(false)
-  const [destination, setDestinationInternal] = useState("")
+  const [destinationState, setDestinationState] = useState({ destination: "", requestId: 0 })
+  const { destination } = destinationState
+  const recipient = useRef(destinationState)
   const [destinationStatus, setDestinationStatus] = useState<
     "VALID" | "INVALID" | "NOT_CHECKED"
   >("NOT_CHECKED")
@@ -137,9 +145,21 @@ export const SendBitcoinScreen: ScreenType = ({
     },
   })
 
-  const setDestination = (input) => {
-    setDestinationInternal(input.trim())
-  }
+  const setDestination = useCallback((input: string) => {
+    const nextDestination = input.trim()
+    if (recipient.current.destination === nextDestination) return
+
+    // Invalidate pending work immediately, including callbacks captured by alerts.
+    recipient.current = {
+      destination: nextDestination,
+      requestId: recipient.current.requestId + 1,
+    }
+    setLnurlPay(EMPTY_LNURL_PARAMS)
+    setLnurlError("")
+    setDestinationStatus("NOT_CHECKED")
+    setIsStaticLnurlIdentifier(false)
+    setDestinationState(recipient.current)
+  }, [])
 
   const getIsSendLockEnabled = async () => {
     setIsSendLockEnabled(await KeyStoreWrapper.getIsSendLockEnabled())
@@ -151,10 +171,14 @@ export const SendBitcoinScreen: ScreenType = ({
         toggleCurrency()
       }
 
-      setTimeout(() => {
-        setPrimaryAmountValue(lnurlPay.minSendable)
+      const timeout = setTimeout(() => {
+        if (lnurlPay.requestId === recipient.current.requestId) {
+          setPrimaryAmountValue(lnurlPay.minSendable)
+        }
       }, 100)
+      return () => clearTimeout(timeout)
     }
+    return undefined
   }, [lnurlPay])
 
   const reset = useCallback(() => {
@@ -167,7 +191,7 @@ export const SendBitcoinScreen: ScreenType = ({
     setInvoice("")
     setMemo("")
     setInteractive(true)
-  }, [setPrimaryAmountValue])
+  }, [setDestination, setPrimaryAmountValue])
 
   useEffect(() => {
     if (primaryCurrency !== primaryAmount.currency) {
@@ -250,9 +274,13 @@ export const SendBitcoinScreen: ScreenType = ({
 
   const debouncedGetLnurlParams = useMemo(
     () =>
-      debounce(async (lnurl) => {
+      debounce(async (lnurl, destination, requestId) => {
+        const isCurrentRequest = () =>
+          requestId === recipient.current.requestId &&
+          destination === recipient.current.destination
         getParams(lnurl)
           .then((params) => {
+            if (!isCurrentRequest()) return
             if ("reason" in params) {
               throw params.reason
             }
@@ -260,12 +288,15 @@ export const SendBitcoinScreen: ScreenType = ({
               const lnurlparams = setLnurlParams({
                 params: params as LNURLPayParams,
                 lnurl,
+                destination,
+                requestId,
               })
               setDestinationStatus("VALID")
               setLnurlPay({ ...lnurlparams })
             }
           })
           .catch((err) => {
+            if (!isCurrentRequest()) return
             setDestinationStatus("INVALID")
             toastShow(err.toString())
             // Alert.alert(err.toString())
@@ -274,8 +305,21 @@ export const SendBitcoinScreen: ScreenType = ({
     [],
   )
 
-  const setLnurlParams = ({ params, lnurl }): LnurlParams => {
+  useEffect(
+    () => () => {
+      recipient.current = {
+        ...recipient.current,
+        requestId: recipient.current.requestId + 1,
+      }
+      debouncedGetLnurlParams.cancel()
+    },
+    [debouncedGetLnurlParams],
+  )
+
+  const setLnurlParams = ({ params, lnurl, destination, requestId }): LnurlParams => {
     return {
+      destination,
+      requestId,
       lnurl: lnurl,
       minSendable: params.minSendable / 1000,
       maxSendable: params.maxSendable / 1000,
@@ -287,6 +331,8 @@ export const SendBitcoinScreen: ScreenType = ({
   }
 
   useEffect(() => {
+    if (destinationState !== recipient.current) return undefined
+
     const {
       valid,
       errorMessage,
@@ -312,11 +358,18 @@ export const SendBitcoinScreen: ScreenType = ({
           setIsStaticLnurlIdentifier(true)
           setInteractive(true)
         }
-        if (route.params?.lnurlParams) {
-          const params = setLnurlParams({ params: route.params.lnurlParams, lnurl })
+        const requestId = recipient.current.requestId
+        if (route.params?.lnurlParams && destination === route.params.payment?.trim()) {
+          const params = setLnurlParams({
+            params: route.params.lnurlParams,
+            lnurl,
+            destination,
+            requestId,
+          })
           setLnurlPay({ ...params })
+          setDestinationStatus("VALID")
         } else {
-          debouncedGetLnurlParams(lnurl)
+          debouncedGetLnurlParams(lnurl, destination, requestId)
         }
       }
       setAmountless(amountless)
@@ -345,8 +398,9 @@ export const SendBitcoinScreen: ScreenType = ({
         userDefaultWalletIdQueryDebounced(destination)
       }
     }
+    return () => debouncedGetLnurlParams.cancel()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [destination])
+  }, [destinationState])
 
   const errorMessage = useMemo(() => {
     if (invoiceError) {
@@ -367,10 +421,6 @@ export const SendBitcoinScreen: ScreenType = ({
     satBalance,
     isSendLockEnabled,
   ])
-
-  useEffect(() => {
-    setDestinationStatus("NOT_CHECKED")
-  }, [destination])
 
   const fetchInvoice = async (url) => {
     try {
@@ -396,16 +446,26 @@ export const SendBitcoinScreen: ScreenType = ({
       toastShow(translate("SendBitcoinScreen.usernameNotFound"))
       return
     } else if (paymentType == "lnurl") {
+      const isCurrentRecipient = () =>
+        lnurlPay.requestId === recipient.current.requestId &&
+        destination === recipient.current.destination &&
+        lnurlPay.destination === destination &&
+        !!lnurlPay.callback
+
+      if (destinationStatus !== "VALID" || !isCurrentRecipient()) return
+
       const amountMsat =
         (primaryCurrency === "BTC"
           ? primaryAmount.value
           : Math.round(secondaryAmount.value)) * 1000
 
       const proceedWithLnurlPayment = async () => {
+        if (!isCurrentRecipient()) return
         const url = new URL(lnurlPay.callback)
         url.searchParams.set('amount', amountMsat.toString())
         url.searchParams.append('comment', memo)
         const lnurlInvoice = await fetchInvoice(url.toString().replace(/\/\?/, '?'))
+        if (!isCurrentRecipient()) return
 
         if (lnurlInvoice?.status === "ERROR") {
           setLnurlError(lnurlInvoice.reason)
@@ -449,6 +509,7 @@ export const SendBitcoinScreen: ScreenType = ({
               {
                 text: translate("common.confirm"),
                 onPress: async () => {
+                  if (!isCurrentRecipient()) return
                   try {
                     await userContactAddMutation({
                       variables: { input: { lightningAddress } },
@@ -803,6 +864,8 @@ export const SendBitcoinScreenJSX: ScreenType = ({
             !destination ||
             !!lnurlError ||
             loadingUserNameExist ||
+            (paymentType === "lnurl" &&
+              (destinationStatus !== "VALID" || lnurlPay.destination !== destination)) ||
             (UsernameValidation.isValid(destination) &&
               destinationStatus === "NOT_CHECKED")
           }

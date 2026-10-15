@@ -1,6 +1,9 @@
 import * as React from "react"
 import { act, create, ReactTestRenderer } from "react-test-renderer"
 import { Button } from "react-native-elements"
+import { Alert } from "react-native"
+import { getParams } from "js-lnurl"
+import { toastShow } from "@app/utils/toast"
 import { InputPayment } from "@app/components/input-payment"
 import { GaloyInput } from "@app/components/galoy-input"
 import {
@@ -67,18 +70,21 @@ jest.mock("@app/utils/parsing", () => ({
     input
       ? {
           valid: true,
-          lnurl: "lnurl-test",
+          lnurl: input,
           amountless: false,
-          staticLnurlIdentifier: input === "test@example.com",
+          staticLnurlIdentifier: input !== "lnurl-test",
         }
       : { valid: false },
 }))
+jest.mock("js-lnurl", () => ({ getParams: jest.fn() }))
 jest.mock("@app/utils/storage/secureStorage", () => ({
   getIsSendLockEnabled: async () => false,
 }))
 jest.mock("@app/utils/toast", () => ({ toastShow: jest.fn() }))
 jest.mock("@app/graphql/query", () => ({ fetchMainQuery: jest.fn() }))
-jest.mock("@app/i18n", () => ({ translate: (key) => key }))
+jest.mock("@app/i18n", () => ({
+  translate: (key, options) => (options?.username ? `${key}: ${options.username}` : key),
+}))
 jest.mock("@app/theme/useThemeColor", () => ({ useThemeColor: () => ({}) }))
 jest.mock("react-native-extended-stylesheet", () => ({ create: (styles) => styles }))
 jest.mock("react-native-elements", () => ({ Button: "Button", Icon: "Icon" }))
@@ -114,10 +120,20 @@ beforeEach(() => {
 afterEach(async () => {
   if (tree) await act(async () => tree.unmount())
   global.fetch = originalFetch
+  jest.useRealTimers()
+  jest.restoreAllMocks()
 })
 
-const requestInvoice = async (response, payment = "lnurl-test", amount = 151) => {
-  global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => response })
+const paramsFor = (callback = "https://example.com/cb?amount=999") => ({
+  tag: "payRequest",
+  callback,
+  domain: "example.com",
+  minSendable: 1000,
+  maxSendable: 100000000,
+  commentAllowed: 0,
+})
+
+const showSend = async (payment, lnurlParams = paramsFor(), amount = 151) => {
   await act(async () => {
     tree = create(
       <SendBitcoinScreen
@@ -125,20 +141,18 @@ const requestInvoice = async (response, payment = "lnurl-test", amount = 151) =>
         route={{
           params: {
             payment,
-            lnurlParams: {
-              tag: "payRequest",
-              callback: "https://example.com/cb?amount=999",
-              domain: "example.com",
-              minSendable: 1000,
-              maxSendable: 100000000,
-              commentAllowed: 0,
-            },
+            lnurlParams,
           },
         }}
       />,
     )
   })
   await act(async () => tree.root.findByType(InputPayment).props.onUpdateAmount(amount))
+}
+
+const requestInvoice = async (response, payment = "lnurl-test", amount = 151) => {
+  global.fetch = jest.fn().mockResolvedValue({ ok: true, json: async () => response })
+  await showSend(payment, paramsFor(), amount)
   await act(async () => tree.root.findByType(Button).props.onPress())
 }
 
@@ -265,5 +279,259 @@ it("shows fixed sats plus fees after a rate change and pays the matching invoice
         memo: null,
       },
     },
+  })
+})
+
+const deferred = <T,>() => {
+  let resolve: (value: T) => void
+  let reject: (reason: Error) => void
+  const promise = new Promise<T>((onResolve, onReject) => {
+    resolve = onResolve
+    reject = onReject
+  })
+  return { promise, resolve, reject }
+}
+const editRecipient = async (destination) => {
+  await act(async () =>
+    tree.root.findAllByType(GaloyInput)[0].props.onChangeText(destination),
+  )
+}
+const finishDebounce = async () => {
+  await act(async () => jest.advanceTimersByTime(1500))
+}
+const sendProps = () => tree.root.findByType(SendBitcoinScreenJSX).props
+const confirmRecipient = () => (Alert.alert as jest.Mock).mock.calls[0][2][1].onPress()
+
+describe("recipient changes during LNURL payments", () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+    jest.spyOn(Alert, "alert").mockImplementation(() => undefined)
+    ;(getParams as jest.Mock)
+      .mockReset()
+      .mockImplementation(() => new Promise(() => undefined))
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ pr: makeInvoice("151000") }),
+    })
+  })
+
+  it("replaces scanned parameters before warning, saving, or paying the edited address", async () => {
+    const lookup = deferred<ReturnType<typeof paramsFor>>()
+    ;(getParams as jest.Mock).mockReturnValue(lookup.promise)
+    await showSend("test@example.com", paramsFor("https://first.example/cb"))
+    await editRecipient("second@example.com")
+    expect(tree.root.findByType(Button).props.disabled).toBe(true)
+    await act(async () => tree.root.findByType(Button).props.onPress())
+    expect(Alert.alert).not.toHaveBeenCalled()
+    expect(mockMutation).not.toHaveBeenCalled()
+    expect(global.fetch).not.toHaveBeenCalled()
+
+    await finishDebounce()
+    expect(getParams).toHaveBeenCalledWith("second@example.com")
+    await act(async () => lookup.resolve(paramsFor("https://second.example/cb")))
+    expect(tree.root.findByType(Button).props.disabled).toBe(false)
+    await act(async () => tree.root.findByType(Button).props.onPress())
+    expect(Alert.alert).toHaveBeenCalledWith(
+      "SendBitcoinScreen.firstTimeRecipientTitle",
+      "SendBitcoinScreen.firstTimeRecipientMessage: second@example.com",
+      expect.any(Array),
+    )
+    await act(async () => confirmRecipient())
+    expect(mockMutation).toHaveBeenCalledWith({
+      variables: { input: { lightningAddress: "second@example.com" } },
+    })
+    expect(new URL((global.fetch as jest.Mock).mock.calls[0][0]).hostname).toBe(
+      "second.example",
+    )
+    expect(navigation.navigate).toHaveBeenCalledTimes(1)
+  })
+
+  it("ignores a previous lookup that completes after the current lookup", async () => {
+    const first = deferred<ReturnType<typeof paramsFor>>()
+    const second = deferred<ReturnType<typeof paramsFor>>()
+    ;(getParams as jest.Mock)
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise)
+    await showSend("first@example.com", null)
+    await finishDebounce()
+    await editRecipient("test@example.com")
+    await finishDebounce()
+    await act(async () => second.resolve(paramsFor("https://second.example/cb")))
+    await act(async () => first.resolve(paramsFor("https://first.example/cb")))
+    await act(async () => tree.root.findByType(Button).props.onPress())
+    expect(new URL((global.fetch as jest.Mock).mock.calls[0][0]).hostname).toBe(
+      "second.example",
+    )
+  })
+
+  it("keeps Send blocked when an obsolete lookup succeeds while the current lookup is pending", async () => {
+    const first = deferred<ReturnType<typeof paramsFor>>()
+    ;(getParams as jest.Mock).mockReturnValueOnce(first.promise)
+    await showSend("first@example.com", null)
+    await finishDebounce()
+    await editRecipient("test@example.com")
+    await finishDebounce()
+    await act(async () => first.resolve(paramsFor("https://first.example/cb")))
+    expect(tree.root.findByType(Button).props.disabled).toBe(true)
+    await act(async () => tree.root.findByType(Button).props.onPress())
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+
+  it("ignores the original lookup after changing away and back to the same address", async () => {
+    const original = deferred<ReturnType<typeof paramsFor>>()
+    const latest = deferred<ReturnType<typeof paramsFor>>()
+    ;(getParams as jest.Mock)
+      .mockReturnValueOnce(original.promise)
+      .mockReturnValueOnce(latest.promise)
+    await showSend("test@example.com", null)
+    await finishDebounce()
+    await editRecipient("second@example.com")
+    await editRecipient("test@example.com")
+    await finishDebounce()
+    await act(async () => latest.resolve(paramsFor("https://latest.example/cb")))
+    await act(async () => original.resolve(paramsFor("https://original.example/cb")))
+    expect(sendProps().lnurlPay.callback).toBe("https://latest.example/cb")
+  })
+
+  it("revalidates freshly scanned parameters for the same recipient", async () => {
+    await showSend("test@example.com", paramsFor("https://original.example/cb"))
+    const { route } = tree.root.findByType(SendBitcoinScreen).props
+    await act(async () =>
+      tree.update(
+        <SendBitcoinScreen
+          navigation={navigation}
+          route={{
+            ...route,
+            params: {
+              ...route.params,
+              lnurlParams: paramsFor("https://rescanned.example/cb"),
+            },
+          }}
+        />,
+      ),
+    )
+    await act(async () => tree.root.findByType(InputPayment).props.onUpdateAmount(151))
+    expect(tree.root.findByType(Button).props.disabled).toBe(false)
+    await act(async () => tree.root.findByType(Button).props.onPress())
+    expect(new URL((global.fetch as jest.Mock).mock.calls[0][0]).hostname).toBe(
+      "rescanned.example",
+    )
+  })
+
+  it("revalidates when recipient edits are batched back to the original address", async () => {
+    await showSend("test@example.com")
+    await act(async () => {
+      const edit = tree.root.findAllByType(GaloyInput)[0].props.onChangeText
+      edit("second@example.com")
+      edit("test@example.com")
+    })
+    expect(tree.root.findByType(Button).props.disabled).toBe(false)
+    await act(async () => tree.root.findByType(Button).props.onPress())
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+  })
+
+  it("does not let an obsolete failure invalidate the new recipient", async () => {
+    const first = deferred<ReturnType<typeof paramsFor>>()
+    ;(getParams as jest.Mock)
+      .mockReturnValueOnce(first.promise)
+      .mockResolvedValueOnce(paramsFor("https://second.example/cb"))
+    await showSend("first@example.com", null)
+    await finishDebounce()
+    await editRecipient("test@example.com")
+    await finishDebounce()
+    await act(async () => first.reject(new Error("old lookup failed")))
+    expect(sendProps().destinationStatus).toBe("VALID")
+    expect(toastShow).not.toHaveBeenCalled()
+  })
+
+  it("cancels lookups that have not started when the recipient is cleared", async () => {
+    await showSend("test@example.com", null)
+    await editRecipient("")
+    await finishDebounce()
+    expect(getParams).not.toHaveBeenCalled()
+    expect(sendProps().isStaticLnurlIdentifier).toBe(false)
+  })
+
+  it("ignores a previously captured Send action after the recipient changes", async () => {
+    await showSend("test@example.com")
+    const send = tree.root.findByType(Button).props.onPress
+    await editRecipient("second@example.com")
+    await act(async () => send())
+    expect(global.fetch).not.toHaveBeenCalled()
+    expect(Alert.alert).not.toHaveBeenCalled()
+  })
+
+  it("does not save a contact or fetch an invoice from an obsolete recipient alert", async () => {
+    await showSend("first@example.com")
+    await act(async () => tree.root.findByType(Button).props.onPress())
+    expect(Alert.alert).toHaveBeenCalledTimes(1)
+    await editRecipient("second@example.com")
+    await act(async () => confirmRecipient())
+    expect(mockMutation).not.toHaveBeenCalled()
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+
+  it("does not continue payment when the recipient changes while a contact is being saved", async () => {
+    const saving = deferred<object>()
+    mockMutation.mockReturnValueOnce(saving.promise)
+    await showSend("first@example.com")
+    await act(async () => tree.root.findByType(Button).props.onPress())
+    let confirmation: Promise<void>
+    act(() => {
+      confirmation = confirmRecipient()
+    })
+    expect(mockMutation).toHaveBeenCalledTimes(1)
+    await editRecipient("second@example.com")
+    await act(async () => {
+      saving.resolve({})
+      await confirmation
+    })
+    expect(global.fetch).not.toHaveBeenCalled()
+    expect(navigation.navigate).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    { pr: makeInvoice("151000") },
+    { status: "ERROR", reason: "old callback error" },
+  ])(
+    "ignores an invoice response received after the recipient changes: %p",
+    async (response) => {
+      const invoice = deferred<object>()
+      ;(global.fetch as jest.Mock).mockReturnValueOnce(invoice.promise)
+      await showSend("test@example.com")
+      await act(async () => tree.root.findByType(Button).props.onPress())
+      await editRecipient("second@example.com")
+      await act(async () => invoice.resolve({ ok: true, json: async () => response }))
+      expect(navigation.navigate).not.toHaveBeenCalled()
+      expect(sendProps().lnurlError).not.toBe("old callback error")
+    },
+  )
+
+  it("cancels a fixed-amount update belonging to the previous recipient", async () => {
+    await showSend(
+      "test@example.com",
+      { ...paramsFor(), minSendable: 151000, maxSendable: 151000 },
+      200,
+    )
+    await editRecipient("second@example.com")
+    await act(async () => jest.advanceTimersByTime(100))
+    expect(tree.root.findByType(InputPayment).props.primaryAmount.value).toBe(200)
+  })
+
+  it("cancels queued lookups on unmount", async () => {
+    await showSend("test@example.com", null)
+    await act(async () => tree.unmount())
+    await finishDebounce()
+    expect(getParams).not.toHaveBeenCalled()
+  })
+
+  it("ignores lookup failures after unmount", async () => {
+    const lookup = deferred<ReturnType<typeof paramsFor>>()
+    ;(getParams as jest.Mock).mockReturnValue(lookup.promise)
+    await showSend("test@example.com", null)
+    await finishDebounce()
+    await act(async () => tree.unmount())
+    await act(async () => lookup.reject(new Error("unmounted")))
+    expect(toastShow).not.toHaveBeenCalled()
   })
 })
