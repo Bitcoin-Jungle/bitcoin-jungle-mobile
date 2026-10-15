@@ -13,7 +13,7 @@ import {
 import { WebSocketLink } from "@apollo/client/link/ws"
 import { getMainDefinition } from "@apollo/client/utilities"
 import { setContext } from "@apollo/client/link/context"
-import { RetryLink } from "@apollo/client/link/retry"
+import { createRetryLink } from "./graphql/retry-link"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import analytics from "@react-native-firebase/analytics"
 import "@react-native-firebase/crashlytics"
@@ -161,23 +161,7 @@ export const App = (): React.ReactElement => {
         }
       })
 
-      const retryLink = new RetryLink({
-        delay: {
-          initial: 500, // default = 300
-          // max: Infinity,
-          // jitter: true
-        },
-        attempts: {
-          max: 3,
-          retryIf: (error, operation) => {
-            console.log({ error }, "retry error")
-            return (
-              !!error &&
-              !/onchain_pay|payKeysendUsername|payInvoice/.test(operation.operationName)
-            )
-          },
-        },
-      })
+      const retryLink = createRetryLink()
 
       const persistor_ = new CachePersistor({
         cache,

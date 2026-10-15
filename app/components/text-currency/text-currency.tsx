@@ -10,7 +10,8 @@ type Props = {
 }
 
 export const TextCurrency: ComponentType = ({ amount, currency, style }: Props) => {
-  if (currency === "CRC") {
+  // "USD" is this fork's legacy fiat key; the amount hooks and keypad use colones.
+  if (currency === "CRC" || currency === "USD") {
     const amountDisplay = Number.isNaN(amount)
       ? "..."
       : currency_fmt

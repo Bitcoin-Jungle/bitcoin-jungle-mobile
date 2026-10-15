@@ -2468,6 +2468,8 @@
     "invalidUsername": "Nombre de usuario no válido",
     "noAmount": "Esta factura no tiene un monto, por lo que debe especificar manualmente cuánto dinero desea enviar",
     "notConfirmed": "El pago ha sido enviado.\npero aún no está confirmado\n\nPuedes comprobar el estado\ndel pago en Transacciones",
+    "alreadyPaid": "Esta factura ya fue pagada\nNo se envió nada esta vez\n\nPuedes revisar tus pagos\nen Transacciones",
+    "resultUnknown": "No pudimos confirmar este pago\nEs posible que sí se haya enviado\n\nRevisa Transacciones\nantes de intentarlo de nuevo",
     "note": "Nota ",
     "payFromUSD": "Pago desde $USD",
     "success": "El pago se ha enviado correctamente.",
