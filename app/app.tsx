@@ -13,7 +13,7 @@ import {
 import { WebSocketLink } from "@apollo/client/link/ws"
 import { getMainDefinition } from "@apollo/client/utilities"
 import { setContext } from "@apollo/client/link/context"
-import { RetryLink } from "@apollo/client/link/retry"
+import { createRetryLink } from "./graphql/retry-link"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import analytics from "@react-native-firebase/analytics"
 import "@react-native-firebase/crashlytics"
@@ -56,16 +56,6 @@ export const BUILD_VERSION = "build_version"
 
 export const { link: linkNetworkStatusNotifier, useApolloNetworkStatus } =
   createNetworkStatusNotifier()
-
-// Payment mutations must never be re-sent automatically: if the response is lost
-// (e.g. the phone gets locked) the first request may already have moved the funds,
-// and a retry books a second debit on the backend.
-const NO_RETRY_OPERATIONS = [
-  "lnInvoicePaymentSend",
-  "lnNoAmountInvoicePaymentSend",
-  "intraLedgerPaymentSend",
-  "onChainPaymentSend",
-]
 
 const entireScreenWidth = Dimensions.get("window").width
 EStyleSheet.build({
@@ -171,24 +161,7 @@ export const App = (): React.ReactElement => {
         }
       })
 
-      const retryLink = new RetryLink({
-        delay: {
-          initial: 500, // default = 300
-          // max: Infinity,
-          // jitter: true
-        },
-        attempts: {
-          max: 3,
-          retryIf: (error, operation) => {
-            console.log({ error }, "retry error")
-            return (
-              !!error &&
-              !NO_RETRY_OPERATIONS.includes(operation.operationName) &&
-              !/onchain_pay|payKeysendUsername|payInvoice/.test(operation.operationName)
-            )
-          },
-        },
-      })
+      const retryLink = createRetryLink()
 
       const persistor_ = new CachePersistor({
         cache,

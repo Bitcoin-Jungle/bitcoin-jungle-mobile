@@ -74,11 +74,12 @@ const Status = {
   IDLE: "idle",
   LOADING: "loading",
   PENDING: "pending",
+  UNKNOWN: "unknown",
   SUCCESS: "success",
   ERROR: "error",
 } as const
 
-type StatusType = typeof Status[keyof typeof Status]
+type StatusType = (typeof Status)[keyof typeof Status]
 
 export const SendBitcoinConfirmationScreen = ({
   navigation,
@@ -151,29 +152,21 @@ export const SendBitcoinConfirmationScreen = ({
 
       if (lnurlSuccessAction) {
         if (lnurlSuccessAction.tag === "message") {
-          Alert.alert(
-            translate("common.success"),
-            lnurlSuccessAction.message,
-            [
-              {
-                text: translate("common.ok"),
-              },
-            ],
-          )
+          Alert.alert(translate("common.success"), lnurlSuccessAction.message, [
+            {
+              text: translate("common.ok"),
+            },
+          ])
         } else if (lnurlSuccessAction.tag === "url") {
-          Alert.alert(
-            translate("common.success"),
-            lnurlSuccessAction.description,
-            [
-              {
-                text: translate("common.ok"),
-                onPress: () => Linking.openURL(lnurlSuccessAction.url),
-              },
-              {
-                text: translate("common.cancel"),
-              },
-            ],
-          )
+          Alert.alert(translate("common.success"), lnurlSuccessAction.description, [
+            {
+              text: translate("common.ok"),
+              onPress: () => Linking.openURL(lnurlSuccessAction.url),
+            },
+            {
+              text: translate("common.cancel"),
+            },
+          ])
         }
       }
     } else if (status === "PENDING") {
@@ -198,13 +191,14 @@ export const SendBitcoinConfirmationScreen = ({
   }
 
   const handlePaymentError = (error) => {
-    setStatus(Status.ERROR)
     if (error?.networkError) {
       // the request may have reached the server before the connection dropped,
       // so don't tell the user to just try again
+      setStatus(Status.UNKNOWN)
       setErrs([{ message: translate("SendBitcoinScreen.resultUnknown") }])
       return
     }
+    setStatus(Status.ERROR)
     // Todo: provide specific translated error messages in known cases
     setErrs([{ message: translate("errors.generic") + error }])
   }
@@ -351,21 +345,17 @@ export const SendBitcoinConfirmationScreen = ({
   }
 
   useEffect(() => {
-    if (loading) {
-      setStatus(Status.LOADING)
-    } else {
-      setStatus(Status.IDLE)
-    }
-  }, [loading])
-
-  useEffect(() => {
     if (status === "loading" || status === "idle") {
       return
     }
 
     let notificationType
 
-    if (status === Status.PENDING || status === Status.ERROR) {
+    if (
+      status === Status.PENDING ||
+      status === Status.UNKNOWN ||
+      status === Status.ERROR
+    ) {
       notificationType = "notificationError"
     }
 
@@ -445,7 +435,10 @@ export const SendBitcoinConfirmationScreen = ({
   }
 
   const hasCompletedPayment =
-    status === Status.SUCCESS || status === Status.PENDING || status === Status.ERROR
+    status === Status.SUCCESS ||
+    status === Status.PENDING ||
+    status === Status.UNKNOWN ||
+    status === Status.ERROR
 
   return (
     <Screen>
@@ -487,7 +480,7 @@ export const SendBitcoinConfirmationScreen = ({
           )}
           <Button
             buttonStyle={styles.buttonStyle}
-            loading={status === "loading"}
+            loading={status === Status.LOADING || (!hasCompletedPayment && loading)}
             onPress={() => {
               if (hasCompletedPayment) {
                 navigation.pop(2)

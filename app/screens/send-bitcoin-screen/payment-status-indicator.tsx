@@ -55,7 +55,7 @@ export const PaymentStatusIndicator = ({ errs, status }: Props): JSX.Element => 
     )
   }
 
-  if (status === "pending") {
+  if (status === "pending" || status === "unknown") {
     return (
       <>
         <LottieView
@@ -66,7 +66,11 @@ export const PaymentStatusIndicator = ({ errs, status }: Props): JSX.Element => 
           resizeMode="cover"
         />
         <Text style={styles.pendingLottieText}>
-          {translate("SendBitcoinScreen.notConfirmed")}
+          {translate(
+            status === "unknown"
+              ? "SendBitcoinScreen.resultUnknown"
+              : "SendBitcoinScreen.notConfirmed",
+          )}
         </Text>
       </>
     )
