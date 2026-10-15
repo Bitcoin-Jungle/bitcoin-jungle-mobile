@@ -2671,6 +2671,7 @@
     "contactSupport": "Soporte de contacto"
   },
   "lnurl": {
+    "invalidInvoiceAmount": "Pago bloqueado: el servicio devolvió una factura inválida o un monto que no coincide con tu solicitud.",
     "overLimit": "No se puede enviar más de la cantidad máxima",
     "underLimit": "No se puede enviar una cantidad inferior a la mínima",
     "commentRequired": "Se requiere una nota",

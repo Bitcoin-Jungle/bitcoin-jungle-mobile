@@ -2652,6 +2652,7 @@
     "contactSupport": "Contact Support"
   },
   "lnurl": {
+    "invalidInvoiceAmount": "Payment blocked: the service returned an invalid invoice or an amount that does not match your request.",
     "overLimit": "You can't send more than max amount",
     "underLimit": "You can't send less than min amount",
     "commentRequired": "Comment required",

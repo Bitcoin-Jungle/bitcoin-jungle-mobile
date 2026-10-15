@@ -22,6 +22,7 @@ import { palette } from "../../theme/palette"
 import { useThemeColor } from "../../theme/useThemeColor"
 import type { ScreenType } from "../../types/jsx"
 import { IPaymentType, validPayment } from "../../utils/parsing"
+import { invoiceMatchesAmount } from "../../utils/bolt11"
 import useToken from "../../utils/use-token"
 import * as UsernameValidation from "../../utils/validation"
 import { TextCurrency } from "../../components/text-currency/text-currency"
@@ -395,32 +396,32 @@ export const SendBitcoinScreen: ScreenType = ({
       toastShow(translate("SendBitcoinScreen.usernameNotFound"))
       return
     } else if (paymentType == "lnurl") {
-      let satAmount = 0
-
-      if (primaryCurrency === "BTC") {
-        satAmount = primaryAmount.value * 1000
-      } else {
-        satAmount = Math.round(secondaryAmount.value) * 1000
-      }
+      const amountMsat =
+        (primaryCurrency === "BTC"
+          ? primaryAmount.value
+          : Math.round(secondaryAmount.value)) * 1000
 
       const proceedWithLnurlPayment = async () => {
         const url = new URL(lnurlPay.callback)
-        url.searchParams.append('amount', satAmount.toString())
+        url.searchParams.set('amount', amountMsat.toString())
         url.searchParams.append('comment', memo)
         const lnurlInvoice = await fetchInvoice(url.toString().replace(/\/\?/, '?'))
 
-        if (lnurlInvoice.status && lnurlInvoice.status === "ERROR") {
+        if (lnurlInvoice?.status === "ERROR") {
           setLnurlError(lnurlInvoice.reason)
+        } else if (!invoiceMatchesAmount(lnurlInvoice?.pr, amountMsat)) {
+          setLnurlError(translate("lnurl.invalidInvoiceAmount"))
         } else {
           navigation.navigate("sendBitcoinConfirmation", {
             address,
-            amountless,
+            amountless: false,
             invoice: lnurlInvoice.pr,
             lnurlSuccessAction: lnurlInvoice.successAction,
             memo,
             paymentType,
             primaryCurrency,
-            referenceAmount,
+            // Keep the approved sats fixed even if the fiat exchange rate changes.
+            referenceAmount: { value: amountMsat / 1000, currency: "BTC" },
             sameNode,
             username: null,
             recipientDefaultWalletId: null,
@@ -612,6 +613,45 @@ export const SendBitcoinScreenJSX: ScreenType = ({
 }: SendBitcoinScreenJSXProps) => {
   const colors = useThemeColor()
   const styles = useStyles()
+  useEffect(() => {
+    if (paymentType !== "lnurl") {
+      setLnurlError("")
+      return
+    }
+
+    let lnurlErrorStr = ""
+    if (
+      primaryAmount &&
+      primaryAmount.currency === "BTC" &&
+      primaryAmount.value > lnurlPay.maxSendable
+    ) {
+      lnurlErrorStr = translate("lnurl.overLimit")
+    } else if (
+      primaryAmount &&
+      primaryAmount.currency === "BTC" &&
+      primaryAmount.value < lnurlPay.minSendable
+    ) {
+      lnurlErrorStr = translate("lnurl.underLimit")
+    } else if (
+      secondaryAmount &&
+      secondaryAmount.currency === "BTC" &&
+      secondaryAmount.value > lnurlPay.maxSendable
+    ) {
+      lnurlErrorStr = translate("lnurl.overLimit")
+    } else if (
+      secondaryAmount &&
+      secondaryAmount.currency === "BTC" &&
+      secondaryAmount.value < lnurlPay.minSendable
+    ) {
+      lnurlErrorStr = translate("lnurl.underLimit")
+    } else if (lnurlPay.commentAllowed && memo === "") {
+      lnurlErrorStr = translate("lnurl.commentRequired")
+    } else {
+      lnurlErrorStr = ""
+    }
+    setLnurlError(lnurlErrorStr)
+  }, [paymentType, primaryAmount, secondaryAmount, lnurlPay, memo, setLnurlError])
+
   const destinationInputRightIcon = () => {
     if (
       (UsernameValidation.hasValidLength(destination) && paymentType === "username") ||
@@ -640,38 +680,6 @@ export const SendBitcoinScreenJSX: ScreenType = ({
       }
     } else if (paymentType === "lightning" || paymentType === "onchain") {
       return <Icon name="remove-circle-outline" onPress={reset} size={30} />
-    } else if (paymentType === "lnurl") {
-      let lnurlErrorStr = ""
-      if (
-        primaryAmount &&
-        primaryAmount.currency === "BTC" &&
-        primaryAmount.value > lnurlPay.maxSendable
-      ) {
-        lnurlErrorStr = translate("lnurl.overLimit")
-      } else if (
-        primaryAmount &&
-        primaryAmount.currency === "BTC" &&
-        primaryAmount.value < lnurlPay.minSendable
-      ) {
-        lnurlErrorStr = translate("lnurl.underLimit")
-      } else if (
-        secondaryAmount &&
-        secondaryAmount.currency === "BTC" &&
-        secondaryAmount.value > lnurlPay.maxSendable
-      ) {
-        lnurlErrorStr = translate("lnurl.overLimit")
-      } else if (
-        secondaryAmount &&
-        secondaryAmount.currency === "BTC" &&
-        secondaryAmount.value < lnurlPay.minSendable
-      ) {
-        lnurlErrorStr = translate("lnurl.underLimit")
-      } else if (lnurlPay.commentAllowed && memo === "") {
-        lnurlErrorStr = translate("lnurl.commentRequired")
-      } else {
-        lnurlErrorStr = ""
-      }
-      setLnurlError(lnurlErrorStr)
     } else if (destination.length === 0) {
       return (
         <Icon
