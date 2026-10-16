@@ -20,6 +20,7 @@ import useFee from "./use-fee"
 import { palette } from "../../theme/palette"
 import { useThemeColor } from "../../theme/useThemeColor"
 import useMainQuery from "@app/hooks/use-main-query"
+import { invoiceMatchesAmount } from "../../utils/bolt11"
 
 export const LN_PAY = gql`
   mutation lnInvoicePaymentSend($input: LnInvoicePaymentInput!) {
@@ -113,6 +114,15 @@ export const SendBitcoinConfirmationScreen = ({
     from: referenceAmount.currency,
     to: "BTC",
   })
+
+  const invalidLnurlInvoice = useMemo(
+    () =>
+      paymentType === "lnurl" &&
+      (amountless ||
+        referenceAmount.currency !== "BTC" ||
+        !invoiceMatchesAmount(invoice, referenceAmount.value * 1000)),
+    [paymentType, amountless, invoice, referenceAmount.currency, referenceAmount.value],
+  )
 
   const fee = useFee({
     walletId: myDefaultWalletId,
@@ -320,6 +330,12 @@ export const SendBitcoinConfirmationScreen = ({
   }
 
   const pay = async () => {
+    if (invalidLnurlInvoice) {
+      setErrs([{ message: translate("lnurl.invalidInvoiceAmount") }])
+      setStatus(Status.ERROR)
+      return
+    }
+
     if (paymentType === "username") {
       payWallet()
       return
@@ -378,6 +394,10 @@ export const SendBitcoinConfirmationScreen = ({
   const balance = satBalance
 
   const errorMessage = useMemo(() => {
+    if (invalidLnurlInvoice) {
+      return translate("lnurl.invalidInvoiceAmount")
+    }
+
     if (totalAmount > balance) {
       return translate("SendBitcoinConfirmationScreen.totalExceed", {
         balance: formatCurrencyAmount({ sats: balance, currency: primaryCurrency }),
@@ -385,13 +405,13 @@ export const SendBitcoinConfirmationScreen = ({
     }
 
     return ""
-  }, [balance, formatCurrencyAmount, primaryCurrency, totalAmount])
+  }, [invalidLnurlInvoice, balance, formatCurrencyAmount, primaryCurrency, totalAmount])
 
   let destination = ""
   if (paymentType === "username") {
     destination = username
   } else if (paymentType === "lightning" || paymentType === "lnurl") {
-    destination = `${invoice.substr(0, 18)}...${invoice.substr(-18)}`
+    destination = `${invoice?.substr(0, 18)}...${invoice?.substr(-18)}`
   } else if (paymentType === "onchain") {
     destination = address
   }

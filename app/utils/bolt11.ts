@@ -1,5 +1,22 @@
 import * as lightningPayReq from "bolt11"
 
+export const invoiceMatchesAmount = (invoice: unknown, amountMsat: number): boolean => {
+  if (
+    typeof invoice !== "string" ||
+    !Number.isSafeInteger(amountMsat) ||
+    amountMsat <= 0
+  ) {
+    return false
+  }
+
+  try {
+    // Compare the exact millisatoshi string; rounding to sats could hide a mismatch.
+    return lightningPayReq.decode(invoice).millisatoshis === amountMsat.toString()
+  } catch {
+    return false
+  }
+}
+
 // helper for bolt11
 
 // export const getHashFromInvoice = (request) => {
