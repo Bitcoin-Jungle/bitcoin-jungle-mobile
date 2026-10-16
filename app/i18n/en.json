@@ -2655,7 +2655,7 @@
     "invalidInvoiceAmount": "Payment blocked: the service returned an invalid invoice or an amount that does not match your request.",
     "overLimit": "You can't send more than max amount",
     "underLimit": "You can't send less than min amount",
-    "commentRequired": "Comment required",
+    "commentTooLong": "The note must be %{limit} characters or fewer.",
     "viewPrintable": "View Printable Version"
   },
   "nfc": {

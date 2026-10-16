@@ -2,6 +2,10 @@ import * as React from "react"
 import { act, create, ReactTestRenderer } from "react-test-renderer"
 import { Button } from "react-native-elements"
 import { Alert } from "react-native"
+import {
+  URL as NativeURL,
+  URLSearchParams as NativeURLSearchParams,
+} from "react-native/Libraries/Blob/URL"
 import { getParams } from "js-lnurl"
 import { toastShow } from "@app/utils/toast"
 import { InputPayment } from "@app/components/input-payment"
@@ -76,6 +80,8 @@ jest.mock("@app/utils/parsing", () => ({
         }
       : { valid: false },
 }))
+// Use the same browser-compatible URL package Metro bundles on the device.
+jest.mock("url", () => jest.requireActual("url/"))
 jest.mock("js-lnurl", () => ({ getParams: jest.fn() }))
 jest.mock("@app/utils/storage/secureStorage", () => ({
   getIsSendLockEnabled: async () => false,
@@ -110,6 +116,8 @@ jest.mock("react-native-haptic-feedback", () => ({ trigger: jest.fn() }))
 let tree: ReactTestRenderer
 const navigation = { navigate: jest.fn(), pop: jest.fn(), isFocused: () => true }
 const originalFetch = global.fetch
+const originalURL = global.URL
+const originalURLSearchParams = global.URLSearchParams
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -120,6 +128,8 @@ beforeEach(() => {
 afterEach(async () => {
   if (tree) await act(async () => tree.unmount())
   global.fetch = originalFetch
+  global.URL = originalURL
+  global.URLSearchParams = originalURLSearchParams
   jest.useRealTimers()
   jest.restoreAllMocks()
 })
@@ -534,4 +544,90 @@ describe("recipient changes during LNURL payments", () => {
     await act(async () => lookup.reject(new Error("unmounted")))
     expect(toastShow).not.toHaveBeenCalled()
   })
+})
+
+describe("Lightning addresses on the React Native URL runtime", () => {
+  beforeEach(() => {
+    global.URL = NativeURL as unknown as typeof URL
+    global.URLSearchParams = NativeURLSearchParams as unknown as typeof URLSearchParams
+    expect(() =>
+      new global.URL("https://example.com").searchParams.set("amount", "1"),
+    ).toThrow("URLSearchParams.set is not implemented")
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ pr: makeInvoice("151000") }),
+    })
+  })
+
+  it("allows an empty optional comment", async () => {
+    await showSend("test@example.com", { ...paramsFor(), commentAllowed: 255 })
+    expect(tree.root.findByType(Button).props.title).toBe("common.send")
+    expect(tree.root.findByType(Button).props.disabled).toBe(false)
+    await act(async () => tree.root.findByType(Button).props.onPress())
+    const request = new originalURL((global.fetch as jest.Mock).mock.calls[0][0])
+    expect(request.searchParams.has("comment")).toBe(false)
+    expect(navigation.navigate).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    "https://example.com/cb",
+    "https://example.com/cb/?token=keep%2Bthis&amount=999&amount=888#receipt",
+  ])("requests an invoice without native URLSearchParams.set: %s", async (callback) => {
+    await showSend("test@example.com", paramsFor(callback))
+    await act(async () => tree.root.findByType(Button).props.onPress())
+    expect(global.fetch).toHaveBeenCalledTimes(1)
+    const request = new originalURL((global.fetch as jest.Mock).mock.calls[0][0])
+    expect(request.searchParams.getAll("amount")).toEqual(["151000"])
+    expect(request.pathname).toBe(new originalURL(callback).pathname)
+    expect(request.hash).toBe(new originalURL(callback).hash)
+    expect(request.searchParams.get("token")).toBe(
+      new originalURL(callback).searchParams.get("token"),
+    )
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      "sendBitcoinConfirmation",
+      expect.objectContaining({
+        referenceAmount: { value: 151, currency: "BTC" },
+      }),
+    )
+  })
+
+  it.each([0, undefined, 255])(
+    "sends a note only when the service allows it (%s)",
+    async (commentAllowed) => {
+      const memo = "Gracias & café + pura vida!"
+      await showSend("test@example.com", {
+        ...paramsFor("https://example.com/cb?comment=old&comment=older"),
+        commentAllowed,
+      })
+      await act(async () =>
+        tree.root.findAllByType(GaloyInput)[1].props.onChangeText(memo),
+      )
+      await act(async () => tree.root.findByType(Button).props.onPress())
+      const request = new originalURL((global.fetch as jest.Mock).mock.calls[0][0])
+      expect(request.searchParams.getAll("comment")).toEqual(commentAllowed ? [memo] : [])
+      expect(navigation.navigate).toHaveBeenCalledWith(
+        "sendBitcoinConfirmation",
+        expect.objectContaining({ memo }),
+      )
+    },
+  )
+})
+
+it("enforces the service's maximum note length and allows shortening the note", async () => {
+  await showSend("test@example.com", { ...paramsFor(), commentAllowed: 3 })
+  expect(tree.root.findAllByType(GaloyInput)[1].props.maxLength).toBe(3)
+  await act(async () => tree.root.findAllByType(GaloyInput)[1].props.onChangeText("four"))
+  expect(tree.root.findByType(Button).props.title).toBe("lnurl.commentTooLong")
+  expect(tree.root.findByType(Button).props.disabled).toBe(true)
+  await act(async () => tree.root.findAllByType(GaloyInput)[1].props.onChangeText("ok"))
+  expect(tree.root.findByType(Button).props.title).toBe("common.send")
+  expect(tree.root.findByType(Button).props.disabled).toBe(false)
+})
+
+it("shows callback network errors instead of silently stopping", async () => {
+  global.fetch = jest.fn().mockRejectedValue(new Error("offline"))
+  await showSend("test@example.com")
+  await act(async () => tree.root.findByType(Button).props.onPress())
+  expect(tree.root.findByType(Button).props.title).toBe("errors.network.server")
+  expect(navigation.navigate).not.toHaveBeenCalled()
 })

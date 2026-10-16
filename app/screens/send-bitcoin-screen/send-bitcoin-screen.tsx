@@ -10,6 +10,7 @@ import EStyleSheet from "react-native-extended-stylesheet"
 // import Icon from "react-native-vector-icons/Ionicons"
 import debounce from "lodash.debounce"
 import { getParams, LNURLPayParams } from "js-lnurl"
+import { format as formatUrl, parse as parseUrl } from "url"
 
 import { InputPayment } from "../../components/input-payment"
 import { GaloyInput } from "../../components/galoy-input"
@@ -422,9 +423,16 @@ export const SendBitcoinScreen: ScreenType = ({
     isSendLockEnabled,
   ])
 
-  const fetchInvoice = async (url) => {
+  const fetchInvoice = async (callback: string, amountMsat: number, comment?: string) => {
     try {
-      const response = await fetch(url.replace('/&', '&'))
+      // Reuse the URL package used by the payment parser. React Native's global
+      // URLSearchParams.set is unimplemented, unlike the URL API in Node tests.
+      const url = parseUrl(callback, true)
+      url.search = null
+      url.query.amount = amountMsat.toString()
+      delete url.query.comment
+      if (comment) url.query.comment = comment
+      const response = await fetch(formatUrl(url))
       if (!response.ok) {
         return {
           status: "ERROR",
@@ -461,10 +469,11 @@ export const SendBitcoinScreen: ScreenType = ({
 
       const proceedWithLnurlPayment = async () => {
         if (!isCurrentRecipient()) return
-        const url = new URL(lnurlPay.callback)
-        url.searchParams.set('amount', amountMsat.toString())
-        url.searchParams.append('comment', memo)
-        const lnurlInvoice = await fetchInvoice(url.toString().replace(/\/\?/, '?'))
+        const lnurlInvoice = await fetchInvoice(
+          lnurlPay.callback,
+          amountMsat,
+          lnurlPay.commentAllowed > 0 ? memo : undefined,
+        )
         if (!isCurrentRecipient()) return
 
         if (lnurlInvoice?.status === "ERROR") {
@@ -705,8 +714,8 @@ export const SendBitcoinScreenJSX: ScreenType = ({
       secondaryAmount.value < lnurlPay.minSendable
     ) {
       lnurlErrorStr = translate("lnurl.underLimit")
-    } else if (lnurlPay.commentAllowed && memo === "") {
-      lnurlErrorStr = translate("lnurl.commentRequired")
+    } else if (lnurlPay.commentAllowed > 0 && memo.length > lnurlPay.commentAllowed) {
+      lnurlErrorStr = translate("lnurl.commentTooLong", { limit: lnurlPay.commentAllowed })
     } else {
       lnurlErrorStr = ""
     }
@@ -829,6 +838,11 @@ export const SendBitcoinScreenJSX: ScreenType = ({
               </View>
             }
             value={memo}
+            maxLength={
+              paymentType === "lnurl" && lnurlPay.commentAllowed > 0
+                ? lnurlPay.commentAllowed
+                : undefined
+            }
             onChangeText={(value) => setMemo(value)}
             selectTextOnFocus
           />
